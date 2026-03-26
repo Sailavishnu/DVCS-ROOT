@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<StackPane fx:id="rootPane" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="com.dvcs.client.controller.LoginSignupController"
+           stylesheets="@../css/styles.css" styleClass="app-root">
+
+    <children>
+        <!-- Root HBox: fixed spacing, centered -->
+        <HBox fx:id="mainContainer" alignment="CENTER" spacing="60.0">
+
+            <!-- FORM PANEL (left) -->
+            <StackPane fx:id="formPane" prefWidth="420.0" prefHeight="520.0" maxWidth="420.0" maxHeight="520.0"
+                       styleClass="panel form-panel">
+                <children>
+                    <VBox fx:id="formContent" alignment="CENTER_LEFT" spacing="15.0">
+                        <padding>
+                            <Insets top="30" right="30" bottom="30" left="30"/>
+                        </padding>
+
+                        <!-- Title -->
+                        <Label fx:id="formTitleLabel" text="Welcome back" styleClass="form-title"/>
+                        <Label fx:id="formSubtitleLabel" wrapText="true" styleClass="form-subtitle"
+                               text="Please enter your credentials to access the workspace."/>
+
+                        <!-- Forms stacked so switching doesn't change layout -->
+                        <StackPane fx:id="formStack">
+                            <!-- LOGIN FORM -->
+                            <VBox fx:id="loginForm" spacing="12.0">
+                                <Label text="USERNAME" styleClass="field-label"/>
+                                <TextField fx:id="loginUsernameField" promptText="@ alex.rivers"/>
+
+                                <Label text="PASSWORD" styleClass="field-label"/>
+                                <PasswordField fx:id="loginPasswordField" promptText="••••••••"/>
+
+                                <Button fx:id="loginButton" text="Enter Workspace" styleClass="primary-button" maxWidth="Infinity"
+                                        onAction="#onLogin"/>
+                            </VBox>
+
+                            <!-- SIGNUP FORM -->
+                            <VBox fx:id="signupForm" spacing="12.0" visible="false" managed="false">
+                                <Label text="USERNAME" styleClass="field-label"/>
+                                <TextField fx:id="signupUsernameField" promptText="creative_director"/>
+
+                                <Label text="PASSWORD" styleClass="field-label"/>
+                                <PasswordField fx:id="signupPasswordField" promptText="Create a password"/>
+
+                                <Label text="CONFIRM PASSWORD" styleClass="field-label"/>
+                                <PasswordField fx:id="signupConfirmPasswordField" promptText="Re-enter password"/>
+
+                                <Button fx:id="signupButton" text="Create Account" styleClass="primary-button" maxWidth="Infinity"
+                                        onAction="#onSignup"/>
+                            </VBox>
+                        </StackPane>
+
+                        <!-- Error message -->
+                        <Label fx:id="errorLabel" textFill="red" styleClass="error-label" wrapText="true"/>
+
+                        <!-- Mode switch text -->
+                        <HBox spacing="4.0">
+                            <Label fx:id="switchPromptLabel" text="Don't have an account?"/>
+                            <Label fx:id="switchActionLabel" text="Sign Up" styleClass="link-label" onMouseClicked="#onSwitchMode"/>
+                        </HBox>
+                    </VBox>
+                </children>
+            </StackPane>
+
+            <!-- INFO PANEL (right) -->
+            <StackPane fx:id="infoPane" prefWidth="420.0" prefHeight="520.0" maxWidth="420.0" maxHeight="520.0"
+                       styleClass="panel info-panel">
+                <children>
+                    <VBox fx:id="infoContent" alignment="CENTER" spacing="20.0">
+                        <padding>
+                            <Insets top="30" right="30" bottom="30" left="30"/>
+                        </padding>
+
+                        <Label fx:id="infoTitleLabel" text="Crafting Digital Masterpieces." styleClass="info-title" wrapText="true"/>
+                        <Label fx:id="infoDescriptionLabel" styleClass="info-description" wrapText="true"
+                               text="Access your editorial-grade workspace. Manage collections, analyze performance, and refine your creative vision with functional sophistication."/>
+
+                        <!-- Placeholder for image / GIF -->
+                        <Region prefWidth="260.0" prefHeight="160.0" styleClass="image-placeholder"/>
+                    </VBox>
+                </children>
+            </StackPane>
+
+        </HBox>
+    </children>
+</StackPane>

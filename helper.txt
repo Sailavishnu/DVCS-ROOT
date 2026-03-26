@@ -1,0 +1,72 @@
+# Helper: Compile & Run JavaFX Client (Windows)
+
+## 1. Prerequisites
+
+1. Install JDK 17 or newer (from https://adoptium.net or Oracle).
+2. Download JavaFX SDK for Windows from https://openjfx.io.
+3. Unzip JavaFX SDK to a folder, e.g. C:\javafx-sdk-23.
+4. Set environment variable (optional but recommended):
+   - JAVAFX_HOME=C:\javafx-sdk-23
+
+MongoDB and related Java drivers will be added later when backend integration is implemented.
+
+---
+
+## 2. Compile the JavaFX client (from dvcs-root)
+
+### PowerShell (recommended)
+
+Run this **in PowerShell** from `d:\dvcs-root`:
+
+javac --module-path "$env:JAVAFX_HOME\lib" --add-modules javafx.controls,javafx.fxml -d client\out client\src\main\java\com\dvcs\client\MainApp.java client\src\main\java\com\dvcs\client\controller\LoginSignupController.java
+
+### CMD (optional alternative)
+
+If you prefer **Command Prompt (cmd.exe)** instead of PowerShell, you can use:
+
+javac --module-path "%JAVAFX_HOME%\lib" --add-modules javafx.controls,javafx.fxml -d client\out ^
+  client\src\main\java\com\dvcs\client\MainApp.java ^
+  client\src\main\java\com\dvcs\client\controller\LoginSignupController.java
+
+---
+
+## 3. Run the JavaFX client
+
+### PowerShell (recommended)
+
+From `d:\dvcs-root`:
+
+java --enable-native-access=javafx.graphics --module-path "$env:JAVAFX_HOME\lib" --add-modules javafx.controls,javafx.fxml -cp "client\out;client\src\main\resources" com.dvcs.client.MainApp
+
+### CMD (optional alternative)
+
+In Command Prompt (cmd.exe):
+
+java --enable-native-access=javafx.graphics --module-path "%JAVAFX_HOME%\lib" --add-modules javafx.controls,javafx.fxml -cp "client\out;client\src\main\resources" com.dvcs.client.MainApp
+
+---
+
+## 4. Notes
+
+- Always run these commands from the dvcs-root directory.
+- If you add more Java files later, either recompile them explicitly or use a build tool (Maven/Gradle).
+- When we wire MongoDB, we will likely switch to Maven/Gradle and this file can be updated with simpler mvn / gradlew commands.
+
+
+
+
+
+
+runni
+
+
+--Compile
+
+javac --module-path "$env:JAVAFX_HOME\lib" --add-modules javafx.controls,javafx.fxml `
+  -d client\out `
+  client\src\main\java\com\dvcs\client\MainApp.java `
+  client\src\main\java\com\dvcs\client\controller\LoginSignupController.java
+
+--run 
+
+java --enable-native-access=javafx.graphics --module-path "$env:JAVAFX_HOME\lib" --add-modules javafx.controls,javafx.fxml -cp "client\out;client\src\main\resources" com.dvcs.client.MainApp
