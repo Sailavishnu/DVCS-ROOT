@@ -1,0 +1,7 @@
+D:\dvcs-root\client\src\main\java\com\dvcs\client\auth\AuthExampleMain.java
+D:\dvcs-root\client\src\main\java\com\dvcs\client\auth\db\MongoConnection.java
+D:\dvcs-root\client\src\main\java\com\dvcs\client\auth\model\User.java
+D:\dvcs-root\client\src\main\java\com\dvcs\client\auth\repo\UserRepository.java
+D:\dvcs-root\client\src\main\java\com\dvcs\client\auth\service\UserService.java
+D:\dvcs-root\client\src\main\java\com\dvcs\client\controller\LoginSignupController.java
+D:\dvcs-root\client\src\main\java\com\dvcs\client\MainApp.java

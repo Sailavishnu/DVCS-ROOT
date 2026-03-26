@@ -1,6 +1,8 @@
 package com.dvcs.client.controller;
 
+import com.dvcs.client.auth.service.UserService;
 import javafx.animation.*;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.input.MouseEvent;
@@ -9,6 +11,9 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
 import javafx.util.Duration;
+
+import java.util.Objects;
+import java.util.function.Consumer;
 
 public class LoginSignupController {
 
@@ -78,6 +83,17 @@ public class LoginSignupController {
     private boolean loginMode = true; // true = login, false = signup
     private boolean isAnimating = false;
 
+    private UserService userService;
+    private Consumer<String> onAuthSuccess;
+
+    public void setUserService(UserService userService) {
+        this.userService = Objects.requireNonNull(userService, "userService");
+    }
+
+    public void setOnAuthSuccess(Consumer<String> onAuthSuccess) {
+        this.onAuthSuccess = onAuthSuccess;
+    }
+
     @FXML
     private void initialize() {
         setActiveForm(loginMode);
@@ -108,8 +124,45 @@ public class LoginSignupController {
             return;
         }
 
-        // TODO: integrate with AuthService / MongoDB later
-        System.out.println("Login with username=" + username);
+        if (userService == null) {
+            showError("Auth service is not configured.");
+            return;
+        }
+
+        loginButton.setDisable(true);
+        signupButton.setDisable(true);
+
+        Task<UserService.AuthResult> task = new Task<>() {
+            @Override
+            protected UserService.AuthResult call() {
+                return userService.login(username, password);
+            }
+        };
+
+        task.setOnSucceeded(e -> {
+            loginButton.setDisable(false);
+            signupButton.setDisable(false);
+
+            UserService.AuthResult result = task.getValue();
+            if (result != null && result.success()) {
+                if (onAuthSuccess != null) {
+                    onAuthSuccess.accept(username);
+                }
+            } else {
+                showError(result == null ? "Login failed" : result.message());
+            }
+        });
+
+        task.setOnFailed(e -> {
+            loginButton.setDisable(false);
+            signupButton.setDisable(false);
+            showError("Login failed");
+            task.getException().printStackTrace();
+        });
+
+        Thread t = new Thread(task, "login-task");
+        t.setDaemon(true);
+        t.start();
     }
 
     @FXML
@@ -129,8 +182,45 @@ public class LoginSignupController {
             return;
         }
 
-        // TODO: integrate with AuthService / MongoDB later
-        System.out.println("Signup with username=" + username);
+        if (userService == null) {
+            showError("Auth service is not configured.");
+            return;
+        }
+
+        loginButton.setDisable(true);
+        signupButton.setDisable(true);
+
+        Task<UserService.AuthResult> task = new Task<>() {
+            @Override
+            protected UserService.AuthResult call() {
+                return userService.signup(username, password);
+            }
+        };
+
+        task.setOnSucceeded(e -> {
+            loginButton.setDisable(false);
+            signupButton.setDisable(false);
+
+            UserService.AuthResult result = task.getValue();
+            if (result != null && result.success()) {
+                if (onAuthSuccess != null) {
+                    onAuthSuccess.accept(username);
+                }
+            } else {
+                showError(result == null ? "Signup failed" : result.message());
+            }
+        });
+
+        task.setOnFailed(e -> {
+            loginButton.setDisable(false);
+            signupButton.setDisable(false);
+            showError("Signup failed");
+            task.getException().printStackTrace();
+        });
+
+        Thread t = new Thread(task, "signup-task");
+        t.setDaemon(true);
+        t.start();
     }
 
     @FXML

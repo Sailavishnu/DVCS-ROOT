@@ -8,7 +8,7 @@
 4. Set environment variable (optional but recommended):
    - JAVAFX_HOME=C:\javafx-sdk-23
 
-MongoDB and related Java drivers will be added later when backend integration is implemented.
+MongoDB auth commands are included in section 5.
 
 ---
 
@@ -48,25 +48,47 @@ java --enable-native-access=javafx.graphics --module-path "%JAVAFX_HOME%\lib" --
 
 ## 4. Notes
 
-- Always run these commands from the dvcs-root directory.
-- If you add more Java files later, either recompile them explicitly or use a build tool (Maven/Gradle).
-- When we wire MongoDB, we will likely switch to Maven/Gradle and this file can be updated with simpler mvn / gradlew commands.
+- Always run the commands in sections 2–3 from the dvcs-root directory.
+- If you see “Location is not set.”, ensure `client\src\main\resources` is on the runtime classpath.
+- If you see `module not found: javafx.controls` or `javafx.fxml`, your JavaFX `lib` path is wrong (check section 5 `Test-Path` line).
+- Prefer the section below to avoid relative-path and PowerShell line-continuation issues.
+
+## 5. Copy/paste commands (PowerShell, robust)
+
+### A) JavaFX (compile + run)
+
+# Run these from ANY directory
+$DVCS_ROOT = "D:\\dvcs-root"
+
+# JavaFX SDK lib folder (recommended: set JAVAFX_HOME once)
+$javafxLib = "$env:JAVAFX_HOME\lib"
+
+# If `$env:JAVAFX_HOME` is NOT set, set $javafxLib to your full JavaFX `lib` folder, e.g.
+# $javafxLib = "C:\\Users\\vishn\\Downloads\\openjfx-26_windows-x64_bin-sdk\\javafx-sdk-26\\lib"
+
+# Quick sanity check (this MUST be True)
+Test-Path "$javafxLib\javafx.controls.jar"
+
+# Compile ALL .java (includes UI + auth)
+javac --module-path "$javafxLib" --add-modules javafx.controls,javafx.fxml -cp "$DVCS_ROOT\client\lib\*" -d "$DVCS_ROOT\client\out" (Get-ChildItem "$DVCS_ROOT\client\src\main\java" -Recurse -Filter *.java).FullName
+
+# Run JavaFX UI (includes FXML/CSS/resources on classpath)
+# Optional: point the UI at your MongoDB (defaults to localhost + DVCS)
+# $env:MONGODB_URI = "mongodb://10.210.141.117:27017"
+# $env:MONGODB_DB = "DVCS"
+
+java --enable-native-access=javafx.graphics --module-path "$javafxLib" --add-modules javafx.controls,javafx.fxml -cp "$DVCS_ROOT\client\out;$DVCS_ROOT\client\src\main\resources;$DVCS_ROOT\client\lib\*" com.dvcs.client.MainApp
+
+### B) MongoDB auth demo (compile + run)
+
+# Remote MongoDB (set env vars)
+$env:MONGODB_URI = "mongodb://10.210.141.117:27017"
+$env:MONGODB_DB = "DVCS"
+
+# Compile only the auth package
+javac -cp "$DVCS_ROOT\client\lib\*" -d "$DVCS_ROOT\client\out" (Get-ChildItem "$DVCS_ROOT\client\src\main\java\com\dvcs\client\auth" -Recurse -Filter *.java).FullName
+
+# Run auth demo
+java -cp "$DVCS_ROOT\client\out;$DVCS_ROOT\client\lib\*" com.dvcs.client.auth.AuthExampleMain
 
 
-
-
-
-
-runni
-
-
---Compile
-
-javac --module-path "$env:JAVAFX_HOME\lib" --add-modules javafx.controls,javafx.fxml `
-  -d client\out `
-  client\src\main\java\com\dvcs\client\MainApp.java `
-  client\src\main\java\com\dvcs\client\controller\LoginSignupController.java
-
---run 
-
-java --enable-native-access=javafx.graphics --module-path "$env:JAVAFX_HOME\lib" --add-modules javafx.controls,javafx.fxml -cp "client\out;client\src\main\resources" com.dvcs.client.MainApp
