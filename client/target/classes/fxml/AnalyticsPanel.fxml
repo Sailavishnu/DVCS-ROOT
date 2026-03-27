@@ -8,18 +8,19 @@
 <?import javafx.scene.layout.VBox?>
 
 <VBox xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.dvcs.client.dashboard.analytics.AnalyticsPanelController"
-      spacing="12" prefWidth="250" styleClass="analytics-panel">
+    fx:controller="com.dvcs.client.dashboard.analytics.AnalyticsPanelController"
+    spacing="20" prefWidth="300" styleClass="analytics-panel">
 
     <padding>
-        <Insets top="14" right="14" bottom="14" left="14"/>
+        <Insets top="12" right="12" bottom="12" left="12"/>
     </padding>
 
     <Label text="Workspace Activity" styleClass="panel-title"/>
 
     <Label fx:id="taglineLabel" text="Keep your docs moving." styleClass="panel-tagline" wrapText="true"/>
 
-    <LineChart fx:id="activityChart" animated="false" legendVisible="false" createSymbols="false" styleClass="activity-chart" prefHeight="160">
+    <LineChart fx:id="activityChart" animated="false" legendVisible="false" createSymbols="false"
+               styleClass="activity-chart" minHeight="260" prefHeight="280" VBox.vgrow="ALWAYS">
         <xAxis>
             <CategoryAxis fx:id="xAxis"/>
         </xAxis>
@@ -28,7 +29,7 @@
         </yAxis>
     </LineChart>
 
-    <VBox spacing="10">
+    <VBox spacing="14">
         <VBox styleClass="stat-tile" spacing="2">
             <Label text="Commits" styleClass="stat-label"/>
             <Label fx:id="commitsValue" text="—" styleClass="stat-value"/>

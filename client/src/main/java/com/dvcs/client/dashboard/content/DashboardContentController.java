@@ -5,19 +5,23 @@ import com.dvcs.client.dashboard.workspace.WorkspaceCardController;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
-import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
+import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.VBox;
+import javafx.scene.layout.GridPane;
 
 import java.io.IOException;
 import java.net.URL;
 
 public class DashboardContentController {
+
+    private static final double MY_WORKSPACE_CARD_HEIGHT = 140;
+    private static final double COLLAB_CARD_HEIGHT = MY_WORKSPACE_CARD_HEIGHT * 2.0;
+    private static final double ANALYTICS_PANEL_WIDTH = 340;
 
     @FXML
     private HBox mainCard;
@@ -30,6 +34,9 @@ public class DashboardContentController {
         mainCard.getChildren().setAll(buildWorkspaceSection(), loadAnalyticsPanel());
         if (!mainCard.getChildren().isEmpty()) {
             HBox.setHgrow(mainCard.getChildren().getFirst(), Priority.ALWAYS);
+            if (mainCard.getChildren().size() > 1) {
+                HBox.setHgrow(mainCard.getChildren().get(1), Priority.NEVER);
+            }
         }
 
         // Size the overlay card relative to the available window area.
@@ -48,69 +55,122 @@ public class DashboardContentController {
         if (availableW <= 0 || availableH <= 0)
             return;
 
-        double cardW = Math.max(940, availableW * 0.84);
-        double cardH = Math.max(560, availableH * 0.72);
+        // Dominant card: ~90% width, ~75-80% height
+        double cardW = Math.max(1040, availableW * 0.90);
+        double cardH = Math.max(640, availableH * 0.78);
 
         mainCard.setPrefWidth(Math.min(cardW, availableW - 24));
         mainCard.setPrefHeight(Math.min(cardH, availableH - 24));
 
         // Center card and overlap top purple band and bottom white section.
         AnchorPane.setLeftAnchor(mainCard, (availableW - mainCard.getPrefWidth()) / 2.0);
-        AnchorPane.setTopAnchor(mainCard, Math.max(18, (availableH - mainCard.getPrefHeight()) / 2.0 - 26));
+        // Move card UP so it overlaps into the purple section (~25%)
+        AnchorPane.setTopAnchor(mainCard, Math.max(140, 290 - (mainCard.getPrefHeight() * 0.25)));
     }
 
     private Node buildWorkspaceSection() {
-        VBox left = new VBox(14);
-        left.getStyleClass().add("workspace-section");
+        VBox workspaceContent = new VBox(22);
+        workspaceContent.getStyleClass().add("workspace-section");
 
-        // Header row
-        HBox header = new HBox(12);
-        Label title = new Label("My Workspace");
-        title.getStyleClass().add("section-title");
+        VBox workspaceGlass = new VBox(22);
+        workspaceGlass.getStyleClass().addAll("glass", "workspace-glass");
 
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
+        // 3-column grid:
+        // [ My Workspace | My Workspace | Collaborative Workspace ]
+        GridPane workspaceRegion = new GridPane();
+        workspaceRegion.getStyleClass().add("workspace-region");
+        workspaceRegion.setHgap(30);
+        workspaceRegion.setVgap(30);
 
-        Button create = new Button("Create New Workspace");
-        create.getStyleClass().add("primary-button");
+        ColumnConstraints c0 = new ColumnConstraints();
+        ColumnConstraints c1 = new ColumnConstraints();
+        ColumnConstraints c2 = new ColumnConstraints();
+        c0.setPercentWidth(33.33);
+        c1.setPercentWidth(33.33);
+        c2.setPercentWidth(33.34);
+        workspaceRegion.getColumnConstraints().setAll(c0, c1, c2);
 
-        header.getChildren().addAll(title, spacer, create);
+        VBox myWorkspaceBox = new VBox(14);
+        Label myTitle = new Label("My Workspace");
+        myTitle.getStyleClass().add("section-title");
 
-        // Grid
-        FlowPane grid = new FlowPane();
-        grid.getStyleClass().add("workspace-grid");
-        grid.setHgap(12);
-        grid.setVgap(12);
+        GridPane myGrid = new GridPane();
+        myGrid.getStyleClass().add("workspace-gridpane");
+        myGrid.setHgap(30);
+        myGrid.setVgap(30);
 
-        grid.getChildren().addAll(
-                createWorkspaceCard("Design Docs"),
-                createWorkspaceCard("API Specs"),
-                createWorkspaceCard("Sprint Notes"),
-                createWorkspaceCard("Release Assets"),
-                createWorkspaceCard("User Research"),
-                createWorkspaceCard("QA Reports"));
+        myGrid.add(createWorkspaceCard("Design Docs"), 0, 0);
+        myGrid.add(createWorkspaceCard("API Specs"), 1, 0);
+        myGrid.add(createWorkspaceCard("Sprint Notes"), 0, 1);
+        myGrid.add(createWorkspaceCard("Release Assets"), 1, 1);
 
-        // Collaborative section
+        myWorkspaceBox.getChildren().addAll(myTitle, myGrid);
+
+        VBox collabBox = new VBox(14);
         Label collabTitle = new Label("Collaborative Workspace");
         collabTitle.getStyleClass().add("section-title");
 
-        FlowPane collabGrid = new FlowPane();
-        collabGrid.getStyleClass().add("workspace-grid");
-        collabGrid.setHgap(12);
-        collabGrid.setVgap(12);
-        collabGrid.getChildren().addAll(
-                createWorkspaceCard("Team Alpha"),
-                createWorkspaceCard("Team Beta"),
-                createWorkspaceCard("Team Gamma"));
+        VBox collabList = new VBox(25);
+        collabList.getStyleClass().add("collab-list");
+        Node alpha = createCollaborativeRow("Team Alpha");
+        Node beta = createCollaborativeRow("Team Beta");
+        Node gamma = createCollaborativeRow("Team Gamma");
+        Node delta = createCollaborativeRow("Team Delta");
 
-        left.getChildren().addAll(header, grid, collabTitle, collabGrid);
-        VBox.setVgrow(grid, Priority.NEVER);
-        VBox.setVgrow(collabGrid, Priority.NEVER);
-        return left;
+        // 2:1 height ratio vs a single My Workspace card
+        if (alpha instanceof javafx.scene.layout.Region ar) {
+            ar.setPrefHeight(COLLAB_CARD_HEIGHT);
+            ar.setMinHeight(COLLAB_CARD_HEIGHT);
+        }
+        if (beta instanceof javafx.scene.layout.Region br) {
+            br.setPrefHeight(COLLAB_CARD_HEIGHT);
+            br.setMinHeight(COLLAB_CARD_HEIGHT);
+        }
+
+        if (gamma instanceof javafx.scene.layout.Region gr) {
+            gr.setPrefHeight(COLLAB_CARD_HEIGHT);
+            gr.setMinHeight(COLLAB_CARD_HEIGHT);
+        }
+        if (delta instanceof javafx.scene.layout.Region dr) {
+            dr.setPrefHeight(COLLAB_CARD_HEIGHT);
+            dr.setMinHeight(COLLAB_CARD_HEIGHT);
+        }
+
+        collabList.getChildren().addAll(alpha, beta, gamma, delta);
+        collabBox.getChildren().addAll(collabTitle, collabList);
+
+        workspaceRegion.add(myWorkspaceBox, 0, 0, 2, 1);
+        workspaceRegion.add(collabBox, 2, 0);
+
+        workspaceGlass.getChildren().addAll(workspaceRegion);
+        workspaceContent.getChildren().addAll(workspaceGlass);
+
+        ScrollPane scrollPane = new ScrollPane(workspaceContent);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scrollPane.getStyleClass().add("workspace-scroll");
+
+        return scrollPane;
+    }
+
+    private Node createCollaborativeRow(String title) {
+        Node node = loadFxmlNode("/fxml/WorkspaceCard.fxml");
+        node.getStyleClass().add("collab-row");
+        Object controller = node.getProperties().get("fx:controller");
+        if (controller instanceof WorkspaceCardController cardController) {
+            cardController.setTitle(title);
+        }
+        return node;
     }
 
     private Node loadAnalyticsPanel() {
         Node node = loadFxmlNode("/fxml/AnalyticsPanel.fxml");
+        node.getStyleClass().add("glass-analytics");
+        if (node instanceof javafx.scene.layout.Region region) {
+            region.setPrefWidth(ANALYTICS_PANEL_WIDTH);
+            region.setMinWidth(ANALYTICS_PANEL_WIDTH);
+            region.setMaxWidth(ANALYTICS_PANEL_WIDTH);
+        }
         Object controller = node.getProperties().get("fx:controller");
         if (controller instanceof AnalyticsPanelController analytics) {
             analytics.setStats(42, 6);
@@ -120,6 +180,10 @@ public class DashboardContentController {
 
     private Node createWorkspaceCard(String title) {
         Node node = loadFxmlNode("/fxml/WorkspaceCard.fxml");
+        if (node instanceof javafx.scene.layout.Region region) {
+            region.setPrefHeight(MY_WORKSPACE_CARD_HEIGHT);
+            region.setMinHeight(MY_WORKSPACE_CARD_HEIGHT);
+        }
         Object controller = node.getProperties().get("fx:controller");
         if (controller instanceof WorkspaceCardController cardController) {
             cardController.setTitle(title);

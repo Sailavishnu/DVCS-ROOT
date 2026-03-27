@@ -4,7 +4,7 @@
 
 /* Navbar */
 .navbar {
-    -fx-background-color: linear-gradient(to right, #14123a, #24165f);
+    -fx-background-color: linear-gradient(to right, #0F52BA, #1E90FF);
 }
 
 .navbar-title {
@@ -14,21 +14,18 @@
 }
 
 .navbar-search {
-    -fx-background-radius: 999;
+    -fx-background-radius: 20;
     -fx-background-color: rgba(255, 255, 255, 0.18);
     -fx-text-fill: rgba(255, 255, 255, 0.96);
     -fx-prompt-text-fill: rgba(255, 255, 255, 0.78);
     -fx-padding: 8 14 8 14;
     -fx-min-width: 220;
-    -fx-border-radius: 999;
+    -fx-border-radius: 20;
     -fx-border-width: 1;
     -fx-border-color: rgba(255, 255, 255, 0.22);
 }
 
-.navbar-search:focused {
-    -fx-background-color: rgba(255, 255, 255, 0.24);
-    -fx-border-color: rgba(255, 255, 255, 0.35);
-}
+
 
 .navbar-icon {
     -fx-text-fill: rgba(255, 255, 255, 0.95);
@@ -55,7 +52,7 @@
 }
 
 .dashboard-bg-top {
-    -fx-background-color: linear-gradient(to right, #1e1b4b, #2b1c7a);
+    -fx-background-color: linear-gradient(to right, #0F52BA, #1E90FF);
 }
 
 .dashboard-bg-bottom {
@@ -75,13 +72,18 @@
 }
 
 .card {
-    /* Glass-morphism (JavaFX can't blur behind, so we fake it with translucent fill + border) */
-    -fx-background-color: rgba(255, 255, 255, 0.78);
-    -fx-background-radius: 18;
-    -fx-border-radius: 18;
+    -fx-background-color: transparent;
+    -fx-background-radius: 20;
+}
+
+/* Reusable glass panel */
+.glass {
+    -fx-background-color: rgba(255, 255, 255, 0.82);
+    -fx-background-radius: 20;
+    -fx-border-radius: 20;
     -fx-border-width: 1;
     -fx-border-color: rgba(255, 255, 255, 0.55);
-    -fx-effect: dropshadow(gaussian, rgba(15, 23, 42, 0.22), 32, 0.22, 0, 12);
+    -fx-effect: dropshadow(gaussian, rgba(15, 23, 42, 0.26), 40, 0.22, 0, 16);
 }
 
 #mainCard {
@@ -89,8 +91,18 @@
     -fx-min-width: 860;
 }
 
+.hero-box {
+    -fx-padding: 0;
+}
+
+.hero-actions {
+    -fx-padding: 6 0 0 0;
+}
+
+
+
 .workspace-section {
-    -fx-padding: 4;
+    -fx-padding: 0;
 }
 
 .section-title {
@@ -100,15 +112,67 @@
 }
 
 .primary-button {
-    -fx-background-radius: 999;
+    -fx-background-radius: 20;
     -fx-background-color: #2563eb;
     -fx-text-fill: white;
     -fx-font-weight: 700;
     -fx-padding: 8 14 8 14;
 }
 
-.primary-button:hover {
-    -fx-background-color: #1d4ed8;
+.secondary-button {
+    -fx-background-radius: 20;
+    -fx-background-color: rgba(255, 255, 255, 0.16);
+    -fx-text-fill: rgba(255, 255, 255, 0.92);
+    -fx-font-weight: 800;
+    -fx-padding: 8 14 8 14;
+    -fx-border-radius: 20;
+    -fx-border-width: 1;
+    -fx-border-color: rgba(255, 255, 255, 0.30);
+}
+
+
+
+
+.pill-button {
+    -fx-min-height: 34;
+}
+
+.workspace-hero {
+    -fx-padding: 8 4 6 4;
+}
+
+.hero-title {
+    -fx-font-size: 28px;
+    -fx-font-weight: 900;
+    -fx-text-fill: rgba(255, 255, 255, 0.95);
+}
+
+.hero-subtitle {
+    -fx-font-size: 13px;
+    -fx-font-weight: 700;
+    -fx-text-fill: rgba(255, 255, 255, 0.75);
+}
+
+.workspace-glass {
+    -fx-padding: 24;
+}
+
+.glass-analytics {
+    -fx-background-color: rgba(255, 255, 255, 0.78);
+    -fx-background-radius: 20;
+    -fx-border-radius: 20;
+    -fx-border-width: 1;
+    -fx-border-color: rgba(255, 255, 255, 0.50);
+    -fx-effect: dropshadow(gaussian, rgba(15, 23, 42, 0.22), 34, 0.22, 0, 14);
+}
+
+/* Ensure analytics aligns to top of main card */
+.glass-analytics {
+    -fx-padding: 0;
+}
+
+.analytics-panel {
+    -fx-padding: 16;
 }
 
 .workspace-grid {
@@ -117,21 +181,56 @@
 
 .workspace-card {
     -fx-background-color: #f9fafb;
-    -fx-background-radius: 16;
-    -fx-border-radius: 16;
+    -fx-background-radius: 18;
+    -fx-border-radius: 18;
     -fx-border-width: 1;
     -fx-border-color: rgba(15, 23, 42, 0.08);
-    -fx-pref-width: 190;
-    -fx-min-width: 190;
+    -fx-pref-width: 200;
+    -fx-min-width: 200;
+    -fx-padding: 18 18 18 18;
 }
 
-.workspace-card:hover {
-    -fx-background-color: #f3f4f6;
+
+
+.workspace-gridpane {
+    -fx-padding: 10 0 10 0;
+}
+
+.workspace-region {
+    -fx-padding: 0;
+}
+
+.collab-list {
+    -fx-padding: 6 0 0 0;
+}
+
+.collab-row {
+    -fx-pref-width: -1;
+    -fx-min-width: -1;
+}
+
+/* Remove any motion/animation by avoiding hover transforms */
+.workspace-card {
+    -fx-effect: null;
+}
+
+.workspace-scroll {
+    -fx-background-color: transparent;
+}
+
+.workspace-scroll > .viewport {
+    -fx-background-color: transparent;
+}
+
+.workspace-flow {
+    -fx-padding: 6 0 0 0;
 }
 
 .workspace-icon {
     -fx-fill: rgba(37, 99, 235, 0.18);
     -fx-stroke: rgba(37, 99, 235, 0.35);
+    -fx-scale-x: 1.12;
+    -fx-scale-y: 1.12;
 }
 
 .workspace-title {
@@ -140,11 +239,8 @@
 }
 
 .analytics-panel {
-    -fx-background-color: rgba(255, 255, 255, 0.72);
-    -fx-background-radius: 16;
-    -fx-border-radius: 16;
-    -fx-border-width: 1;
-    -fx-border-color: rgba(255, 255, 255, 0.45);
+    /* Uses glass-analytics wrapper now */
+    -fx-background-color: transparent;
 }
 
 .panel-title {
@@ -170,8 +266,16 @@
 }
 
 .activity-chart .chart-plot-background {
-    -fx-background-color: rgba(255, 255, 255, 0.62);
+    -fx-background-color: rgba(255, 255, 255, 0.92);
     -fx-background-radius: 14;
+}
+
+.activity-chart .axis {
+    -fx-tick-label-fill: rgba(17, 24, 39, 0.72);
+}
+
+.activity-chart .axis-label {
+    -fx-text-fill: rgba(17, 24, 39, 0.72);
 }
 
 .activity-chart .chart-vertical-grid-lines,
@@ -181,16 +285,17 @@
 
 .activity-chart .chart-series-line {
     -fx-stroke: #2563eb;
-    -fx-stroke-width: 2.2px;
+    -fx-stroke-width: 3.0px;
 }
 
 .stat-tile {
-    -fx-background-radius: 14;
+    -fx-background-radius: 16;
     -fx-background-color: white;
-    -fx-border-radius: 14;
+    -fx-border-radius: 16;
     -fx-border-width: 1;
     -fx-border-color: rgba(15, 23, 42, 0.08);
     -fx-padding: 10;
+    -fx-effect: dropshadow(gaussian, rgba(15, 23, 42, 0.10), 16, 0.16, 0, 8);
 }
 
 .stat-label {

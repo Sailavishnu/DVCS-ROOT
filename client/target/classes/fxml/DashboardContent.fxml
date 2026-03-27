@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Pane?>
@@ -14,15 +16,26 @@
     <children>
         <!-- Background: purple top band + white bottom area -->
         <VBox styleClass="dashboard-bg">
-            <Pane fx:id="topBand" minHeight="200" prefHeight="200" maxHeight="200" styleClass="dashboard-bg-top"/>
+            <Pane fx:id="topBand" minHeight="290" prefHeight="290" maxHeight="290" styleClass="dashboard-bg-top"/>
             <Pane fx:id="bottomBand" VBox.vgrow="ALWAYS" styleClass="dashboard-bg-bottom"/>
         </VBox>
 
-        <!-- Overlay card -->
+        <!-- Overlay hero + card -->
         <AnchorPane fx:id="overlayRoot" styleClass="overlay-root">
-            <HBox fx:id="mainCard" spacing="18" styleClass="card">
+            <!-- Hero (must stay in purple area, not inside the card) -->
+            <VBox fx:id="heroBox" spacing="6" styleClass="hero-box"
+                  AnchorPane.leftAnchor="52" AnchorPane.topAnchor="44">
+                <Label fx:id="heroTitle" text="Resume Workspace" styleClass="hero-title"/>
+                <Label fx:id="heroSubtitle" text="Quick activities" styleClass="hero-subtitle"/>
+                <HBox spacing="15" styleClass="hero-actions">
+                    <Button fx:id="newWorkspaceButton" text="New Workspace" styleClass="primary-button"/>
+                    <Button fx:id="importFilesButton" text="Import Files" styleClass="secondary-button"/>
+                </HBox>
+            </VBox>
+
+            <HBox fx:id="mainCard" spacing="14" styleClass="card">
                 <padding>
-                    <Insets top="18" right="18" bottom="18" left="18"/>
+                    <Insets top="14" right="10" bottom="20" left="20"/>
                 </padding>
             </HBox>
         </AnchorPane>
