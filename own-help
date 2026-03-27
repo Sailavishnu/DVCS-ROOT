@@ -1,0 +1,44 @@
+setx JAVAFX_HOME "C:\Users\vishn\Downloads\openjfx-26_windows-x64_bin-sdk\javafx-sdk-26"
+
+
+
+setting true
+
+
+Test-Path "$env:JAVAFX_HOME\lib\javafx.controls.jar"
+
+
+PS D:\dvcs-root> $javafxLib = "$env:JAVAFX_HOME\lib"
+>>
+PS D:\dvcs-root> Test-Path "$javafxLib\javafx.controls.jar"
+>>
+True
+PS D:\dvcs-root> Test-Path "$javafxLib\javafx.fxml.jar"
+>>
+True
+PS D:\dvcs-root> $DVCS_ROOT = "D:\dvcs-root"
+>>
+PS D:\dvcs-root> javac --module-path "$javafxLib" --add-modules javafx.controls,javafx.fxml -cp "$DVCS_ROOT\client\lib\*" -d "$DVCS_ROOT\client\out" (Get-ChildItem "$DVCS_ROOT\client\src\main\java" -Recurse -Filter *.java).FullName
+>>
+PS D:\dvcs-root> java --enable-native-access=javafx.graphics --module-path "$javafxLib" --add-modules javafx.controls,javafx.fxml -cp "$DVCS_ROOT\client\out;$DVCS_ROOT\client\src\main\resources;$DVCS_ROOT\client\lib\*" com.dvcs.client.MainApp
+>>
+Mar 27, 2026 4:18:17 AM com.mongodb.internal.diagnostics.logging.Loggers shouldUseSLF4J
+WARNING: SLF4J not found on the classpath.  Logging is disabled for the 'org.mongodb.driver' component
+PS D:\dvcs-root> git restore .
+PS D:\dvcs-root> git status
+On branch main
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+        client/target/classes/com/
+        client/target/classes/fxml/landing.fxml
+        own-help
+
+nothing added to commit but untracked files present (use "git add" to track)    
+PS D:\dvcs-root> javac --module-path "$javafxLib" --add-modules javafx.controls,javafx.fxml -cp "$DVCS_ROOT\client\lib\*" -d "$DVCS_ROOT\client\out" (Get-ChildItem "$DVCS_ROOT\client\src\main\java" -Recurse -Filter *.java).FullName
+>> 
+PS D:\dvcs-root> java --enable-native-access=javafx.graphics --module-path "$javafxLib" --add-modules javafx.controls,javafx.fxml -cp "$DVCS_ROOT\client\out;$DVCS_ROOT\client\src\main\resources;$DVCS_ROOT\client\lib\*" com.dvcs.client.MainApp 
+>>
+Mar 27, 2026 4:22:05 AM com.mongodb.internal.diagnostics.logging.Loggers shouldUseSLF4J
+WARNING: SLF4J not found on the classpath.  Logging is disabled for the 'org.mongodb.driver' component
+PS D:\dvcs-root> 
+ *  History restored 

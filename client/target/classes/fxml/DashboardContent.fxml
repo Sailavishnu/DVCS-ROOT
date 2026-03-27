@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<StackPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="com.dvcs.client.dashboard.content.DashboardContentController"
+           styleClass="dashboard-stack">
+
+    <children>
+        <!-- Background: purple top band + white bottom area -->
+        <VBox styleClass="dashboard-bg">
+            <Pane fx:id="topBand" minHeight="200" prefHeight="200" maxHeight="200" styleClass="dashboard-bg-top"/>
+            <Pane fx:id="bottomBand" VBox.vgrow="ALWAYS" styleClass="dashboard-bg-bottom"/>
+        </VBox>
+
+        <!-- Overlay card -->
+        <AnchorPane fx:id="overlayRoot" styleClass="overlay-root">
+            <HBox fx:id="mainCard" spacing="18" styleClass="card">
+                <padding>
+                    <Insets top="18" right="18" bottom="18" left="18"/>
+                </padding>
+            </HBox>
+        </AnchorPane>
+    </children>
+
+    <padding>
+        <Insets top="18" right="18" bottom="18" left="18"/>
+    </padding>
+</StackPane>

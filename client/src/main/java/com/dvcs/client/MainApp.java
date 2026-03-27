@@ -3,8 +3,8 @@ package com.dvcs.client;
 import com.dvcs.client.auth.db.MongoConnection;
 import com.dvcs.client.auth.repo.UserRepository;
 import com.dvcs.client.auth.service.UserService;
-import com.dvcs.client.controller.LandingController;
 import com.dvcs.client.controller.LoginSignupController;
+import com.dvcs.client.dashboard.MainLayoutController;
 import com.mongodb.client.MongoDatabase;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -58,20 +58,30 @@ public class MainApp extends Application {
     }
 
     private void showLanding(Stage stage, String username) throws Exception {
-        URL fxmlUrl = getClass().getResource("/fxml/landing.fxml");
+        URL fxmlUrl = getClass().getResource("/fxml/MainLayout.fxml");
         if (fxmlUrl == null) {
             throw new IllegalStateException(
-                    "FXML '/fxml/landing.fxml' not found on classpath. "
+                    "FXML '/fxml/MainLayout.fxml' not found on classpath. "
                             + "Include 'client/src/main/resources' (or copy resources into your output folder) when running.");
         }
 
         FXMLLoader loader = new FXMLLoader(fxmlUrl);
         Parent root = loader.load();
 
-        LandingController controller = loader.getController();
-        controller.setWelcomeMessage("Welcome" + (username == null || username.isBlank() ? "" : ", " + username) + "");
+        MainLayoutController controller = loader.getController();
+        controller.setUsername(username);
 
         stage.setScene(new Scene(root));
+
+        // Ensure the dashboard occupies the full window after login.
+        // Fullscreen can be blocked by OS/window-manager policies, so we also maximize.
+        stage.setMaximized(true);
+        try {
+            stage.setFullScreenExitHint("");
+            stage.setFullScreen(true);
+        } catch (Exception ignored) {
+            // Ignore and rely on maximized.
+        }
     }
 
     private static UserService createUserService() {

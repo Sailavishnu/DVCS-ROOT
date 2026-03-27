@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.shape.Circle?>
+
+<HBox xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.dvcs.client.dashboard.navbar.NavbarController"
+      alignment="CENTER_LEFT" spacing="14" prefHeight="60"
+      styleClass="navbar">
+
+    <padding>
+        <Insets top="10" right="18" bottom="10" left="18"/>
+    </padding>
+
+    <Label text="DVCS" styleClass="navbar-title"/>
+
+    <Region HBox.hgrow="ALWAYS"/>
+
+    <TextField fx:id="searchField" promptText="Search" styleClass="navbar-search"/>
+
+    <Label text="&#x1F514;" styleClass="navbar-icon"/>
+
+    <Circle radius="14" styleClass="navbar-avatar"/>
+    <Label fx:id="usernameLabel" text="Profile" styleClass="navbar-username"/>
+</HBox>
