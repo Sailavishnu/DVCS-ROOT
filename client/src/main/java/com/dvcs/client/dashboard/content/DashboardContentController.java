@@ -3,9 +3,11 @@ package com.dvcs.client.dashboard.content;
 import com.dvcs.client.dashboard.analytics.AnalyticsPanelController;
 import com.dvcs.client.dashboard.data.WorkspaceDetails;
 import com.dvcs.client.dashboard.data.WorkspaceSummary;
+import com.dvcs.client.auth.db.MongoConnection;
 import com.dvcs.client.dashboard.service.WorkspaceService;
 import com.dvcs.client.dashboard.workspace.WorkspaceCardController;
-import com.dvcs.client.dashboard.workspace.WorkspaceDetailsController;
+import com.dvcs.client.workspacepage.controller.WorkspaceController;
+import com.mongodb.client.MongoDatabase;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
@@ -66,6 +68,9 @@ public class DashboardContentController {
     private WorkspaceService workspaceService;
     private ObjectId currentUserId;
     private String currentUsername;
+
+    private com.dvcs.client.workspacepage.service.WorkspaceService workspacePageService;
+    private com.dvcs.client.workspacepage.service.FileService workspaceFileService;
 
     private final List<WorkspaceSummary> ownedWorkspaces = new ArrayList<>();
     private Set<ObjectId> highlightedWorkspaceIds = Set.of();
@@ -399,65 +404,84 @@ public class DashboardContentController {
         if (workspaceService == null || workspace == null) {
             return;
         }
-        try {
-            WorkspaceDetails details = workspaceService.loadWorkspaceDetails(workspace.workspaceId());
-
-            URL url = DashboardContentController.class.getResource("/fxml/WorkspaceDetails.fxml");
-            if (url == null) {
-                throw new IllegalStateException("FXML '/fxml/WorkspaceDetails.fxml' not found on classpath");
-            }
-
-            FXMLLoader loader = new FXMLLoader(url);
-            Parent root = loader.load();
-            WorkspaceDetailsController controller = loader.getController();
-            controller.setDetails(details);
-
-            Stage stage = new Stage();
-            stage.setTitle(workspace.displayName());
-            stage.initModality(Modality.APPLICATION_MODAL);
-            Window owner = currentWindow();
-            if (owner != null) {
-                stage.initOwner(owner);
-            }
-            stage.setScene(new Scene(root));
-            stage.show();
-        } catch (Exception e) {
-            showError("Failed to open workspace: " + e.getMessage());
-        }
+        openWorkspacePage(workspace.workspaceId(), workspace.displayName(), null, null);
     }
 
     public void openWorkspaceDetailsForSearch(ObjectId workspaceId, String selectedFolder, String selectedFile) {
         if (workspaceService == null || workspaceId == null) {
             return;
         }
-        try {
-            WorkspaceDetails details = workspaceService.loadWorkspaceDetails(workspaceId);
 
-            URL url = DashboardContentController.class.getResource("/fxml/WorkspaceDetails.fxml");
+        try {
+            WorkspaceSummary summary = ownedWorkspaces.stream()
+                    .filter(w -> w.workspaceId().equals(workspaceId))
+                    .findFirst()
+                    .orElse(null);
+            String title = summary == null ? "Workspace" : summary.displayName();
+            openWorkspacePage(workspaceId, title, selectedFolder, selectedFile);
+        } catch (Exception e) {
+            showError("Failed to open workspace: " + e.getMessage());
+        }
+    }
+
+    private void openWorkspacePage(ObjectId workspaceId, String title, String selectedFolder, String selectedFile) {
+        try {
+            URL url = DashboardContentController.class.getResource("/fxml/WorkspacePage.fxml");
             if (url == null) {
-                throw new IllegalStateException("FXML '/fxml/WorkspaceDetails.fxml' not found on classpath");
+                throw new IllegalStateException("FXML '/fxml/WorkspacePage.fxml' not found on classpath");
             }
+
+            ensureWorkspacePageServices();
 
             FXMLLoader loader = new FXMLLoader(url);
             Parent root = loader.load();
-            WorkspaceDetailsController controller = loader.getController();
-            controller.setDetails(details, selectedFolder, selectedFile);
+            WorkspaceController controller = loader.getController();
+            controller.configure(
+                    workspacePageService,
+                    workspaceFileService,
+                    workspaceId,
+                    currentUserId,
+                    selectedFolder,
+                    selectedFile);
 
             Stage stage = new Stage();
-            String title = details.workspaceName() == null || details.workspaceName().isBlank()
-                    ? "Workspace"
-                    : details.workspaceName();
-            stage.setTitle(title);
-            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.setTitle(title == null || title.isBlank() ? "Workspace" : title);
             Window owner = currentWindow();
             if (owner != null) {
                 stage.initOwner(owner);
             }
             stage.setScene(new Scene(root));
+            stage.setMaximized(true);
+            stage.setFullScreenExitHint("");
+            stage.setFullScreen(true);
             stage.show();
         } catch (Exception e) {
             showError("Failed to open workspace: " + e.getMessage());
         }
+    }
+
+    private void ensureWorkspacePageServices() {
+        if (workspacePageService != null && workspaceFileService != null) {
+            return;
+        }
+
+        String dbName = System.getenv("MONGODB_DB");
+        if (dbName == null || dbName.isBlank()) {
+            dbName = "DVCS";
+        }
+
+        MongoDatabase database = MongoConnection.getDatabase(dbName);
+        com.dvcs.client.workspacepage.dao.WorkspaceDAO workspaceDAO = new com.dvcs.client.workspacepage.dao.WorkspaceDAO(
+                database);
+        com.dvcs.client.workspacepage.dao.FileDAO fileDAO = new com.dvcs.client.workspacepage.dao.FileDAO(database);
+
+        com.dvcs.client.workspacepage.service.CommitService commitService = new com.dvcs.client.workspacepage.service.CommitService(
+                fileDAO);
+        this.workspaceFileService = new com.dvcs.client.workspacepage.service.FileService(fileDAO, commitService);
+        this.workspacePageService = new com.dvcs.client.workspacepage.service.WorkspaceService(
+                workspaceDAO,
+                fileDAO,
+                commitService);
     }
 
     private Node createCollaborativeRow(String title) {

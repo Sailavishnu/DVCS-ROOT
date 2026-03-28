@@ -756,3 +756,118 @@
     -fx-font-size: 19px;
     -fx-font-weight: 900;
 }
+
+.workspace-page-root {
+    -fx-background-color: #ffffff;
+}
+
+.workspace-topbar {
+    -fx-background-color: #0f52ba;
+    -fx-background-radius: 0 0 16 16;
+}
+
+.workspace-topbar-title,
+.workspace-topbar-name {
+    -fx-text-fill: white;
+    -fx-font-weight: 800;
+}
+
+.workspace-topbar-title {
+    -fx-font-size: 18px;
+}
+
+.workspace-topbar-name {
+    -fx-font-size: 14px;
+}
+
+.workspace-main-container {
+    -fx-background-color: #f8fbff;
+}
+
+.workspace-left-panel,
+.workspace-center-panel,
+.workspace-right-panel {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 18;
+    -fx-border-radius: 18;
+    -fx-border-color: rgba(15, 82, 186, 0.16);
+    -fx-border-width: 1;
+    -fx-padding: 12;
+    -fx-effect: dropshadow(gaussian, rgba(14, 39, 96, 0.12), 14, 0.12, 0, 4);
+}
+
+.workspace-panel-title {
+    -fx-text-fill: #12439c;
+    -fx-font-size: 15px;
+    -fx-font-weight: 800;
+}
+
+.workspace-file-name {
+    -fx-text-fill: #0e2d77;
+    -fx-font-size: 14px;
+    -fx-font-weight: 800;
+}
+
+.workspace-meta-label {
+    -fx-text-fill: #4864a1;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+}
+
+.workspace-readme-section {
+    -fx-padding: 8 0 0 0;
+}
+
+.workspace-readme-title {
+    -fx-text-fill: #1a4eb1;
+    -fx-font-size: 12px;
+    -fx-font-weight: 800;
+}
+
+.workspace-settings-button {
+    -fx-background-color: #1f4fd0;
+    -fx-text-fill: white;
+    -fx-background-radius: 12;
+}
+
+.workspace-settings-root {
+    -fx-background-color: #f7faff;
+}
+
+.workspace-settings-menu {
+    -fx-pref-width: 180;
+    -fx-min-width: 180;
+    -fx-max-width: 180;
+}
+
+.workspace-settings-menu .button {
+    -fx-background-color: white;
+    -fx-border-color: rgba(15, 82, 186, 0.2);
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+    -fx-font-weight: 700;
+}
+
+.workspace-settings-content {
+    -fx-background-color: white;
+    -fx-background-radius: 14;
+    -fx-border-radius: 14;
+    -fx-border-color: rgba(15, 82, 186, 0.15);
+    -fx-padding: 14;
+}
+
+.workspace-settings-pane {
+    -fx-padding: 8;
+}
+
+.workspace-settings-title {
+    -fx-text-fill: #12439c;
+    -fx-font-size: 15px;
+    -fx-font-weight: 800;
+}
+
+.workspace-danger-button {
+    -fx-background-color: #c62828;
+    -fx-text-fill: white;
+    -fx-background-radius: 10;
+}

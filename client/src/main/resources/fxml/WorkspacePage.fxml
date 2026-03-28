@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.TreeView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Priority?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane fx:id="root" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.dvcs.client.workspacepage.controller.WorkspaceController"
+            stylesheets="@../css/dashboard.css" styleClass="workspace-page-root">
+
+    <top>
+        <HBox spacing="12" alignment="CENTER_LEFT" styleClass="workspace-topbar">
+            <padding>
+                <Insets top="14" right="18" bottom="14" left="18"/>
+            </padding>
+            <Label text="Workspace" styleClass="workspace-topbar-title"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label fx:id="workspaceNameHeader" text="Workspace Name" styleClass="workspace-topbar-name"/>
+        </HBox>
+    </top>
+
+    <center>
+        <HBox fx:id="mainContainer" spacing="16" styleClass="workspace-main-container">
+            <padding>
+                <Insets top="16" right="16" bottom="16" left="16"/>
+            </padding>
+
+            <VBox fx:id="leftPanel" spacing="10" styleClass="workspace-left-panel" HBox.hgrow="ALWAYS">
+                <Label text="Files" styleClass="workspace-panel-title"/>
+                <TreeView fx:id="fileTreeView" VBox.vgrow="ALWAYS"/>
+
+                <VBox fx:id="readmeSection" spacing="6" styleClass="workspace-readme-section" managed="false" visible="false">
+                    <Label text="README.md" styleClass="workspace-readme-title"/>
+                    <TextArea fx:id="readmeTextArea" editable="false" wrapText="true" prefHeight="140"/>
+                </VBox>
+            </VBox>
+
+            <VBox fx:id="centerPanel" spacing="10" styleClass="workspace-center-panel" HBox.hgrow="ALWAYS">
+                <HBox spacing="10" alignment="CENTER_LEFT" styleClass="workspace-file-meta">
+                    <Label fx:id="fileNameLabel" text="No file selected" styleClass="workspace-file-name"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Button fx:id="editButton" text="Edit" onAction="#onEditToggle"/>
+                </HBox>
+
+                <Label fx:id="lastCommitMessageLabel" text="No commit metadata" styleClass="workspace-meta-label"/>
+                <Label fx:id="lastCommitTimeLabel" text="No commits yet" styleClass="workspace-meta-label"/>
+
+                <TextArea fx:id="fileEditor" editable="false" wrapText="false" VBox.vgrow="ALWAYS"/>
+
+                <HBox spacing="10" alignment="CENTER_LEFT" styleClass="workspace-commit-bar">
+                    <TextField fx:id="commitMessageField" promptText="Commit message" HBox.hgrow="ALWAYS"/>
+                    <Button fx:id="commitButton" text="Commit" onAction="#onCommit"/>
+                </HBox>
+            </VBox>
+
+            <VBox fx:id="rightPanel" spacing="10" styleClass="workspace-right-panel" HBox.hgrow="ALWAYS">
+                <HBox spacing="8" alignment="CENTER_LEFT">
+                    <Label text="Workspace Info" styleClass="workspace-panel-title"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Button fx:id="settingsButton" text="⚙" onAction="#onOpenSettings" styleClass="workspace-settings-button"/>
+                </HBox>
+
+                <HBox spacing="8" alignment="CENTER_LEFT">
+                    <Label text="Total commits:" styleClass="workspace-meta-label"/>
+                    <Label fx:id="totalCommitsLabel" text="0" styleClass="workspace-file-name"/>
+                </HBox>
+
+                <Label text="Collaborators" styleClass="workspace-meta-label"/>
+                <ListView fx:id="collaboratorsList" VBox.vgrow="ALWAYS"/>
+            </VBox>
+        </HBox>
+    </center>
+</BorderPane>
