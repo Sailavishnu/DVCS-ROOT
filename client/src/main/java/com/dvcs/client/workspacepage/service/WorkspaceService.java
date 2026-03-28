@@ -1,21 +1,26 @@
 package com.dvcs.client.workspacepage.service;
 
+import java.nio.file.Path;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+
+import org.bson.Document;
+import org.bson.types.ObjectId;
+
 import com.dvcs.client.workspacepage.dao.FileDAO;
 import com.dvcs.client.workspacepage.dao.WorkspaceDAO;
 import com.dvcs.client.workspacepage.model.FileItemModel;
 import com.dvcs.client.workspacepage.model.FolderModel;
 import com.dvcs.client.workspacepage.model.UserModel;
 import com.dvcs.client.workspacepage.model.WorkspacePageModel;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import org.bson.Document;
-import org.bson.types.ObjectId;
 
 public final class WorkspaceService {
 
@@ -34,6 +39,7 @@ public final class WorkspaceService {
                 .orElseThrow(() -> new IllegalArgumentException("Workspace not found"));
 
         String workspaceName = safe(workspace.getString("workspaceName"));
+        String workspaceRootPath = resolveWorkspaceRoot(workspace);
 
         List<Document> folderDocs = workspaceDAO.findFoldersByWorkspaceId(workspaceId);
         List<ObjectId> folderIds = folderDocs.stream()
@@ -118,7 +124,73 @@ public final class WorkspaceService {
 
         int totalCommits = commitService.countWorkspaceCommits(workspaceId);
 
-        return new WorkspacePageModel(workspaceId, workspaceName, folders, collaborators, totalCommits, readmeContent);
+        return new WorkspacePageModel(
+                workspaceId,
+                workspaceName,
+                workspaceRootPath,
+                folders,
+                collaborators,
+                totalCommits,
+                readmeContent);
+    }
+
+    public String resolveWorkspaceRootPath(ObjectId workspaceId) {
+        Document workspace = workspaceDAO.findWorkspaceById(workspaceId)
+                .orElseThrow(() -> new IllegalArgumentException("Workspace not found"));
+        return resolveWorkspaceRoot(workspace);
+    }
+
+    public void ensureFolderMetadata(ObjectId workspaceId, ObjectId createdBy, String folderName) {
+        Objects.requireNonNull(workspaceId, "workspaceId");
+        Objects.requireNonNull(createdBy, "createdBy");
+
+        String normalizedFolderName = normalizeFolderName(folderName);
+        if (workspaceDAO.findFolderByWorkspaceIdAndName(workspaceId, normalizedFolderName).isPresent()) {
+            return;
+        }
+
+        workspaceDAO.insertFolder(new Document("_id", new ObjectId())
+                .append("workspaceId", workspaceId)
+                .append("folderName", normalizedFolderName)
+                .append("createdBy", createdBy)
+                .append("createdAt", new Date()));
+    }
+
+    public void ensureFileMetadata(ObjectId workspaceId, ObjectId createdBy, String folderName, String filename) {
+        Objects.requireNonNull(workspaceId, "workspaceId");
+        Objects.requireNonNull(createdBy, "createdBy");
+
+        String normalizedFolderName = normalizeFolderName(folderName);
+        String normalizedFilename = normalizeFileName(filename);
+
+        ObjectId folderId = workspaceDAO.findFolderByWorkspaceIdAndName(workspaceId, normalizedFolderName)
+                .map(doc -> doc.getObjectId("_id"))
+                .filter(Objects::nonNull)
+                .orElseGet(() -> workspaceDAO.insertFolder(new Document("_id", new ObjectId())
+                        .append("workspaceId", workspaceId)
+                        .append("folderName", normalizedFolderName)
+                        .append("createdBy", createdBy)
+                        .append("createdAt", new Date())));
+
+        if (fileDAO.findFileByFolderIdAndName(folderId, normalizedFilename).isPresent()) {
+            return;
+        }
+
+        String relativePath = "root".equalsIgnoreCase(normalizedFolderName)
+                ? normalizedFilename
+                : normalizedFolderName + "/" + normalizedFilename;
+
+        fileDAO.insertFile(new Document("_id", new ObjectId())
+                .append("folderId", folderId)
+                .append("filename", normalizedFilename)
+                .append("extension", extractExtension(normalizedFilename))
+                .append("path", new Document("relativePath", relativePath)
+                        .append("versionRoot", ".versions/" + normalizedFilename))
+                .append("createdBy", createdBy)
+                .append("createdAt", new Date())
+                .append("currentSnapshotId", 0)
+                .append("isLocked", false)
+                .append("lockedBy", null));
     }
 
     public Optional<FileItemModel> findFileByName(ObjectId workspaceId, String folderName, String filename) {
@@ -186,5 +258,44 @@ public final class WorkspaceService {
 
     private static String safe(String value) {
         return value == null ? "" : value;
+    }
+
+    private static String resolveWorkspaceRoot(Document workspace) {
+        Document storagePath = workspace.get("storagePath", Document.class);
+        if (storagePath == null) {
+            throw new IllegalStateException("Workspace storage path metadata is missing");
+        }
+
+        String absolutePath = safe(storagePath.getString("absolutePath"));
+        if (!absolutePath.isBlank()) {
+            return Path.of(absolutePath).toAbsolutePath().normalize().toString();
+        }
+
+        String drive = safe(storagePath.getString("drive"));
+        String directory = safe(storagePath.getString("directory"));
+        String folderName = safe(storagePath.getString("folderName"));
+        Path pathPart = directory.isBlank() ? Path.of(folderName) : Path.of(directory, folderName);
+        return Path.of(drive + pathPart).toAbsolutePath().normalize().toString();
+    }
+
+    private static String normalizeFolderName(String folderName) {
+        String normalized = folderName == null ? "root" : folderName.trim();
+        return normalized.isEmpty() ? "root" : normalized;
+    }
+
+    private static String normalizeFileName(String filename) {
+        String normalized = filename == null ? "" : filename.trim();
+        if (normalized.isEmpty()) {
+            throw new IllegalArgumentException("File name is required");
+        }
+        return normalized;
+    }
+
+    private static String extractExtension(String filename) {
+        int dotIndex = filename.lastIndexOf('.');
+        if (dotIndex < 0 || dotIndex == filename.length() - 1) {
+            return "";
+        }
+        return filename.substring(dotIndex + 1).toLowerCase(Locale.ROOT);
     }
 }

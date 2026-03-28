@@ -35,6 +35,15 @@ public final class FileDAO {
         return Optional.ofNullable(files.find(eq("_id", fileId)).first());
     }
 
+    public Optional<Document> findFileByFolderIdAndName(ObjectId folderId, String filename) {
+        return Optional.ofNullable(files.find(and(eq("folderId", folderId), eq("filename", filename))).first());
+    }
+
+    public ObjectId insertFile(Document fileDoc) {
+        files.insertOne(fileDoc);
+        return fileDoc.getObjectId("_id");
+    }
+
     public Optional<Document> findRootReadme(ObjectId workspaceId) {
         Document rootFolder = folders.find(and(eq("workspaceId", workspaceId), eq("folderName", "root"))).first();
         if (rootFolder == null) {

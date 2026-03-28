@@ -5,28 +5,39 @@ import com.dvcs.client.workspacepage.model.FolderModel;
 import com.dvcs.client.workspacepage.model.UserModel;
 import com.dvcs.client.workspacepage.model.WorkspacePageModel;
 import com.dvcs.client.workspacepage.service.FileService;
+import com.dvcs.client.workspacepage.service.FileSystemService;
 import com.dvcs.client.workspacepage.service.WorkspaceService;
-import java.util.HashMap;
+import com.dvcs.client.workspacepage.utils.DateTimeUtils;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+import java.util.Locale;
 import java.util.Objects;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.fxml.FXML;
-import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
-import javafx.scene.control.ComboBox;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableRow;
+import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
-import javafx.scene.control.TreeItem;
-import javafx.scene.control.TreeView;
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
-import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import org.bson.types.ObjectId;
@@ -40,46 +51,25 @@ public final class WorkspaceController {
     private Label workspaceNameHeader;
 
     @FXML
-    private HBox mainContainer;
+    private HBox actionBar;
 
     @FXML
-    private VBox leftPanel;
+    private VBox mainContainer;
 
     @FXML
-    private TreeView<String> fileTreeView;
+    private TableView<WorkspaceFileRow> fileTable;
 
     @FXML
-    private VBox readmeSection;
+    private TableColumn<WorkspaceFileRow, String> iconColumn;
 
     @FXML
-    private TextArea readmeTextArea;
+    private TableColumn<WorkspaceFileRow, String> nameColumn;
 
     @FXML
-    private VBox centerPanel;
+    private TableColumn<WorkspaceFileRow, String> lastCommitColumn;
 
     @FXML
-    private Label fileNameLabel;
-
-    @FXML
-    private Label lastCommitMessageLabel;
-
-    @FXML
-    private Label lastCommitTimeLabel;
-
-    @FXML
-    private Button editButton;
-
-    @FXML
-    private TextArea fileEditor;
-
-    @FXML
-    private TextField commitMessageField;
-
-    @FXML
-    private Button commitButton;
-
-    @FXML
-    private VBox rightPanel;
+    private TableColumn<WorkspaceFileRow, String> lastModifiedColumn;
 
     @FXML
     private Label totalCommitsLabel;
@@ -88,9 +78,12 @@ public final class WorkspaceController {
     private ListView<String> collaboratorsList;
 
     @FXML
-    private Button settingsButton;
+    private VBox readmeSection;
 
-    private final FileController fileController = new FileController();
+    @FXML
+    private TextArea readmeTextArea;
+
+    private final FileSystemService fileSystemService = new FileSystemService();
 
     private WorkspaceService workspaceService;
     private FileService fileService;
@@ -99,26 +92,36 @@ public final class WorkspaceController {
 
     private WorkspacePageModel currentModel;
     private FileItemModel selectedFile;
-    private boolean editing;
-
-    private final Map<TreeItem<String>, FileItemModel> fileByTreeItem = new HashMap<>();
+    private Path workspaceRoot;
 
     @FXML
     private void initialize() {
-        HBox.setHgrow(leftPanel, Priority.ALWAYS);
-        HBox.setHgrow(centerPanel, Priority.ALWAYS);
-        HBox.setHgrow(rightPanel, Priority.ALWAYS);
+        HBox.setHgrow(actionBar, Priority.ALWAYS);
+        VBox.setVgrow(fileTable, Priority.ALWAYS);
 
-        mainContainer.widthProperty().addListener((obs, oldWidth, newWidth) -> applyLayoutRatios());
-        applyLayoutRatios();
+        iconColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().icon()));
+        nameColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().displayName()));
+        lastCommitColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().lastCommitMessage()));
+        lastModifiedColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().lastModified()));
 
-        setEditing(false);
+        fileTable.setRowFactory(table -> {
+            TableRow<WorkspaceFileRow> row = new TableRow<>();
+            row.setOnMouseClicked(event -> {
+                WorkspaceFileRow item = row.getItem();
+                if (item == null) {
+                    return;
+                }
 
-        fileTreeView.getSelectionModel().selectedItemProperty().addListener((obs, oldItem, newItem) -> {
-            FileItemModel file = fileByTreeItem.get(newItem);
-            if (file != null) {
-                openFile(file);
-            }
+                selectedFile = item.file();
+                if (event.getClickCount() == 2) {
+                    openEditorWindow(item.file());
+                }
+            });
+            return row;
+        });
+
+        fileTable.getSelectionModel().selectedItemProperty().addListener((obs, oldItem, newItem) -> {
+            selectedFile = newItem == null ? null : newItem.file();
         });
     }
 
@@ -138,14 +141,136 @@ public final class WorkspaceController {
         preselectFile(preselectedFolder, preselectedFile);
     }
 
-    private void applyLayoutRatios() {
-        double width = mainContainer.getWidth();
-        if (width <= 0) {
+    @FXML
+    private void onCreateFolder() {
+        if (!ensureWorkspaceReady()) {
             return;
         }
-        leftPanel.setPrefWidth(width * 0.20);
-        centerPanel.setPrefWidth(width * 0.60);
-        rightPanel.setPrefWidth(width * 0.20);
+
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Create Folder");
+        dialog.setHeaderText("Create folder in workspace");
+        dialog.setContentText("Folder name:");
+        dialog.initOwner(resolveOwnerStage());
+
+        dialog.showAndWait()
+                .map(String::trim)
+                .filter(name -> !name.isEmpty())
+                .ifPresent(folderName -> {
+                    try {
+                        fileSystemService.createFolder(workspaceRoot, folderName);
+                        workspaceService.ensureFolderMetadata(workspaceId, currentUserId, folderName);
+                        reloadWorkspace();
+                        showInfo("Folder created");
+                    } catch (Exception e) {
+                        showError("Failed to create folder: " + e.getMessage());
+                    }
+                });
+    }
+
+    @FXML
+    private void onCreateFile() {
+        if (!ensureWorkspaceReady()) {
+            return;
+        }
+
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Create File");
+        dialog.setHeaderText("Create file in workspace root");
+        dialog.setContentText("File name:");
+        dialog.initOwner(resolveOwnerStage());
+
+        dialog.showAndWait()
+                .map(String::trim)
+                .filter(name -> !name.isEmpty())
+                .ifPresent(fileName -> {
+                    try {
+                        fileSystemService.createFile(workspaceRoot, fileName);
+                        workspaceService.ensureFileMetadata(workspaceId, currentUserId, "root", fileName);
+                        reloadWorkspace();
+                        showInfo("File created");
+                    } catch (Exception e) {
+                        showError("Failed to create file: " + e.getMessage());
+                    }
+                });
+    }
+
+    @FXML
+    private void onImportFile() {
+        if (!ensureWorkspaceReady()) {
+            return;
+        }
+
+        FileChooser chooser = new FileChooser();
+        chooser.setTitle("Import File");
+        File sourceFile = chooser.showOpenDialog(resolveOwnerStage());
+        if (sourceFile == null) {
+            return;
+        }
+
+        try {
+            Path importedPath = fileSystemService.importFile(workspaceRoot, sourceFile.toPath());
+            workspaceService.ensureFileMetadata(
+                    workspaceId,
+                    currentUserId,
+                    "root",
+                    importedPath.getFileName().toString());
+            reloadWorkspace();
+            showInfo("File imported into workspace");
+        } catch (Exception e) {
+            showError("Failed to import file: " + e.getMessage());
+        }
+    }
+
+    @FXML
+    private void onCommitRequested() {
+        if (selectedFile == null) {
+            showError("Select a file before committing");
+            return;
+        }
+
+        Dialog<String> dialog = new Dialog<>();
+        dialog.setTitle("Commit Changes");
+        dialog.setHeaderText("Enter commit message");
+        dialog.initModality(Modality.APPLICATION_MODAL);
+        Stage owner = resolveOwnerStage();
+        if (owner != null) {
+            dialog.initOwner(owner);
+        }
+
+        ButtonType confirmType = new ButtonType("Confirm", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(confirmType, ButtonType.CANCEL);
+        dialog.getDialogPane().getStyleClass().add("workspace-commit-dialog");
+
+        TextField commitMessageField = new TextField();
+        commitMessageField.setPromptText("Commit message");
+        dialog.getDialogPane().setContent(commitMessageField);
+
+        Button confirmButton = (Button) dialog.getDialogPane().lookupButton(confirmType);
+        confirmButton.disableProperty().bind(commitMessageField.textProperty().isEmpty());
+
+        dialog.setResultConverter(buttonType -> {
+            if (buttonType == confirmType) {
+                return commitMessageField.getText().trim();
+            }
+            return null;
+        });
+
+        dialog.showAndWait()
+                .filter(message -> message != null && !message.isBlank())
+                .ifPresent(this::commitSelectedFile);
+    }
+
+    private void commitSelectedFile(String commitMessage) {
+        try {
+            Path filePath = resolveFilePath(selectedFile);
+            String content = fileSystemService.readFile(filePath);
+            fileService.commit(selectedFile.fileId(), currentUserId, commitMessage, content);
+            reloadWorkspace();
+            showInfo("Commit saved");
+        } catch (Exception e) {
+            showError("Commit failed: " + e.getMessage());
+        }
     }
 
     private void reloadWorkspace() {
@@ -155,267 +280,173 @@ public final class WorkspaceController {
 
         collaboratorsList.getItems().setAll(currentModel.collaborators().stream().map(UserModel::username).toList());
 
-        String readme = currentModel.readmeContent();
-        boolean hasReadme = readme != null && !readme.isBlank();
-        readmeSection.setManaged(hasReadme);
-        readmeSection.setVisible(hasReadme);
-        readmeTextArea.setText(hasReadme ? readme : "");
-
-        buildTree();
-
-        if (selectedFile != null) {
-            // rebind selected file metadata after commit/reload
-            selectedFile = currentModel.folders().stream()
-                    .flatMap(folder -> folder.files().stream())
-                    .filter(file -> file.fileId().equals(selectedFile.fileId()))
-                    .findFirst()
-                    .orElse(null);
-            if (selectedFile != null) {
-                openFile(selectedFile);
-            }
-        }
+        workspaceRoot = fileSystemService.normalizeWorkspaceRoot(currentModel.workspaceRootPath());
+        populateFilesTable();
+        loadReadmeSection();
     }
 
-    private void buildTree() {
-        fileByTreeItem.clear();
-
-        TreeItem<String> rootItem = new TreeItem<>("Workspace");
-        rootItem.setExpanded(true);
-
+    private void populateFilesTable() {
+        List<WorkspaceFileRow> rows = new ArrayList<>();
         for (FolderModel folder : currentModel.folders()) {
-            TreeItem<String> folderItem = new TreeItem<>(folder.folderName());
-            folderItem.setExpanded(true);
             for (FileItemModel file : folder.files()) {
-                TreeItem<String> fileItem = new TreeItem<>(file.filename());
-                fileByTreeItem.put(fileItem, file);
-                folderItem.getChildren().add(fileItem);
+                Path filePath = resolveFilePath(file);
+                Instant modifiedAt = fileSystemService.getLastModified(filePath);
+                String modifiedLabel = modifiedAt == null
+                        ? DateTimeUtils.formatInstant(file.latestCommitAt())
+                        : formatRelative(modifiedAt);
+
+                String displayName = "root".equalsIgnoreCase(folder.folderName())
+                        ? file.filename()
+                        : folder.folderName() + "/" + file.filename();
+
+                rows.add(new WorkspaceFileRow(
+                        "FILE",
+                        displayName,
+                        file.latestCommitMessage(),
+                        modifiedLabel,
+                        file));
             }
-            rootItem.getChildren().add(folderItem);
         }
 
-        fileTreeView.setRoot(rootItem);
-        fileTreeView.setShowRoot(false);
+        rows.sort((a, b) -> a.displayName().compareToIgnoreCase(b.displayName()));
+        fileTable.getItems().setAll(rows);
+    }
+
+    private void loadReadmeSection() {
+        Path readmePath = workspaceRoot.resolve("README.md").normalize();
+        String content = "";
+        try {
+            content = fileSystemService.readFile(readmePath);
+        } catch (IOException ignored) {
+            // fallback to DB-backed README content
+        }
+
+        if (content.isBlank()) {
+            content = currentModel.readmeContent();
+        }
+
+        boolean hasReadme = content != null && !content.isBlank();
+        readmeSection.setManaged(hasReadme);
+        readmeSection.setVisible(hasReadme);
+        readmeTextArea.setText(hasReadme ? content : "");
     }
 
     private void preselectFile(String folderName, String fileName) {
         if (fileName == null || fileName.isBlank()) {
             return;
         }
-        workspaceService.findFileByName(workspaceId, folderName, fileName)
-                .ifPresent(this::openFile);
+
+        String normalizedFolder = folderName == null ? "" : folderName.trim().toLowerCase(Locale.ROOT);
+        String normalizedFile = fileName.trim().toLowerCase(Locale.ROOT);
+
+        fileTable.getItems().stream()
+                .filter(row -> row.file().filename().equalsIgnoreCase(normalizedFile)
+                        && (normalizedFolder.isBlank() || row.file().folderName().equalsIgnoreCase(normalizedFolder)))
+                .findFirst()
+                .ifPresent(row -> fileTable.getSelectionModel().select(row));
     }
 
-    private void openFile(FileItemModel file) {
-        selectedFile = file;
-        fileController.renderFileHeader(file, fileNameLabel, lastCommitMessageLabel, lastCommitTimeLabel);
-        fileEditor.setText(fileService.loadContent(file.fileId()));
-        setEditing(false);
-    }
-
-    @FXML
-    private void onEditToggle() {
-        if (selectedFile == null) {
-            showError("Select a file first");
-            return;
-        }
-        setEditing(!editing);
-    }
-
-    @FXML
-    private void onCommit() {
-        if (selectedFile == null) {
-            showError("Select a file first");
+    private void openEditorWindow(FileItemModel file) {
+        if (file == null) {
             return;
         }
 
+        Path filePath = resolveFilePath(file);
+        String initialContent;
         try {
-            fileService.commit(selectedFile.fileId(), currentUserId, commitMessageField.getText(),
-                    fileEditor.getText());
-            commitMessageField.clear();
-            reloadWorkspace();
-            setEditing(false);
-            showInfo("Committed successfully");
+            initialContent = fileSystemService.readFile(filePath);
         } catch (Exception e) {
-            showError("Commit failed: " + e.getMessage());
-        }
-    }
-
-    @FXML
-    private void onOpenSettings() {
-        Scene ownerScene = resolveOwnerScene();
-        if (ownerScene == null) {
-            showError("Unable to open settings: scene is not ready yet.");
+            showError("Unable to load file: " + e.getMessage());
             return;
         }
 
-        Stage modal = new Stage();
-        modal.initModality(Modality.APPLICATION_MODAL);
-        Stage owner = (Stage) ownerScene.getWindow();
-        modal.initOwner(owner);
-        modal.setTitle("Workspace Settings");
+        TextArea editor = new TextArea(initialContent);
+        editor.setWrapText(false);
 
-        BorderPane modalRoot = new BorderPane();
-        modalRoot.getStyleClass().add("workspace-settings-root");
+        Button saveButton = new Button("Save");
+        saveButton.setOnAction(event -> {
+            try {
+                fileSystemService.writeFile(filePath, editor.getText());
+                populateFilesTable();
+                showInfo("File saved to workspace");
+            } catch (Exception e) {
+                showError("Save failed: " + e.getMessage());
+            }
+        });
 
-        HBox split = new HBox(16);
-        split.setPadding(new Insets(18));
+        BorderPane editorRoot = new BorderPane();
+        editorRoot.getStyleClass().add("workspace-editor-root");
+        editorRoot.setCenter(editor);
 
-        VBox menu = new VBox(10);
-        menu.getStyleClass().add("workspace-settings-menu");
-        Button generalButton = new Button("General");
-        Button collaborationButton = new Button("Collaboration");
-        Button dangerButton = new Button("Danger Zone");
-        menu.getChildren().addAll(generalButton, collaborationButton, dangerButton);
+        HBox footer = new HBox(saveButton);
+        footer.getStyleClass().add("workspace-editor-footer");
+        editorRoot.setBottom(footer);
 
-        StackPane contentPanel = new StackPane();
-        contentPanel.getStyleClass().add("workspace-settings-content");
-        HBox.setHgrow(contentPanel, Priority.ALWAYS);
+        Stage stage = new Stage();
+        stage.setTitle("Edit " + file.filename());
+        stage.initModality(Modality.APPLICATION_MODAL);
+        Stage owner = resolveOwnerStage();
+        if (owner != null) {
+            stage.initOwner(owner);
+        }
 
-        generalButton.setOnAction(e -> contentPanel.getChildren().setAll(buildGeneralPane()));
-        collaborationButton.setOnAction(e -> contentPanel.getChildren().setAll(buildCollaborationPane()));
-        dangerButton.setOnAction(e -> contentPanel.getChildren().setAll(buildDangerPane(modal)));
-
-        contentPanel.getChildren().setAll(buildGeneralPane());
-        split.getChildren().addAll(menu, contentPanel);
-        modalRoot.setCenter(split);
-
-        Scene scene = new Scene(modalRoot,
-                Math.max(900, ownerScene.getWidth() * 0.70),
-                Math.max(520, ownerScene.getHeight() * 0.70));
+        Scene scene = new Scene(editorRoot, 900, 620);
         scene.getStylesheets()
                 .add(Objects.requireNonNull(getClass().getResource("/css/dashboard.css")).toExternalForm());
-        modal.setScene(scene);
-        modal.showAndWait();
+        stage.setScene(scene);
+        stage.showAndWait();
     }
 
-    private Scene resolveOwnerScene() {
-        if (root != null && root.getScene() != null) {
-            return root.getScene();
+    private Path resolveFilePath(FileItemModel file) {
+        String folder = file.folderName() == null ? "" : file.folderName().trim();
+        if (folder.isBlank() || "root".equalsIgnoreCase(folder)) {
+            return workspaceRoot.resolve(file.filename()).normalize();
         }
-        if (mainContainer != null && mainContainer.getScene() != null) {
-            return mainContainer.getScene();
+        return workspaceRoot.resolve(folder).resolve(file.filename()).normalize();
+    }
+
+    private boolean ensureWorkspaceReady() {
+        if (workspaceRoot != null) {
+            return true;
         }
-        if (settingsButton != null && settingsButton.getScene() != null) {
-            return settingsButton.getScene();
+        try {
+            workspaceRoot = fileSystemService
+                    .normalizeWorkspaceRoot(workspaceService.resolveWorkspaceRootPath(workspaceId));
+            return true;
+        } catch (Exception e) {
+            showError("Workspace path is unavailable: " + e.getMessage());
+            return false;
+        }
+    }
+
+    private Stage resolveOwnerStage() {
+        if (root != null && root.getScene() != null && root.getScene().getWindow() instanceof Stage stage) {
+            return stage;
         }
         return null;
     }
 
-    private VBox buildGeneralPane() {
-        VBox pane = new VBox(10);
-        pane.getStyleClass().add("workspace-settings-pane");
-
-        Label title = new Label("General");
-        title.getStyleClass().add("workspace-settings-title");
-
-        TextField workspaceNameField = new TextField(currentModel.workspaceName());
-        workspaceNameField.setPromptText("Workspace name");
-
-        Button save = new Button("Save changes");
-        save.setOnAction(e -> {
-            try {
-                workspaceService.updateWorkspaceName(workspaceId, workspaceNameField.getText());
-                reloadWorkspace();
-                showInfo("Workspace name updated");
-            } catch (Exception ex) {
-                showError(ex.getMessage());
-            }
-        });
-
-        pane.getChildren().addAll(title, workspaceNameField, save);
-        return pane;
-    }
-
-    private VBox buildCollaborationPane() {
-        VBox pane = new VBox(10);
-        pane.getStyleClass().add("workspace-settings-pane");
-
-        Label title = new Label("Collaboration");
-        title.getStyleClass().add("workspace-settings-title");
-
-        ListView<String> current = new ListView<>();
-        current.getItems().setAll(currentModel.collaborators().stream().map(UserModel::username).toList());
-
-        ComboBox<UserModel> usersCombo = new ComboBox<>();
-        usersCombo.getItems().setAll(workspaceService.loadAllUsers());
-        usersCombo.setCellFactory(list -> new javafx.scene.control.ListCell<>() {
-            @Override
-            protected void updateItem(UserModel item, boolean empty) {
-                super.updateItem(item, empty);
-                setText(empty || item == null ? "" : item.username());
-            }
-        });
-        usersCombo.setButtonCell(new javafx.scene.control.ListCell<>() {
-            @Override
-            protected void updateItem(UserModel item, boolean empty) {
-                super.updateItem(item, empty);
-                setText(empty || item == null ? "Select user" : item.username());
-            }
-        });
-
-        Button add = new Button("Add collaborator");
-        add.setOnAction(e -> {
-            UserModel selected = usersCombo.getValue();
-            if (selected == null) {
-                showError("Select a user");
-                return;
-            }
-            workspaceService.addCollaborator(workspaceId, selected.userId());
-            reloadWorkspace();
-            current.getItems().setAll(currentModel.collaborators().stream().map(UserModel::username).toList());
-        });
-
-        Button remove = new Button("Remove selected");
-        remove.setOnAction(e -> {
-            String selectedUsername = current.getSelectionModel().getSelectedItem();
-            if (selectedUsername == null) {
-                showError("Select a collaborator");
-                return;
-            }
-            currentModel.collaborators().stream()
-                    .filter(user -> user.username().equals(selectedUsername))
-                    .findFirst()
-                    .ifPresent(user -> workspaceService.removeCollaborator(workspaceId, user.userId()));
-
-            reloadWorkspace();
-            current.getItems().setAll(currentModel.collaborators().stream().map(UserModel::username).toList());
-        });
-
-        pane.getChildren().addAll(title, current, usersCombo, add, remove);
-        return pane;
-    }
-
-    private VBox buildDangerPane(Stage modal) {
-        VBox pane = new VBox(10);
-        pane.getStyleClass().add("workspace-settings-pane");
-
-        Label title = new Label("Danger Zone");
-        title.getStyleClass().add("workspace-settings-title");
-
-        Label note = new Label("Type YES to confirm workspace deletion");
-        TextField confirmField = new TextField();
-        Button delete = new Button("Delete workspace");
-        delete.getStyleClass().add("workspace-danger-button");
-
-        delete.setOnAction(e -> {
-            if (!"YES".equals(confirmField.getText())) {
-                showError("Type YES to confirm");
-                return;
-            }
-
-            workspaceService.deleteWorkspace(workspaceId);
-            modal.close();
-            ((Stage) root.getScene().getWindow()).close();
-        });
-
-        pane.getChildren().addAll(title, note, confirmField, delete);
-        return pane;
-    }
-
-    private void setEditing(boolean editing) {
-        this.editing = editing;
-        fileController.setEditorMode(fileEditor, editing);
-        editButton.setText(editing ? "Cancel" : "Edit");
+    private static String formatRelative(Instant instant) {
+        if (instant == null) {
+            return "Unknown";
+        }
+        Duration duration = Duration.between(instant, Instant.now());
+        long minutes = Math.max(0, duration.toMinutes());
+        if (minutes < 1) {
+            return "Just now";
+        }
+        if (minutes < 60) {
+            return minutes + " min ago";
+        }
+        long hours = duration.toHours();
+        if (hours < 24) {
+            return hours + " hours ago";
+        }
+        long days = duration.toDays();
+        if (days < 30) {
+            return days + " days ago";
+        }
+        return DateTimeUtils.formatInstant(instant);
     }
 
     private void showInfo(String message) {
@@ -428,5 +459,13 @@ public final class WorkspaceController {
         Alert alert = new Alert(Alert.AlertType.ERROR, message);
         alert.setHeaderText("Workspace");
         alert.showAndWait();
+    }
+
+    private record WorkspaceFileRow(
+            String icon,
+            String displayName,
+            String lastCommitMessage,
+            String lastModified,
+            FileItemModel file) {
     }
 }

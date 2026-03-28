@@ -10,6 +10,7 @@ import org.bson.types.ObjectId;
 
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.in;
 import com.mongodb.client.model.UpdateOptions;
@@ -38,6 +39,16 @@ public final class WorkspaceDAO {
 
     public List<Document> findFoldersByWorkspaceId(ObjectId workspaceId) {
         return folders.find(eq("workspaceId", workspaceId)).into(new ArrayList<>());
+    }
+
+    public Optional<Document> findFolderByWorkspaceIdAndName(ObjectId workspaceId, String folderName) {
+        return Optional
+                .ofNullable(folders.find(and(eq("workspaceId", workspaceId), eq("folderName", folderName))).first());
+    }
+
+    public ObjectId insertFolder(Document folderDoc) {
+        folders.insertOne(folderDoc);
+        return folderDoc.getObjectId("_id");
     }
 
     public List<Document> findFilesByFolderIds(List<ObjectId> folderIds) {

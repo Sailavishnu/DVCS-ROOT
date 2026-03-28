@@ -4,9 +4,11 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.MenuButton?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextArea?>
-<?import javafx.scene.control.TextField?>
-<?import javafx.scene.control.TreeView?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Priority?>
@@ -18,65 +20,60 @@
             stylesheets="@../css/dashboard.css" styleClass="workspace-page-root">
 
     <top>
-        <HBox spacing="12" alignment="CENTER_LEFT" styleClass="workspace-topbar">
+        <VBox spacing="10" styleClass="workspace-header-wrap">
             <padding>
-                <Insets top="14" right="18" bottom="14" left="18"/>
+                <Insets top="16" right="20" bottom="10" left="20"/>
             </padding>
-            <Label text="Workspace" styleClass="workspace-topbar-title"/>
-            <Region HBox.hgrow="ALWAYS"/>
-            <Label fx:id="workspaceNameHeader" text="Workspace Name" styleClass="workspace-topbar-name"/>
-        </HBox>
+
+            <HBox alignment="CENTER_LEFT" spacing="12" styleClass="workspace-topbar">
+                <Label text="Workspace" styleClass="workspace-topbar-title"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label fx:id="workspaceNameHeader" text="Workspace Name" styleClass="workspace-topbar-name"/>
+            </HBox>
+
+            <HBox fx:id="actionBar" alignment="CENTER_LEFT" spacing="10" styleClass="workspace-action-bar">
+                <MenuButton text="Add File" styleClass="workspace-action-button">
+                    <items>
+                        <MenuItem text="Create File" onAction="#onCreateFile"/>
+                        <MenuItem text="Import File" onAction="#onImportFile"/>
+                    </items>
+                </MenuButton>
+                <Button text="Create Folder" onAction="#onCreateFolder" styleClass="workspace-action-button"/>
+                <Button text="Commit" onAction="#onCommitRequested" styleClass="workspace-primary-button"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label text="Total Commits" styleClass="workspace-meta-label-dark"/>
+                <Label fx:id="totalCommitsLabel" text="0" styleClass="workspace-topbar-name"/>
+            </HBox>
+        </VBox>
     </top>
 
     <center>
-        <HBox fx:id="mainContainer" spacing="16" styleClass="workspace-main-container">
+        <VBox fx:id="mainContainer" spacing="14" styleClass="workspace-main-container">
             <padding>
-                <Insets top="16" right="16" bottom="16" left="16"/>
+                <Insets top="10" right="20" bottom="18" left="20"/>
             </padding>
 
-            <VBox fx:id="leftPanel" spacing="10" styleClass="workspace-left-panel" HBox.hgrow="ALWAYS">
-                <Label text="Files" styleClass="workspace-panel-title"/>
-                <TreeView fx:id="fileTreeView" VBox.vgrow="ALWAYS"/>
-
-                <VBox fx:id="readmeSection" spacing="6" styleClass="workspace-readme-section" managed="false" visible="false">
-                    <Label text="README.md" styleClass="workspace-readme-title"/>
-                    <TextArea fx:id="readmeTextArea" editable="false" wrapText="true" prefHeight="140"/>
-                </VBox>
+            <VBox spacing="8" styleClass="workspace-collaborators-card">
+                <Label text="Collaborators" styleClass="workspace-section-title"/>
+                <ListView fx:id="collaboratorsList" prefHeight="92" maxHeight="92"/>
             </VBox>
 
-            <VBox fx:id="centerPanel" spacing="10" styleClass="workspace-center-panel" HBox.hgrow="ALWAYS">
-                <HBox spacing="10" alignment="CENTER_LEFT" styleClass="workspace-file-meta">
-                    <Label fx:id="fileNameLabel" text="No file selected" styleClass="workspace-file-name"/>
-                    <Region HBox.hgrow="ALWAYS"/>
-                    <Button fx:id="editButton" text="Edit" onAction="#onEditToggle"/>
-                </HBox>
-
-                <Label fx:id="lastCommitMessageLabel" text="No commit metadata" styleClass="workspace-meta-label"/>
-                <Label fx:id="lastCommitTimeLabel" text="No commits yet" styleClass="workspace-meta-label"/>
-
-                <TextArea fx:id="fileEditor" editable="false" wrapText="false" VBox.vgrow="ALWAYS"/>
-
-                <HBox spacing="10" alignment="CENTER_LEFT" styleClass="workspace-commit-bar">
-                    <TextField fx:id="commitMessageField" promptText="Commit message" HBox.hgrow="ALWAYS"/>
-                    <Button fx:id="commitButton" text="Commit" onAction="#onCommit"/>
-                </HBox>
+            <VBox spacing="8" styleClass="workspace-table-card" VBox.vgrow="ALWAYS">
+                <Label text="Files" styleClass="workspace-section-title"/>
+                <TableView fx:id="fileTable" VBox.vgrow="ALWAYS">
+                    <columns>
+                        <TableColumn fx:id="iconColumn" text="Icon" prefWidth="92"/>
+                        <TableColumn fx:id="nameColumn" text="Name" prefWidth="360"/>
+                        <TableColumn fx:id="lastCommitColumn" text="Last Commit Message" prefWidth="420"/>
+                        <TableColumn fx:id="lastModifiedColumn" text="Last Modified" prefWidth="180"/>
+                    </columns>
+                </TableView>
             </VBox>
 
-            <VBox fx:id="rightPanel" spacing="10" styleClass="workspace-right-panel" HBox.hgrow="ALWAYS">
-                <HBox spacing="8" alignment="CENTER_LEFT">
-                    <Label text="Workspace Info" styleClass="workspace-panel-title"/>
-                    <Region HBox.hgrow="ALWAYS"/>
-                    <Button fx:id="settingsButton" text="⚙" onAction="#onOpenSettings" styleClass="workspace-settings-button"/>
-                </HBox>
-
-                <HBox spacing="8" alignment="CENTER_LEFT">
-                    <Label text="Total commits:" styleClass="workspace-meta-label"/>
-                    <Label fx:id="totalCommitsLabel" text="0" styleClass="workspace-file-name"/>
-                </HBox>
-
-                <Label text="Collaborators" styleClass="workspace-meta-label"/>
-                <ListView fx:id="collaboratorsList" VBox.vgrow="ALWAYS"/>
+            <VBox fx:id="readmeSection" spacing="8" styleClass="workspace-readme-card" managed="false" visible="false">
+                <Label text="README.md" styleClass="workspace-section-title"/>
+                <TextArea fx:id="readmeTextArea" editable="false" wrapText="true" prefHeight="160"/>
             </VBox>
-        </HBox>
+        </VBox>
     </center>
 </BorderPane>
