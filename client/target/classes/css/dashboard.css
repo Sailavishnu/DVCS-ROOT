@@ -194,6 +194,12 @@
     -fx-padding: 20 20 20 20;
 }
 
+.workspace-card-highlighted {
+    -fx-border-color: #2563eb;
+    -fx-border-width: 2;
+    -fx-effect: dropshadow(gaussian, rgba(37, 99, 235, 0.18), 18, 0.2, 0, 6);
+}
+
 
 
 .workspace-gridpane {
@@ -312,4 +318,29 @@
     -fx-text-fill: #111827;
     -fx-font-size: 18px;
     -fx-font-weight: 900;
+}
+
+.workspace-details-root {
+    -fx-background-color: #f8fafc;
+}
+
+.workspace-details-title {
+    -fx-font-size: 22px;
+    -fx-font-weight: 800;
+    -fx-text-fill: #0f172a;
+}
+
+.workspace-details-heading {
+    -fx-font-size: 13px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #1f2937;
+}
+
+.workspace-details-pane {
+    -fx-background-color: white;
+    -fx-border-color: rgba(15, 23, 42, 0.1);
+    -fx-border-width: 1;
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+    -fx-padding: 10;
 }

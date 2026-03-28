@@ -20,9 +20,9 @@
 
     <Region HBox.hgrow="ALWAYS"/>
 
-    <TextField fx:id="searchField" promptText="Search workspaces, docs, and activity" styleClass="navbar-search" prefWidth="460"/>
+      <TextField fx:id="searchField" promptText="Search workspaces, docs, and activity" styleClass="navbar-search" prefWidth="460" onAction="#onSearchSubmit"/>
 
-    <Label text="&#x1F514;" styleClass="navbar-icon"/>
+      <Label fx:id="notificationLabel" text="&#x1F514;" styleClass="navbar-icon" onMouseClicked="#onNotificationClick"/>
 
     <Circle radius="14" styleClass="navbar-avatar"/>
 </HBox>

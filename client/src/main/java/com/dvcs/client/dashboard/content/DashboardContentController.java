@@ -1,21 +1,46 @@
 package com.dvcs.client.dashboard.content;
 
 import com.dvcs.client.dashboard.analytics.AnalyticsPanelController;
+import com.dvcs.client.dashboard.data.WorkspaceDetails;
+import com.dvcs.client.dashboard.data.WorkspaceSummary;
+import com.dvcs.client.dashboard.service.WorkspaceService;
 import com.dvcs.client.dashboard.workspace.WorkspaceCardController;
+import com.dvcs.client.dashboard.workspace.WorkspaceDetailsController;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ChoiceDialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextInputDialog;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.VBox;
 import javafx.scene.layout.GridPane;
+import javafx.stage.DirectoryChooser;
+import javafx.stage.FileChooser;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
+import javafx.stage.Window;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import org.bson.types.ObjectId;
 
 public class DashboardContentController {
 
@@ -28,6 +53,22 @@ public class DashboardContentController {
 
     @FXML
     private AnchorPane overlayRoot;
+
+    @FXML
+    private Button newWorkspaceButton;
+
+    @FXML
+    private Button importFilesButton;
+
+    private GridPane myGrid;
+    private VBox collabList;
+
+    private WorkspaceService workspaceService;
+    private ObjectId currentUserId;
+    private String currentUsername;
+
+    private final List<WorkspaceSummary> ownedWorkspaces = new ArrayList<>();
+    private Set<ObjectId> highlightedWorkspaceIds = Set.of();
 
     @FXML
     private void initialize() {
@@ -43,7 +84,32 @@ public class DashboardContentController {
         // JavaFX doesn't support percentage sizing in FXML, so we bind explicitly.
         overlayRoot.widthProperty().addListener((obs, oldV, newV) -> layoutCard());
         overlayRoot.heightProperty().addListener((obs, oldV, newV) -> layoutCard());
+
+        if (newWorkspaceButton != null) {
+            newWorkspaceButton.setOnAction(e -> onNewWorkspace());
+        }
+        if (importFilesButton != null) {
+            importFilesButton.setOnAction(e -> onImportFiles());
+        }
+
         layoutCard();
+    }
+
+    public void configure(WorkspaceService workspaceService, ObjectId currentUserId, String currentUsername) {
+        this.workspaceService = workspaceService;
+        this.currentUserId = currentUserId;
+        this.currentUsername = currentUsername;
+        reloadWorkspaces();
+    }
+
+    public void performSearch(String query) {
+        if (workspaceService == null || currentUserId == null) {
+            return;
+        }
+
+        String normalizedQuery = query == null ? "" : query.trim();
+        highlightedWorkspaceIds = workspaceService.searchWorkspaceIdsByQuery(currentUserId, normalizedQuery);
+        renderWorkspaceCards();
     }
 
     private void layoutCard() {
@@ -112,30 +178,9 @@ public class DashboardContentController {
 
         VBox collabList = new VBox(25);
         collabList.getStyleClass().add("collab-list");
-        Node alpha = createCollaborativeRow("Team Alpha");
-        Node beta = createCollaborativeRow("Team Beta");
-        Node gamma = createCollaborativeRow("Team Gamma");
-        Node delta = createCollaborativeRow("Team Delta");
+        this.myGrid = myGrid;
+        this.collabList = collabList;
 
-        if (alpha instanceof javafx.scene.layout.Region ar) {
-            ar.setPrefHeight(COLLAB_CARD_HEIGHT);
-            ar.setMinHeight(COLLAB_CARD_HEIGHT);
-        }
-        if (beta instanceof javafx.scene.layout.Region br) {
-            br.setPrefHeight(COLLAB_CARD_HEIGHT);
-            br.setMinHeight(COLLAB_CARD_HEIGHT);
-        }
-
-        if (gamma instanceof javafx.scene.layout.Region gr) {
-            gr.setPrefHeight(COLLAB_CARD_HEIGHT);
-            gr.setMinHeight(COLLAB_CARD_HEIGHT);
-        }
-        if (delta instanceof javafx.scene.layout.Region dr) {
-            dr.setPrefHeight(COLLAB_CARD_HEIGHT);
-            dr.setMinHeight(COLLAB_CARD_HEIGHT);
-        }
-
-        collabList.getChildren().addAll(alpha, beta, gamma, delta);
         collabBox.getChildren().addAll(collabTitle, collabList);
 
         workspaceRegion.add(myWorkspaceBox, 0, 0, 2, 1);
@@ -150,6 +195,235 @@ public class DashboardContentController {
         scrollPane.getStyleClass().add("workspace-scroll");
 
         return scrollPane;
+    }
+
+    private void onNewWorkspace() {
+        if (workspaceService == null || currentUserId == null) {
+            showError("Workspace service is not ready.");
+            return;
+        }
+
+        TextInputDialog nameDialog = new TextInputDialog();
+        nameDialog.setTitle("New Workspace");
+        nameDialog.setHeaderText("Create Workspace");
+        nameDialog.setContentText("Workspace name:");
+
+        Optional<String> nameResult = nameDialog.showAndWait();
+        if (nameResult.isEmpty() || nameResult.get().isBlank()) {
+            return;
+        }
+
+        DirectoryChooser directoryChooser = new DirectoryChooser();
+        directoryChooser.setTitle("Select Base Directory");
+        File selectedDirectory = directoryChooser.showDialog(currentWindow());
+        if (selectedDirectory == null) {
+            return;
+        }
+
+        try {
+            WorkspaceSummary created = workspaceService.createWorkspace(
+                    currentUserId,
+                    nameResult.get().trim(),
+                    selectedDirectory.toPath());
+            ownedWorkspaces.add(created);
+            renderWorkspaceCards();
+            showInfo("Workspace created successfully.");
+        } catch (Exception e) {
+            showError("Failed to create workspace: " + e.getMessage());
+        }
+    }
+
+    private void onImportFiles() {
+        if (workspaceService == null || currentUserId == null) {
+            showError("Workspace service is not ready.");
+            return;
+        }
+
+        if (ownedWorkspaces.isEmpty()) {
+            showInfo("Create a workspace before importing files.");
+            return;
+        }
+
+        Map<String, WorkspaceSummary> workspaceByLabel = new LinkedHashMap<>();
+        for (WorkspaceSummary workspace : ownedWorkspaces) {
+            String label = workspace.displayName() + " [" + workspace.workspaceId().toHexString().substring(0, 6) + "]";
+            workspaceByLabel.put(label, workspace);
+        }
+
+        List<String> workspaceLabels = new ArrayList<>(workspaceByLabel.keySet());
+        ChoiceDialog<String> workspaceChoice = new ChoiceDialog<>(workspaceLabels.getFirst(), workspaceLabels);
+        workspaceChoice.setTitle("Import Files");
+        workspaceChoice.setHeaderText("Step 1: Select Workspace");
+        workspaceChoice.setContentText("Workspace:");
+
+        Optional<String> workspaceSelection = workspaceChoice.showAndWait();
+        if (workspaceSelection.isEmpty()) {
+            return;
+        }
+
+        WorkspaceSummary selectedWorkspace = workspaceByLabel.get(workspaceSelection.get());
+        if (selectedWorkspace == null) {
+            showError("Invalid workspace selection.");
+            return;
+        }
+
+        TextInputDialog folderDialog = new TextInputDialog("root");
+        WorkspaceDetails details = workspaceService.loadWorkspaceDetails(selectedWorkspace.workspaceId());
+        List<String> folderChoices = new ArrayList<>(details.folders());
+        if (!folderChoices.contains("root")) {
+            folderChoices.addFirst("root");
+        }
+        folderChoices.add("Create new folder...");
+
+        ChoiceDialog<String> folderChoice = new ChoiceDialog<>(folderChoices.getFirst(), folderChoices);
+        folderChoice.setTitle("Import Files");
+        folderChoice.setHeaderText("Step 2: Select Folder Inside Workspace");
+        folderChoice.setContentText("Folder:");
+
+        Optional<String> folderSelection = folderChoice.showAndWait();
+        if (folderSelection.isEmpty()) {
+            return;
+        }
+
+        String selectedFolder = folderSelection.get();
+        if ("Create new folder...".equals(selectedFolder)) {
+            folderDialog.setTitle("Import Files");
+            folderDialog.setHeaderText("Create Folder");
+            folderDialog.setContentText("New folder name:");
+            Optional<String> newFolder = folderDialog.showAndWait();
+            if (newFolder.isEmpty() || newFolder.get().isBlank()) {
+                return;
+            }
+            selectedFolder = newFolder.get().trim();
+        }
+
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Step 3: Select Files");
+        List<File> selectedFiles = fileChooser.showOpenMultipleDialog(currentWindow());
+        if (selectedFiles == null || selectedFiles.isEmpty()) {
+            return;
+        }
+
+        try {
+            int imported = workspaceService.importFiles(
+                    currentUserId,
+                    selectedWorkspace.workspaceId(),
+                    selectedFolder,
+                    selectedFiles);
+            showInfo(imported + " file(s) imported successfully.");
+        } catch (Exception e) {
+            showError("Import failed: " + e.getMessage());
+        }
+    }
+
+    private void reloadWorkspaces() {
+        if (workspaceService == null || currentUserId == null) {
+            return;
+        }
+
+        ownedWorkspaces.clear();
+        ownedWorkspaces.addAll(workspaceService.loadOwnedWorkspaces(currentUserId));
+        highlightedWorkspaceIds = Set.of();
+        renderWorkspaceCards();
+    }
+
+    private void renderWorkspaceCards() {
+        if (myGrid == null || collabList == null) {
+            return;
+        }
+
+        myGrid.getChildren().clear();
+        collabList.getChildren().clear();
+
+        List<WorkspaceSummary> sorted = new ArrayList<>(ownedWorkspaces);
+        sorted.sort((left, right) -> {
+            boolean leftHighlighted = highlightedWorkspaceIds.contains(left.workspaceId());
+            boolean rightHighlighted = highlightedWorkspaceIds.contains(right.workspaceId());
+            if (leftHighlighted != rightHighlighted) {
+                return leftHighlighted ? -1 : 1;
+            }
+            return Comparator.comparing(WorkspaceSummary::createdAt, Comparator.nullsLast(Comparator.reverseOrder()))
+                    .compare(left, right);
+        });
+
+        int row = 0;
+        int column = 0;
+        for (WorkspaceSummary workspace : sorted) {
+            Node node = createWorkspaceCard(workspace);
+            if (highlightedWorkspaceIds.contains(workspace.workspaceId())) {
+                node.getStyleClass().add("workspace-card-highlighted");
+            }
+            myGrid.add(node, column, row);
+            column++;
+            if (column > 1) {
+                column = 0;
+                row++;
+            }
+        }
+
+        List<WorkspaceSummary> collaborative = workspaceService == null || currentUserId == null
+                ? List.of()
+                : workspaceService.loadCollaborativeWorkspaces(currentUserId);
+        if (collaborative.isEmpty()) {
+            Label empty = new Label("No collaborative workspaces yet.");
+            empty.getStyleClass().add("panel-body");
+            collabList.getChildren().add(empty);
+        } else {
+            for (WorkspaceSummary workspace : collaborative.stream().limit(4).toList()) {
+                Node node = createCollaborativeRow(workspace.displayName());
+                if (node instanceof javafx.scene.layout.Region region) {
+                    region.setPrefHeight(COLLAB_CARD_HEIGHT);
+                    region.setMinHeight(COLLAB_CARD_HEIGHT);
+                }
+                node.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> openWorkspaceDetails(workspace));
+                collabList.getChildren().add(node);
+            }
+        }
+    }
+
+    private Node createWorkspaceCard(WorkspaceSummary workspace) {
+        Node node = loadFxmlNode("/fxml/WorkspaceCard.fxml");
+        if (node instanceof javafx.scene.layout.Region region) {
+            region.setPrefHeight(MY_WORKSPACE_CARD_HEIGHT);
+            region.setMinHeight(MY_WORKSPACE_CARD_HEIGHT);
+        }
+        Object controller = node.getProperties().get("fx:controller");
+        if (controller instanceof WorkspaceCardController cardController) {
+            cardController.setTitle(workspace.displayName());
+        }
+        node.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> openWorkspaceDetails(workspace));
+        return node;
+    }
+
+    private void openWorkspaceDetails(WorkspaceSummary workspace) {
+        if (workspaceService == null || workspace == null) {
+            return;
+        }
+        try {
+            WorkspaceDetails details = workspaceService.loadWorkspaceDetails(workspace.workspaceId());
+
+            URL url = DashboardContentController.class.getResource("/fxml/WorkspaceDetails.fxml");
+            if (url == null) {
+                throw new IllegalStateException("FXML '/fxml/WorkspaceDetails.fxml' not found on classpath");
+            }
+
+            FXMLLoader loader = new FXMLLoader(url);
+            Parent root = loader.load();
+            WorkspaceDetailsController controller = loader.getController();
+            controller.setDetails(details);
+
+            Stage stage = new Stage();
+            stage.setTitle(workspace.displayName());
+            stage.initModality(Modality.APPLICATION_MODAL);
+            Window owner = currentWindow();
+            if (owner != null) {
+                stage.initOwner(owner);
+            }
+            stage.setScene(new Scene(root));
+            stage.show();
+        } catch (Exception e) {
+            showError("Failed to open workspace: " + e.getMessage());
+        }
     }
 
     private Node createCollaborativeRow(String title) {
@@ -188,6 +462,25 @@ public class DashboardContentController {
             cardController.setTitle(title);
         }
         return node;
+    }
+
+    private Window currentWindow() {
+        if (mainCard == null || mainCard.getScene() == null) {
+            return null;
+        }
+        return mainCard.getScene().getWindow();
+    }
+
+    private void showInfo(String message) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION, message);
+        alert.setHeaderText(null);
+        alert.showAndWait();
+    }
+
+    private void showError(String message) {
+        Alert alert = new Alert(Alert.AlertType.ERROR, message);
+        alert.setHeaderText("Operation failed");
+        alert.showAndWait();
     }
 
     private static Node loadFxmlNode(String resource) {
