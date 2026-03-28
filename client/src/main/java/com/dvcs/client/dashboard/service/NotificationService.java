@@ -12,12 +12,12 @@ import org.bson.Document;
 import org.bson.types.ObjectId;
 
 import com.dvcs.client.auth.repo.UserRepository;
-import com.dvcs.client.dashboard.notification.NotificationRequestItem;
 import com.dvcs.client.dashboard.data.PendingRequestView;
 import com.dvcs.client.dashboard.data.dao.CollaborationRequestDao;
 import com.dvcs.client.dashboard.data.dao.FileDao;
 import com.dvcs.client.dashboard.data.dao.FolderDao;
 import com.dvcs.client.dashboard.data.dao.WorkspaceDao;
+import com.dvcs.client.dashboard.notification.NotificationRequestItem;
 
 public final class NotificationService {
 

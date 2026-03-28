@@ -88,11 +88,11 @@ public class MainLayoutController {
                 userRepository);
         this.searchService = new SearchService(workspaceDao, folderDao, fileDao);
         this.notificationService = new NotificationService(
-            collaborationRequestDao,
-            fileDao,
-            folderDao,
-            workspaceDao,
-            userRepository);
+                collaborationRequestDao,
+                fileDao,
+                folderDao,
+                workspaceDao,
+                userRepository);
     }
 
     private void bindSession() {
@@ -113,7 +113,7 @@ public class MainLayoutController {
         navbarController.setUsername(currentUsername);
         navbarController.configureHandlers(
                 this::openSearchResults,
-            this::openNotificationPage);
+                this::openNotificationPage);
 
         dashboardContentController.configure(workspaceService, currentUserId, currentUsername);
     }
