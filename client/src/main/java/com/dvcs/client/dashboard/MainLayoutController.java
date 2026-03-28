@@ -9,6 +9,11 @@ import com.dvcs.client.dashboard.data.dao.FolderDao;
 import com.dvcs.client.dashboard.data.dao.WorkspaceDao;
 import com.dvcs.client.dashboard.navbar.NavbarController;
 import com.dvcs.client.dashboard.notification.NotificationController;
+import com.dvcs.client.dashboard.profile.ProfileController;
+import com.dvcs.client.dashboard.profile.ProfileService;
+import com.dvcs.client.dashboard.profile.dao.CommitDAO;
+import com.dvcs.client.dashboard.profile.dao.UserDAO;
+import com.dvcs.client.dashboard.profile.dao.WorkspaceDAO;
 import com.dvcs.client.dashboard.search.SearchController;
 import com.dvcs.client.dashboard.search.SearchResultItem;
 import com.dvcs.client.dashboard.search.SearchService;
@@ -42,6 +47,7 @@ public class MainLayoutController {
     private WorkspaceService workspaceService;
     private SearchService searchService;
     private NotificationService notificationService;
+    private ProfileService profileService;
 
     private String currentUsername;
     private ObjectId currentUserId;
@@ -93,6 +99,10 @@ public class MainLayoutController {
                 folderDao,
                 workspaceDao,
                 userRepository);
+        this.profileService = new ProfileService(
+                new UserDAO(database),
+                new WorkspaceDAO(database),
+                new CommitDAO(database));
     }
 
     private void bindSession() {
@@ -113,7 +123,8 @@ public class MainLayoutController {
         navbarController.setUsername(currentUsername);
         navbarController.configureHandlers(
                 this::openSearchResults,
-                this::openNotificationPage);
+                this::openNotificationPage,
+                this::openProfilePage);
 
         dashboardContentController.configure(workspaceService, currentUserId, currentUsername);
     }
@@ -140,7 +151,9 @@ public class MainLayoutController {
             controller.configure(
                     searchService,
                     currentUserId,
+                    currentUsername,
                     this::openNotificationPage,
+                    this::openProfilePage,
                     this::openFromSearchResult);
             controller.setInitialQuery(normalizedQuery);
 
@@ -189,8 +202,10 @@ public class MainLayoutController {
             controller.configure(
                     notificationService,
                     currentUserId,
+                    currentUsername,
                     this::openSearchResults,
-                    this::openNotificationPage);
+                    this::openNotificationPage,
+                    this::openProfilePage);
 
             Stage stage = new Stage();
             stage.setTitle("Notifications");
@@ -207,6 +222,45 @@ public class MainLayoutController {
             stage.show();
         } catch (IOException e) {
             throw new RuntimeException("Failed to open notifications", e);
+        }
+    }
+
+    private void openProfilePage() {
+        if (currentUserId == null || profileService == null) {
+            return;
+        }
+
+        URL url = MainLayoutController.class.getResource("/fxml/ProfilePage.fxml");
+        if (url == null) {
+            throw new IllegalStateException("FXML '/fxml/ProfilePage.fxml' not found on classpath");
+        }
+
+        try {
+            FXMLLoader loader = new FXMLLoader(url);
+            Parent rootNode = loader.load();
+            ProfileController controller = loader.getController();
+            controller.configure(
+                    profileService,
+                    currentUserId,
+                    this::openSearchResults,
+                    this::openNotificationPage,
+                    this::openProfilePage);
+
+            Stage stage = new Stage();
+            stage.setTitle("Profile");
+
+            Window owner = root == null || root.getScene() == null ? null : root.getScene().getWindow();
+            if (owner != null) {
+                stage.initOwner(owner);
+            }
+
+            stage.setScene(new Scene(rootNode));
+            stage.setMaximized(true);
+            stage.setFullScreenExitHint("");
+            stage.setFullScreen(true);
+            stage.show();
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to open profile", e);
         }
     }
 

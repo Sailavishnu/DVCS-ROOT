@@ -5,6 +5,7 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.shape.Circle?>
 
 <HBox xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml/1"
@@ -26,5 +27,8 @@
 
       <Label fx:id="notificationLabel" text="&#x1F514;" styleClass="navbar-icon" onMouseClicked="#onNotificationClick"/>
 
-    <Circle radius="14" styleClass="navbar-avatar"/>
+    <StackPane onMouseClicked="#onProfileClick" styleClass="navbar-avatar-container">
+      <Circle radius="14" styleClass="navbar-avatar"/>
+      <Label fx:id="avatarInitialsLabel" text="U" styleClass="navbar-avatar-text"/>
+    </StackPane>
 </HBox>

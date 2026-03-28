@@ -46,6 +46,7 @@ public final class SearchController {
     private SearchService searchService;
     private ObjectId currentUserId;
     private Runnable onNotificationRequested;
+    private Runnable onProfileRequested;
     private Consumer<SearchResultItem> onResultSelected;
 
     private NavbarController navbarController;
@@ -63,15 +64,19 @@ public final class SearchController {
     public void configure(
             SearchService searchService,
             ObjectId currentUserId,
+            String currentUsername,
             Runnable onNotificationRequested,
+            Runnable onProfileRequested,
             Consumer<SearchResultItem> onResultSelected) {
         this.searchService = Objects.requireNonNull(searchService, "searchService");
         this.currentUserId = Objects.requireNonNull(currentUserId, "currentUserId");
         this.onNotificationRequested = onNotificationRequested;
+        this.onProfileRequested = onProfileRequested;
         this.onResultSelected = onResultSelected;
 
         if (navbarController != null) {
-            navbarController.configureHandlers(this::executeSearch, this::handleNotifications);
+            navbarController.setUsername(currentUsername);
+            navbarController.configureHandlers(this::executeSearch, this::handleNotifications, this::handleProfile);
         }
     }
 
@@ -158,6 +163,12 @@ public final class SearchController {
     private void handleNotifications() {
         if (onNotificationRequested != null) {
             onNotificationRequested.run();
+        }
+    }
+
+    private void handleProfile() {
+        if (onProfileRequested != null) {
+            onProfileRequested.run();
         }
     }
 

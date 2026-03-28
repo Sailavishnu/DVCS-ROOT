@@ -50,6 +50,16 @@
     -fx-stroke-width: 1.2;
 }
 
+.navbar-avatar-container {
+    -fx-padding: 0;
+}
+
+.navbar-avatar-text {
+    -fx-text-fill: white;
+    -fx-font-size: 10px;
+    -fx-font-weight: 800;
+}
+
 /* Dashboard */
 .dashboard-stack {
     -fx-background-color: transparent;
@@ -465,7 +475,7 @@
     -fx-border-radius: 24;
     -fx-padding: 34;
     -fx-min-height: 360;
-    -fx-max-width: 1.7976931348623157E308;
+    -fx-max-width: 1000000;
     -fx-effect: dropshadow(gaussian, rgba(10, 34, 99, 0.26), 26, 0.18, 0, 10);
 }
 
@@ -543,4 +553,206 @@
 
 .notification-decline-button:hover {
     -fx-background-color: #edf3ff;
+}
+
+.profile-page-root {
+    -fx-background-color: #f5f8ff;
+}
+
+.profile-main-row {
+    -fx-padding: 0;
+    -fx-alignment: top-left;
+}
+
+.profile-left-section,
+.profile-right-section {
+    -fx-padding: 0;
+}
+
+.profile-left-section {
+    -fx-alignment: top-center;
+}
+
+.profile-right-section {
+    -fx-alignment: top-left;
+}
+
+.profile-card {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 20;
+    -fx-border-radius: 20;
+    -fx-border-color: rgba(34, 73, 170, 0.18);
+    -fx-border-width: 1;
+    -fx-padding: 16;
+    -fx-effect: dropshadow(gaussian, rgba(18, 44, 105, 0.12), 20, 0.16, 0, 8);
+}
+
+.profile-card-content {
+    -fx-padding: 10 8 8 8;
+}
+
+.profile-avatar-box {
+    -fx-padding: 4 0 8 0;
+}
+
+.profile-avatar-circle {
+    -fx-fill: #dce8ff;
+    -fx-stroke: #2f5fcd;
+    -fx-stroke-width: 1.5;
+}
+
+.profile-avatar-text {
+    -fx-text-fill: #1f4cbe;
+    -fx-font-size: 28px;
+    -fx-font-weight: 900;
+}
+
+.profile-edit-button,
+.profile-save-button {
+    -fx-background-color: #1f4fd0;
+    -fx-text-fill: white;
+    -fx-font-weight: 700;
+    -fx-background-radius: 14;
+    -fx-padding: 8 14 8 14;
+}
+
+.profile-cancel-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #1f4fd0;
+    -fx-border-color: #1f4fd0;
+    -fx-border-width: 1.2;
+    -fx-border-radius: 14;
+    -fx-background-radius: 14;
+    -fx-font-weight: 700;
+    -fx-padding: 8 14 8 14;
+}
+
+.profile-field-label {
+    -fx-text-fill: #4a5f94;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+}
+
+.profile-field-value {
+    -fx-text-fill: #112c70;
+    -fx-font-size: 16px;
+    -fx-font-weight: 800;
+}
+
+.profile-input {
+    -fx-background-color: #f6f9ff;
+    -fx-border-color: rgba(35, 80, 189, 0.25);
+    -fx-border-width: 1;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+    -fx-padding: 8 10 8 10;
+}
+
+.profile-panel {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 16;
+    -fx-border-radius: 16;
+    -fx-border-color: rgba(30, 72, 174, 0.12);
+    -fx-border-width: 1;
+    -fx-padding: 14;
+    -fx-effect: dropshadow(gaussian, rgba(18, 44, 105, 0.1), 16, 0.12, 0, 6);
+}
+
+.profile-popular-panel {
+    -fx-min-height: 260;
+    -fx-pref-height: 260;
+    -fx-max-height: 260;
+}
+
+.profile-popular-grid-wrapper {
+    -fx-min-height: 220;
+    -fx-pref-height: 220;
+    -fx-max-height: 220;
+}
+
+.profile-popular-grid {
+    -fx-min-height: 220;
+    -fx-pref-height: 220;
+    -fx-max-height: 220;
+}
+
+.profile-workspace-item {
+    -fx-background-color: #f7faff;
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+    -fx-border-color: rgba(30, 72, 174, 0.2);
+    -fx-border-width: 1;
+    -fx-padding: 10;
+}
+
+.profile-empty-text {
+    -fx-text-fill: #5b6f9e;
+    -fx-font-size: 13px;
+    -fx-font-weight: 700;
+}
+
+.profile-activity-box {
+    -fx-min-height: 200;
+    -fx-pref-height: 200;
+    -fx-max-height: 200;
+}
+
+.profile-section-title {
+    -fx-text-fill: #16398f;
+    -fx-font-size: 17px;
+    -fx-font-weight: 800;
+}
+
+.profile-workspace-name {
+    -fx-text-fill: #0f2d75;
+    -fx-font-size: 18px;
+    -fx-font-weight: 800;
+}
+
+.profile-workspace-commits {
+    -fx-text-fill: #3f5ea0;
+    -fx-font-size: 13px;
+    -fx-font-weight: 700;
+}
+
+.profile-activity-grid {
+    -fx-padding: 6 2 4 2;
+}
+
+.profile-activity-cell {
+    -fx-border-color: rgba(35, 80, 189, 0.25);
+    -fx-border-width: 1;
+    -fx-border-radius: 5;
+}
+
+.profile-stats-row {
+    -fx-padding: 0;
+}
+
+.profile-stat-card {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 14;
+    -fx-border-radius: 14;
+    -fx-border-color: rgba(30, 72, 174, 0.12);
+    -fx-border-width: 1;
+    -fx-padding: 12;
+    -fx-effect: dropshadow(gaussian, rgba(18, 44, 105, 0.1), 14, 0.12, 0, 4);
+    -fx-min-width: 180;
+    -fx-pref-width: 180;
+    -fx-max-width: 180;
+    -fx-min-height: 80;
+    -fx-pref-height: 80;
+    -fx-max-height: 80;
+}
+
+.profile-stat-label {
+    -fx-text-fill: #5167a0;
+    -fx-font-size: 11px;
+    -fx-font-weight: 700;
+}
+
+.profile-stat-value {
+    -fx-text-fill: #0f2d75;
+    -fx-font-size: 19px;
+    -fx-font-weight: 900;
 }

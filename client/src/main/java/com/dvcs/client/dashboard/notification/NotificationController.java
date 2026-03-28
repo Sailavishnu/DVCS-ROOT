@@ -60,6 +60,7 @@ public final class NotificationController {
     private ObjectId currentUserId;
     private Consumer<String> onSearchSubmitted;
     private Runnable onNotificationRequested;
+    private Runnable onProfileRequested;
 
     private final List<NotificationRequestItem> currentItems = new ArrayList<>();
 
@@ -81,15 +82,20 @@ public final class NotificationController {
     public void configure(
             NotificationService notificationService,
             ObjectId currentUserId,
+            String currentUsername,
             Consumer<String> onSearchSubmitted,
-            Runnable onNotificationRequested) {
+            Runnable onNotificationRequested,
+            Runnable onProfileRequested) {
         this.notificationService = Objects.requireNonNull(notificationService, "notificationService");
         this.currentUserId = Objects.requireNonNull(currentUserId, "currentUserId");
         this.onSearchSubmitted = onSearchSubmitted;
         this.onNotificationRequested = onNotificationRequested;
+        this.onProfileRequested = onProfileRequested;
 
         if (navbarController != null) {
-            navbarController.configureHandlers(this::handleSearch, this::handleNotificationClick);
+            navbarController.setUsername(currentUsername);
+            navbarController.configureHandlers(this::handleSearch, this::handleNotificationClick,
+                    this::handleProfileClick);
         }
 
         reloadRequests();
@@ -120,6 +126,12 @@ public final class NotificationController {
     private void handleNotificationClick() {
         if (onNotificationRequested != null) {
             onNotificationRequested.run();
+        }
+    }
+
+    private void handleProfileClick() {
+        if (onProfileRequested != null) {
+            onProfileRequested.run();
         }
     }
 
