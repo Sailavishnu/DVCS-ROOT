@@ -16,7 +16,7 @@
     <children>
         <!-- Background: purple top band + white bottom area -->
         <VBox styleClass="dashboard-bg">
-            <Pane fx:id="topBand" minHeight="290" prefHeight="290" maxHeight="290" styleClass="dashboard-bg-top"/>
+            <Pane fx:id="topBand" minHeight="300" prefHeight="300" maxHeight="300" styleClass="dashboard-bg-top"/>
             <Pane fx:id="bottomBand" VBox.vgrow="ALWAYS" styleClass="dashboard-bg-bottom"/>
         </VBox>
 
@@ -24,7 +24,7 @@
         <AnchorPane fx:id="overlayRoot" styleClass="overlay-root">
             <!-- Hero (must stay in purple area, not inside the card) -->
             <VBox fx:id="heroBox" spacing="6" styleClass="hero-box"
-                  AnchorPane.leftAnchor="52" AnchorPane.topAnchor="44">
+                AnchorPane.leftAnchor="52" AnchorPane.topAnchor="34">
                 <Label fx:id="heroTitle" text="Resume Workspace" styleClass="hero-title"/>
                 <Label fx:id="heroSubtitle" text="Quick activities" styleClass="hero-subtitle"/>
                 <HBox spacing="15" styleClass="hero-actions">

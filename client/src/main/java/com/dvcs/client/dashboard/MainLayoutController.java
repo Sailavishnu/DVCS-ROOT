@@ -3,7 +3,9 @@ package com.dvcs.client.dashboard;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
+import javafx.geometry.Insets;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.VBox;
 
 import java.io.IOException;
 import java.net.URL;
@@ -15,7 +17,10 @@ public class MainLayoutController {
 
     @FXML
     private void initialize() {
-        root.setTop(loadFxmlNode("/fxml/Navbar.fxml"));
+        Node navbar = loadFxmlNode("/fxml/Navbar.fxml");
+        VBox topContainer = new VBox(navbar);
+        topContainer.setPadding(new Insets(10, 18, 0, 18));
+        root.setTop(topContainer);
         root.setCenter(loadFxmlNode("/fxml/DashboardContent.fxml"));
     }
 

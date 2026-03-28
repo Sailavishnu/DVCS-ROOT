@@ -9,7 +9,7 @@
 
 <VBox xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml/1"
     fx:controller="com.dvcs.client.dashboard.analytics.AnalyticsPanelController"
-    spacing="20" prefWidth="300" styleClass="analytics-panel">
+    spacing="20" prefWidth="380" minWidth="380" styleClass="analytics-panel">
 
     <padding>
         <Insets top="12" right="12" bottom="12" left="12"/>
@@ -20,7 +20,7 @@
     <Label fx:id="taglineLabel" text="Keep your docs moving." styleClass="panel-tagline" wrapText="true"/>
 
     <LineChart fx:id="activityChart" animated="false" legendVisible="false" createSymbols="false"
-               styleClass="activity-chart" minHeight="260" prefHeight="280" VBox.vgrow="ALWAYS">
+               styleClass="activity-chart" minHeight="320" prefHeight="340" VBox.vgrow="ALWAYS">
         <xAxis>
             <CategoryAxis fx:id="xAxis"/>
         </xAxis>

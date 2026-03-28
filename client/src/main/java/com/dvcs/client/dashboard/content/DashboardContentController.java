@@ -19,9 +19,9 @@ import java.net.URL;
 
 public class DashboardContentController {
 
-    private static final double MY_WORKSPACE_CARD_HEIGHT = 140;
-    private static final double COLLAB_CARD_HEIGHT = MY_WORKSPACE_CARD_HEIGHT * 2.0;
-    private static final double ANALYTICS_PANEL_WIDTH = 340;
+    private static final double MY_WORKSPACE_CARD_HEIGHT = 160;
+    private static final double COLLAB_CARD_HEIGHT = 160;
+    private static final double ANALYTICS_PANEL_MIN_WIDTH = 420;
 
     @FXML
     private HBox mainCard;
@@ -35,7 +35,7 @@ public class DashboardContentController {
         if (!mainCard.getChildren().isEmpty()) {
             HBox.setHgrow(mainCard.getChildren().getFirst(), Priority.ALWAYS);
             if (mainCard.getChildren().size() > 1) {
-                HBox.setHgrow(mainCard.getChildren().get(1), Priority.NEVER);
+                HBox.setHgrow(mainCard.getChildren().get(1), Priority.ALWAYS);
             }
         }
 
@@ -55,17 +55,17 @@ public class DashboardContentController {
         if (availableW <= 0 || availableH <= 0)
             return;
 
-        // Dominant card: ~90% width, ~75-80% height
-        double cardW = Math.max(1040, availableW * 0.90);
-        double cardH = Math.max(640, availableH * 0.78);
+        // Dominant card with comfortable glass margins.
+        double cardW = Math.max(1080, availableW * 0.92);
+        double cardH = Math.max(660, availableH * 0.80);
 
         mainCard.setPrefWidth(Math.min(cardW, availableW - 24));
         mainCard.setPrefHeight(Math.min(cardH, availableH - 24));
 
-        // Center card and overlap top purple band and bottom white section.
+        // Center card and keep the hero/title zone visually detached from the glass
+        // card.
         AnchorPane.setLeftAnchor(mainCard, (availableW - mainCard.getPrefWidth()) / 2.0);
-        // Move card UP so it overlaps into the purple section (~25%)
-        AnchorPane.setTopAnchor(mainCard, Math.max(140, 290 - (mainCard.getPrefHeight() * 0.25)));
+        AnchorPane.setTopAnchor(mainCard, Math.max(158, 300 - (mainCard.getPrefHeight() * 0.22)));
     }
 
     private Node buildWorkspaceSection() {
@@ -85,9 +85,9 @@ public class DashboardContentController {
         ColumnConstraints c0 = new ColumnConstraints();
         ColumnConstraints c1 = new ColumnConstraints();
         ColumnConstraints c2 = new ColumnConstraints();
-        c0.setPercentWidth(33.33);
-        c1.setPercentWidth(33.33);
-        c2.setPercentWidth(33.34);
+        c0.setPercentWidth(40.0);
+        c1.setPercentWidth(26.6667);
+        c2.setPercentWidth(33.3333);
         workspaceRegion.getColumnConstraints().setAll(c0, c1, c2);
 
         VBox myWorkspaceBox = new VBox(14);
@@ -117,7 +117,6 @@ public class DashboardContentController {
         Node gamma = createCollaborativeRow("Team Gamma");
         Node delta = createCollaborativeRow("Team Delta");
 
-        // 2:1 height ratio vs a single My Workspace card
         if (alpha instanceof javafx.scene.layout.Region ar) {
             ar.setPrefHeight(COLLAB_CARD_HEIGHT);
             ar.setMinHeight(COLLAB_CARD_HEIGHT);
@@ -167,9 +166,9 @@ public class DashboardContentController {
         Node node = loadFxmlNode("/fxml/AnalyticsPanel.fxml");
         node.getStyleClass().add("glass-analytics");
         if (node instanceof javafx.scene.layout.Region region) {
-            region.setPrefWidth(ANALYTICS_PANEL_WIDTH);
-            region.setMinWidth(ANALYTICS_PANEL_WIDTH);
-            region.setMaxWidth(ANALYTICS_PANEL_WIDTH);
+            region.setMinWidth(ANALYTICS_PANEL_MIN_WIDTH);
+            region.setPrefWidth(ANALYTICS_PANEL_MIN_WIDTH);
+            region.setMaxWidth(Double.MAX_VALUE);
         }
         Object controller = node.getProperties().get("fx:controller");
         if (controller instanceof AnalyticsPanelController analytics) {

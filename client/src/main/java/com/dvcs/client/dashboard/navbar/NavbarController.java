@@ -1,7 +1,6 @@
 package com.dvcs.client.dashboard.navbar;
 
 import javafx.fxml.FXML;
-import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 
 public class NavbarController {
@@ -10,12 +9,9 @@ public class NavbarController {
     private TextField searchField;
 
     @FXML
-    private Label usernameLabel;
-
     public void setUsername(String username) {
-        if (usernameLabel != null) {
-            usernameLabel.setText(username == null || username.isBlank() ? "Profile" : username);
-        }
+        // Profile now uses avatar-only UI; method kept for compatibility with existing
+        // calls.
     }
 
     public String getSearchQuery() {
