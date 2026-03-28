@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.dvcs.client.dashboard.notification.NotificationController"
+            stylesheets="@../css/dashboard.css" styleClass="dvcs-root notification-page-root">
+
+    <top>
+        <StackPane fx:id="headerContainer" BorderPane.alignment="CENTER"/>
+    </top>
+
+    <center>
+        <HBox fx:id="bodyRow" spacing="20" BorderPane.alignment="CENTER" styleClass="notification-main-row">
+            <padding>
+                <Insets top="18" right="24" bottom="20" left="24"/>
+            </padding>
+
+            <VBox fx:id="leftSection" spacing="14" styleClass="notification-left-section" HBox.hgrow="ALWAYS">
+                <Label fx:id="pendingCountLabel" text="0 Requests Pending" styleClass="notification-count-label"/>
+
+                <StackPane VBox.vgrow="ALWAYS">
+                    <children>
+                        <Label fx:id="emptyStateLabel" text="No collaboration requests" styleClass="notification-empty-message"/>
+
+                        <ScrollPane fx:id="requestsScrollPane" fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED"
+                                    styleClass="notification-scroll">
+                            <content>
+                                <VBox fx:id="requestsList" spacing="14" styleClass="notification-list"/>
+                            </content>
+                        </ScrollPane>
+                    </children>
+                </StackPane>
+            </VBox>
+
+            <VBox fx:id="rightSection" alignment="CENTER" spacing="0" styleClass="notification-right-section">
+                <Region VBox.vgrow="ALWAYS"/>
+                <StackPane styleClass="notification-highlight-card">
+                    <Label text="Connect with your Buddies!" wrapText="true" styleClass="notification-highlight-text"/>
+                </StackPane>
+                <Region VBox.vgrow="ALWAYS"/>
+            </VBox>
+        </HBox>
+    </center>
+</BorderPane>

@@ -3,12 +3,12 @@ package com.dvcs.client.dashboard;
 import com.dvcs.client.auth.db.MongoConnection;
 import com.dvcs.client.auth.repo.UserRepository;
 import com.dvcs.client.dashboard.content.DashboardContentController;
-import com.dvcs.client.dashboard.data.PendingRequestView;
 import com.dvcs.client.dashboard.data.dao.CollaborationRequestDao;
 import com.dvcs.client.dashboard.data.dao.FileDao;
 import com.dvcs.client.dashboard.data.dao.FolderDao;
 import com.dvcs.client.dashboard.data.dao.WorkspaceDao;
 import com.dvcs.client.dashboard.navbar.NavbarController;
+import com.dvcs.client.dashboard.notification.NotificationController;
 import com.dvcs.client.dashboard.search.SearchController;
 import com.dvcs.client.dashboard.search.SearchResultItem;
 import com.dvcs.client.dashboard.search.SearchService;
@@ -19,9 +19,6 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.geometry.Insets;
-import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonBar;
-import javafx.scene.control.ButtonType;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.Parent;
@@ -31,7 +28,6 @@ import javafx.stage.Window;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.List;
 import java.util.Optional;
 import org.bson.types.ObjectId;
 
@@ -91,7 +87,12 @@ public class MainLayoutController {
         this.workspaceService = new WorkspaceService(workspaceDao, folderDao, fileDao, collaborationRequestDao,
                 userRepository);
         this.searchService = new SearchService(workspaceDao, folderDao, fileDao);
-        this.notificationService = new NotificationService(collaborationRequestDao, fileDao, userRepository);
+        this.notificationService = new NotificationService(
+            collaborationRequestDao,
+            fileDao,
+            folderDao,
+            workspaceDao,
+            userRepository);
     }
 
     private void bindSession() {
@@ -112,7 +113,7 @@ public class MainLayoutController {
         navbarController.setUsername(currentUsername);
         navbarController.configureHandlers(
                 this::openSearchResults,
-                this::showPendingNotifications);
+            this::openNotificationPage);
 
         dashboardContentController.configure(workspaceService, currentUserId, currentUsername);
     }
@@ -139,7 +140,7 @@ public class MainLayoutController {
             controller.configure(
                     searchService,
                     currentUserId,
-                    this::showPendingNotifications,
+                    this::openNotificationPage,
                     this::openFromSearchResult);
             controller.setInitialQuery(normalizedQuery);
 
@@ -171,36 +172,41 @@ public class MainLayoutController {
                 resultItem.fileName());
     }
 
-    private void showPendingNotifications() {
+    private void openNotificationPage() {
         if (currentUserId == null || notificationService == null) {
             return;
         }
 
-        List<PendingRequestView> pending = notificationService.loadPendingRequests(currentUserId);
-        if (pending.isEmpty()) {
-            Alert info = new Alert(Alert.AlertType.INFORMATION, "No pending collaboration requests.");
-            info.setHeaderText("Notifications");
-            info.showAndWait();
-            return;
+        URL url = MainLayoutController.class.getResource("/fxml/NotificationPage.fxml");
+        if (url == null) {
+            throw new IllegalStateException("FXML '/fxml/NotificationPage.fxml' not found on classpath");
         }
 
-        for (PendingRequestView request : pending) {
-            ButtonType accept = new ButtonType("Accept", ButtonBar.ButtonData.OK_DONE);
-            ButtonType reject = new ButtonType("Reject", ButtonBar.ButtonData.NO);
-            ButtonType later = new ButtonType("Later", ButtonBar.ButtonData.CANCEL_CLOSE);
+        try {
+            FXMLLoader loader = new FXMLLoader(url);
+            Parent rootNode = loader.load();
+            NotificationController controller = loader.getController();
+            controller.configure(
+                    notificationService,
+                    currentUserId,
+                    this::openSearchResults,
+                    this::openNotificationPage);
 
-            Alert decision = new Alert(Alert.AlertType.CONFIRMATION);
-            decision.setTitle("Collaboration Request");
-            decision.setHeaderText("Pending Request");
-            decision.setContentText("File: " + request.fileName() + "\nRequested by: " + request.requestedByUsername());
-            decision.getButtonTypes().setAll(accept, reject, later);
+            Stage stage = new Stage();
+            stage.setTitle("Notifications");
 
-            ButtonType selected = decision.showAndWait().orElse(later);
-            if (selected == accept) {
-                notificationService.acceptRequest(request.requestId());
-            } else if (selected == reject) {
-                notificationService.rejectRequest(request.requestId());
+            Window owner = root == null || root.getScene() == null ? null : root.getScene().getWindow();
+            if (owner != null) {
+                stage.initOwner(owner);
             }
+
+            stage.setScene(new Scene(rootNode));
+            stage.setMaximized(true);
+            stage.setFullScreenExitHint("");
+            stage.setFullScreen(true);
+            stage.show();
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to open notifications", e);
         }
     }
 
