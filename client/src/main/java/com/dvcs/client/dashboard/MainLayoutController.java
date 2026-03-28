@@ -9,6 +9,9 @@ import com.dvcs.client.dashboard.data.dao.FileDao;
 import com.dvcs.client.dashboard.data.dao.FolderDao;
 import com.dvcs.client.dashboard.data.dao.WorkspaceDao;
 import com.dvcs.client.dashboard.navbar.NavbarController;
+import com.dvcs.client.dashboard.search.SearchController;
+import com.dvcs.client.dashboard.search.SearchResultItem;
+import com.dvcs.client.dashboard.search.SearchService;
 import com.dvcs.client.dashboard.service.NotificationService;
 import com.dvcs.client.dashboard.service.WorkspaceService;
 import com.mongodb.client.MongoDatabase;
@@ -21,6 +24,10 @@ import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.stage.Stage;
+import javafx.stage.Window;
 
 import java.io.IOException;
 import java.net.URL;
@@ -37,6 +44,7 @@ public class MainLayoutController {
     private DashboardContentController dashboardContentController;
 
     private WorkspaceService workspaceService;
+    private SearchService searchService;
     private NotificationService notificationService;
 
     private String currentUsername;
@@ -82,6 +90,7 @@ public class MainLayoutController {
 
         this.workspaceService = new WorkspaceService(workspaceDao, folderDao, fileDao, collaborationRequestDao,
                 userRepository);
+        this.searchService = new SearchService(workspaceDao, folderDao, fileDao);
         this.notificationService = new NotificationService(collaborationRequestDao, fileDao, userRepository);
     }
 
@@ -102,10 +111,64 @@ public class MainLayoutController {
 
         navbarController.setUsername(currentUsername);
         navbarController.configureHandlers(
-                query -> dashboardContentController.performSearch(query),
+                this::openSearchResults,
                 this::showPendingNotifications);
 
         dashboardContentController.configure(workspaceService, currentUserId, currentUsername);
+    }
+
+    private void openSearchResults(String query) {
+        if (searchService == null || currentUserId == null) {
+            return;
+        }
+
+        String normalizedQuery = query == null ? "" : query.trim();
+        if (normalizedQuery.isEmpty()) {
+            return;
+        }
+
+        URL url = MainLayoutController.class.getResource("/fxml/SearchResults.fxml");
+        if (url == null) {
+            throw new IllegalStateException("FXML '/fxml/SearchResults.fxml' not found on classpath");
+        }
+
+        try {
+            FXMLLoader loader = new FXMLLoader(url);
+            Parent rootNode = loader.load();
+            SearchController controller = loader.getController();
+            controller.configure(
+                    searchService,
+                    currentUserId,
+                    this::showPendingNotifications,
+                    this::openFromSearchResult);
+            controller.setInitialQuery(normalizedQuery);
+
+            Stage stage = new Stage();
+            stage.setTitle("Search Results");
+
+            Window owner = root == null || root.getScene() == null ? null : root.getScene().getWindow();
+            if (owner != null) {
+                stage.initOwner(owner);
+            }
+
+            stage.setScene(new Scene(rootNode));
+            stage.setMaximized(true);
+            stage.setFullScreenExitHint("");
+            stage.setFullScreen(true);
+            stage.show();
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to open search results", e);
+        }
+    }
+
+    private void openFromSearchResult(SearchResultItem resultItem) {
+        if (dashboardContentController == null || resultItem == null) {
+            return;
+        }
+        dashboardContentController.openWorkspaceDetailsForSearch(
+                resultItem.workspaceId(),
+                resultItem.folderName(),
+                resultItem.fileName());
     }
 
     private void showPendingNotifications() {

@@ -43,4 +43,16 @@ public class NavbarController {
     public String getSearchQuery() {
         return searchField == null ? "" : (searchField.getText() == null ? "" : searchField.getText().trim());
     }
+
+    public void setSearchQuery(String query) {
+        if (searchField != null) {
+            searchField.setText(query == null ? "" : query);
+        }
+    }
+
+    @FXML
+    private void onSearchIconClick(MouseEvent event) {
+        Objects.requireNonNull(event, "event");
+        onSearchSubmit();
+    }
 }

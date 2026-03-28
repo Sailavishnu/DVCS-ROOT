@@ -40,6 +40,10 @@
     -fx-font-size: 19px;
 }
 
+.navbar-icon:hover {
+    -fx-text-fill: #ffffff;
+}
+
 .navbar-avatar {
     -fx-fill: rgba(255, 255, 255, 0.34);
     -fx-stroke: rgba(255, 255, 255, 0.55);
@@ -343,4 +347,73 @@
     -fx-background-radius: 12;
     -fx-border-radius: 12;
     -fx-padding: 10;
+}
+
+.search-page-root {
+    -fx-background-color: #f3f4f6;
+}
+
+.search-content {
+    -fx-padding: 0;
+}
+
+.search-match-count {
+    -fx-font-size: 22px;
+    -fx-font-weight: 800;
+    -fx-text-fill: #0f172a;
+}
+
+.search-empty-message {
+    -fx-font-size: 28px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #1f2937;
+    -fx-alignment: center;
+}
+
+.search-results-scroll {
+    -fx-background-color: transparent;
+}
+
+.search-results-scroll > .viewport {
+    -fx-background-color: transparent;
+}
+
+.search-results-grid {
+    -fx-padding: 4 2 18 2;
+}
+
+.search-result-card {
+    -fx-background-color: #ffffff;
+    -fx-border-color: rgba(15, 23, 42, 0.1);
+    -fx-border-width: 1;
+    -fx-background-radius: 14;
+    -fx-border-radius: 14;
+    -fx-padding: 14;
+    -fx-pref-height: 130;
+}
+
+.search-result-card:hover {
+    -fx-background-color: #eef4ff;
+    -fx-border-color: rgba(37, 99, 235, 0.35);
+}
+
+.search-file-icon {
+    -fx-background-color: rgba(37, 99, 235, 0.15);
+    -fx-text-fill: #1d4ed8;
+    -fx-font-size: 10px;
+    -fx-font-weight: 800;
+    -fx-background-radius: 8;
+    -fx-padding: 3 8 3 8;
+}
+
+.search-file-name {
+    -fx-font-size: 16px;
+    -fx-font-weight: 800;
+    -fx-text-fill: #111827;
+}
+
+.search-file-path {
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+    -fx-text-fill: #4b5563;
 }

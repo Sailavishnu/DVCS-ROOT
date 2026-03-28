@@ -22,6 +22,8 @@
 
       <TextField fx:id="searchField" promptText="Search workspaces, docs, and activity" styleClass="navbar-search" prefWidth="460" onAction="#onSearchSubmit"/>
 
+      <Label fx:id="searchIconLabel" text="&#x1F50D;" styleClass="navbar-icon" onMouseClicked="#onSearchIconClick"/>
+
       <Label fx:id="notificationLabel" text="&#x1F514;" styleClass="navbar-icon" onMouseClicked="#onNotificationClick"/>
 
     <Circle radius="14" styleClass="navbar-avatar"/>

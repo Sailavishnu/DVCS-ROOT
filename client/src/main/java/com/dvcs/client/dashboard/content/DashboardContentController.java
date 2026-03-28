@@ -426,6 +426,40 @@ public class DashboardContentController {
         }
     }
 
+    public void openWorkspaceDetailsForSearch(ObjectId workspaceId, String selectedFolder, String selectedFile) {
+        if (workspaceService == null || workspaceId == null) {
+            return;
+        }
+        try {
+            WorkspaceDetails details = workspaceService.loadWorkspaceDetails(workspaceId);
+
+            URL url = DashboardContentController.class.getResource("/fxml/WorkspaceDetails.fxml");
+            if (url == null) {
+                throw new IllegalStateException("FXML '/fxml/WorkspaceDetails.fxml' not found on classpath");
+            }
+
+            FXMLLoader loader = new FXMLLoader(url);
+            Parent root = loader.load();
+            WorkspaceDetailsController controller = loader.getController();
+            controller.setDetails(details, selectedFolder, selectedFile);
+
+            Stage stage = new Stage();
+            String title = details.workspaceName() == null || details.workspaceName().isBlank()
+                    ? "Workspace"
+                    : details.workspaceName();
+            stage.setTitle(title);
+            stage.initModality(Modality.APPLICATION_MODAL);
+            Window owner = currentWindow();
+            if (owner != null) {
+                stage.initOwner(owner);
+            }
+            stage.setScene(new Scene(root));
+            stage.show();
+        } catch (Exception e) {
+            showError("Failed to open workspace: " + e.getMessage());
+        }
+    }
+
     private Node createCollaborativeRow(String title) {
         Node node = loadFxmlNode("/fxml/WorkspaceCard.fxml");
         node.getStyleClass().add("collab-row");
