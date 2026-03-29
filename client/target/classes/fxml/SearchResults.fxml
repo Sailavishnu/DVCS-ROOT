@@ -3,6 +3,7 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
@@ -27,7 +28,10 @@
 
             <StackPane VBox.vgrow="ALWAYS">
                 <children>
-                    <Label fx:id="emptyStateLabel" text="Sorry, no matching results" styleClass="search-empty-message"/>
+                    <VBox fx:id="emptyStateBox" spacing="10" alignment="CENTER">
+                        <ImageView fx:id="emptyStateImageView" fitWidth="130" fitHeight="130" preserveRatio="true" smooth="true"/>
+                        <Label fx:id="emptyStateLabel" text="No matches found" styleClass="search-empty-message"/>
+                    </VBox>
 
                     <ScrollPane fx:id="resultsScrollPane" fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED"
                                 styleClass="search-results-scroll">

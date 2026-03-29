@@ -15,6 +15,8 @@ import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -46,6 +48,12 @@ public final class SearchController {
     @FXML
     private Label emptyStateLabel;
 
+    @FXML
+    private VBox emptyStateBox;
+
+    @FXML
+    private ImageView emptyStateImageView;
+
     private SearchService searchService;
     private ObjectId currentUserId;
     private Runnable onNotificationRequested;
@@ -59,15 +67,18 @@ public final class SearchController {
         Node navbar = loadFxmlNode("/fxml/Navbar.fxml");
         this.navbarController = (NavbarController) navbar.getProperties().get("fx:controller");
 
-        Button backButton = new Button("\u2190");
-        backButton.getStyleClass().add("app-back-button");
-        backButton.setOnAction(e -> closeCurrentWindow());
+        if (navbar instanceof HBox navbarBox) {
+            navbarBox.getChildren().add(0, createNavbarBackButton());
+        }
 
-        HBox topContainer = new HBox(10, backButton, navbar);
-        topContainer.setAlignment(Pos.CENTER_LEFT);
-        HBox.setHgrow(navbar, Priority.ALWAYS);
-        topContainer.setPadding(new Insets(10, 18, 0, 18));
+        VBox topContainer = new VBox(navbar);
+        topContainer.setPadding(new Insets(10, 18, 0, 0));
         headerContainer.getChildren().setAll(topContainer);
+
+        URL emptyImageUrl = MainLayoutController.class.getResource("/images/search_not_found.png");
+        if (emptyStateImageView != null && emptyImageUrl != null) {
+            emptyStateImageView.setImage(new Image(emptyImageUrl.toExternalForm(), true));
+        }
     }
 
     public void configure(
@@ -112,15 +123,25 @@ public final class SearchController {
         matchesCountLabel.setText(count + " matches found");
 
         if (count == 0) {
-            emptyStateLabel.setVisible(true);
-            emptyStateLabel.setManaged(true);
+            if (emptyStateBox != null) {
+                emptyStateBox.setVisible(true);
+                emptyStateBox.setManaged(true);
+            } else {
+                emptyStateLabel.setVisible(true);
+                emptyStateLabel.setManaged(true);
+            }
             resultsScrollPane.setVisible(false);
             resultsScrollPane.setManaged(false);
             return;
         }
 
-        emptyStateLabel.setVisible(false);
-        emptyStateLabel.setManaged(false);
+        if (emptyStateBox != null) {
+            emptyStateBox.setVisible(false);
+            emptyStateBox.setManaged(false);
+        } else {
+            emptyStateLabel.setVisible(false);
+            emptyStateLabel.setManaged(false);
+        }
         resultsScrollPane.setVisible(true);
         resultsScrollPane.setManaged(true);
 
@@ -146,12 +167,19 @@ public final class SearchController {
         HBox iconRow = new HBox();
         iconRow.setAlignment(Pos.CENTER_LEFT);
 
-        Label iconLabel = new Label("FILE");
-        iconLabel.getStyleClass().add("search-file-icon");
+        ImageView iconView = new ImageView();
+        URL iconUrl = MainLayoutController.class.getResource("/images/file_icon.png");
+        if (iconUrl != null) {
+            iconView.setImage(new Image(iconUrl.toExternalForm(), true));
+        }
+        iconView.setFitWidth(18);
+        iconView.setFitHeight(18);
+        iconView.setPreserveRatio(true);
+        iconView.getStyleClass().add("search-file-image");
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
-        iconRow.getChildren().addAll(iconLabel, spacer);
+        iconRow.getChildren().addAll(iconView, spacer);
 
         Label fileNameLabel = new Label(result.fileName());
         fileNameLabel.getStyleClass().add("search-file-name");
@@ -214,11 +242,34 @@ public final class SearchController {
 
         if (stage != null) {
             Window owner = stage.getOwner();
+            stage.setFullScreen(false);
             stage.close();
             if (owner instanceof Stage ownerStage) {
+                if (!ownerStage.isShowing()) {
+                    ownerStage.show();
+                }
+                ownerStage.setIconified(false);
                 ownerStage.toFront();
                 ownerStage.requestFocus();
             }
         }
+    }
+
+    private Button createNavbarBackButton() {
+        Button backButton = new Button();
+        backButton.getStyleClass().add("navbar-back-inline");
+        backButton.setOnAction(e -> closeCurrentWindow());
+
+        URL iconUrl = MainLayoutController.class.getResource("/images/back_arrow.png");
+        if (iconUrl != null) {
+            ImageView iconView = new ImageView(new Image(iconUrl.toExternalForm(), true));
+            iconView.setFitWidth(18);
+            iconView.setFitHeight(18);
+            iconView.setPreserveRatio(true);
+            backButton.setGraphic(iconView);
+        } else {
+            backButton.setText("\u2190");
+        }
+        return backButton;
     }
 }

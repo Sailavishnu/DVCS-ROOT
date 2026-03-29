@@ -1,7 +1,12 @@
 package com.dvcs.client.dashboard.profile;
 
+import com.dvcs.client.auth.db.MongoConnection;
+import com.dvcs.client.auth.repo.UserRepository;
+import com.dvcs.client.auth.service.UserService;
+import com.dvcs.client.controller.LoginSignupController;
 import com.dvcs.client.dashboard.MainLayoutController;
 import com.dvcs.client.dashboard.navbar.NavbarController;
+import com.mongodb.client.MongoDatabase;
 import java.io.IOException;
 import java.net.URL;
 import java.time.format.DateTimeFormatter;
@@ -11,20 +16,23 @@ import java.util.function.Consumer;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -70,6 +78,9 @@ public final class ProfileController {
     private Button editProfileButton;
 
     @FXML
+    private Button logoutButton;
+
+    @FXML
     private VBox readOnlyBox;
 
     @FXML
@@ -95,6 +106,12 @@ public final class ProfileController {
 
     @FXML
     private Label popularWorkspaceEmptyLabel;
+
+    @FXML
+    private VBox popularWorkspaceEmptyBox;
+
+    @FXML
+    private ImageView popularWorkspaceEmptyImage;
 
     @FXML
     private VBox activityBox;
@@ -132,20 +149,25 @@ public final class ProfileController {
         Node navbar = loadFxmlNode("/fxml/Navbar.fxml");
         this.navbarController = (NavbarController) navbar.getProperties().get("fx:controller");
 
-        Button backButton = new Button("\u2190");
-        backButton.getStyleClass().add("app-back-button");
-        backButton.setOnAction(e -> closeCurrentWindow());
+        if (navbar instanceof HBox navbarBox) {
+            navbarBox.getChildren().add(0, createNavbarBackButton());
+        }
 
-        HBox topContainer = new HBox(10, backButton, navbar);
-        topContainer.setAlignment(Pos.CENTER_LEFT);
-        HBox.setHgrow(navbar, Priority.ALWAYS);
-        topContainer.setPadding(new Insets(10, 18, 0, 18));
+        VBox topContainer = new VBox(navbar);
+        topContainer.setPadding(new Insets(10, 18, 0, 0));
         headerContainer.getChildren().setAll(topContainer);
 
+        if (logoutButton != null) {
+            configureLogoutButtonGraphic();
+            logoutButton.setContentDisplay(ContentDisplay.RIGHT);
+        }
+
         if (profileCard != null) {
-            profileCard.setPrefWidth(300);
-            profileCard.setMinWidth(300);
-            profileCard.setMaxWidth(300);
+            profileCard.setPrefWidth(360);
+            profileCard.setMinWidth(360);
+            profileCard.setMaxWidth(360);
+            profileCard.setPrefHeight(560);
+            profileCard.setMinHeight(560);
         }
         if (leftCardColumn != null && profileCard != null) {
             VBox.setMargin(profileCard, new Insets(40, 0, 0, 20));
@@ -155,6 +177,11 @@ public final class ProfileController {
             popularWorkspaceGrid.setPrefHeight(220);
             popularWorkspaceGrid.setMinHeight(220);
             popularWorkspaceGrid.setMaxHeight(220);
+        }
+
+        URL profileEmptyUrl = MainLayoutController.class.getResource("/images/user_profile.png");
+        if (popularWorkspaceEmptyImage != null && profileEmptyUrl != null) {
+            popularWorkspaceEmptyImage.setImage(new Image(profileEmptyUrl.toExternalForm(), true));
         }
         if (activityBox != null) {
             activityBox.setPrefHeight(200);
@@ -235,13 +262,23 @@ public final class ProfileController {
 
         List<ProfileService.PopularWorkspace> safeList = workspaces == null ? List.of() : workspaces;
         if (safeList.isEmpty()) {
-            popularWorkspaceEmptyLabel.setVisible(true);
-            popularWorkspaceEmptyLabel.setManaged(true);
+            if (popularWorkspaceEmptyBox != null) {
+                popularWorkspaceEmptyBox.setVisible(true);
+                popularWorkspaceEmptyBox.setManaged(true);
+            } else {
+                popularWorkspaceEmptyLabel.setVisible(true);
+                popularWorkspaceEmptyLabel.setManaged(true);
+            }
             return;
         }
 
-        popularWorkspaceEmptyLabel.setVisible(false);
-        popularWorkspaceEmptyLabel.setManaged(false);
+        if (popularWorkspaceEmptyBox != null) {
+            popularWorkspaceEmptyBox.setVisible(false);
+            popularWorkspaceEmptyBox.setManaged(false);
+        } else {
+            popularWorkspaceEmptyLabel.setVisible(false);
+            popularWorkspaceEmptyLabel.setManaged(false);
+        }
 
         int index = 0;
         for (ProfileService.PopularWorkspace workspace : safeList) {
@@ -345,6 +382,27 @@ public final class ProfileController {
         reloadProfile();
     }
 
+    @FXML
+    private void onLogout() {
+        Stage currentStage = (root != null && root.getScene() != null && root.getScene().getWindow() instanceof Stage s)
+                ? s
+                : null;
+        Stage ownerStage = currentStage != null && currentStage.getOwner() instanceof Stage os ? os : null;
+
+        if (ownerStage == null) {
+            closeCurrentWindow();
+            return;
+        }
+
+        try {
+            showLoginOnStage(ownerStage);
+            currentStage.setFullScreen(false);
+            currentStage.close();
+        } catch (Exception e) {
+            showError("Logout failed. Please try again.");
+        }
+    }
+
     private void clearEditFields() {
         if (editNameField != null) {
             editNameField.clear();
@@ -443,11 +501,100 @@ public final class ProfileController {
 
         if (stage != null) {
             Window owner = stage.getOwner();
+            stage.setFullScreen(false);
             stage.close();
             if (owner instanceof Stage ownerStage) {
+                if (!ownerStage.isShowing()) {
+                    ownerStage.show();
+                }
+                ownerStage.setIconified(false);
                 ownerStage.toFront();
                 ownerStage.requestFocus();
             }
         }
+    }
+
+    private Button createNavbarBackButton() {
+        Button backButton = new Button();
+        backButton.getStyleClass().add("navbar-back-inline");
+        backButton.setOnAction(e -> closeCurrentWindow());
+
+        URL iconUrl = MainLayoutController.class.getResource("/images/back_arrow.png");
+        if (iconUrl != null) {
+            ImageView iconView = new ImageView(new Image(iconUrl.toExternalForm(), true));
+            iconView.setFitWidth(18);
+            iconView.setFitHeight(18);
+            iconView.setPreserveRatio(true);
+            backButton.setGraphic(iconView);
+        } else {
+            backButton.setText("\u2190");
+        }
+        return backButton;
+    }
+
+    private void configureLogoutButtonGraphic() {
+        URL iconUrl = MainLayoutController.class.getResource("/images/logout_icon.png");
+        if (iconUrl == null) {
+            return;
+        }
+        ImageView iconView = new ImageView(new Image(iconUrl.toExternalForm(), true));
+        iconView.setFitWidth(14);
+        iconView.setFitHeight(14);
+        iconView.setPreserveRatio(true);
+        logoutButton.setGraphic(iconView);
+        logoutButton.setContentDisplay(ContentDisplay.RIGHT);
+    }
+
+    private void showLoginOnStage(Stage stage) throws Exception {
+        URL fxmlUrl = MainLayoutController.class.getResource("/fxml/login_signup.fxml");
+        if (fxmlUrl == null) {
+            throw new IllegalStateException("FXML '/fxml/login_signup.fxml' not found on classpath");
+        }
+
+        FXMLLoader loader = new FXMLLoader(fxmlUrl);
+        Parent loginRoot = loader.load();
+
+        LoginSignupController controller = loader.getController();
+        controller.setUserService(createUserService());
+        controller.setOnAuthSuccess(username -> {
+            try {
+                showMainLayoutOnStage(stage, username);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        });
+
+        stage.setFullScreen(false);
+        stage.setScene(new Scene(loginRoot));
+        stage.setMaximized(true);
+        stage.show();
+    }
+
+    private void showMainLayoutOnStage(Stage stage, String username) throws Exception {
+        URL fxmlUrl = MainLayoutController.class.getResource("/fxml/MainLayout.fxml");
+        if (fxmlUrl == null) {
+            throw new IllegalStateException("FXML '/fxml/MainLayout.fxml' not found on classpath");
+        }
+
+        FXMLLoader loader = new FXMLLoader(fxmlUrl);
+        Parent mainRoot = loader.load();
+        MainLayoutController controller = loader.getController();
+        controller.setUsername(username);
+
+        stage.setScene(new Scene(mainRoot));
+        stage.setMaximized(true);
+        stage.setFullScreenExitHint("");
+        stage.setFullScreen(true);
+        stage.show();
+    }
+
+    private static UserService createUserService() {
+        String dbName = System.getenv("MONGODB_DB");
+        if (dbName == null || dbName.isBlank()) {
+            dbName = "DVCS";
+        }
+
+        MongoDatabase database = MongoConnection.getDatabase(dbName);
+        return new UserService(new UserRepository(database));
     }
 }

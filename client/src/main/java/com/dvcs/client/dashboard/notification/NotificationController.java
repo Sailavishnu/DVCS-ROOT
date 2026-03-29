@@ -19,6 +19,8 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
@@ -51,10 +53,19 @@ public final class NotificationController {
     private Label emptyStateLabel;
 
     @FXML
+    private VBox emptyStateBox;
+
+    @FXML
+    private ImageView emptyStateImageView;
+
+    @FXML
     private ScrollPane requestsScrollPane;
 
     @FXML
     private VBox requestsList;
+
+    @FXML
+    private ImageView highlightImageView;
 
     private NavbarController navbarController;
 
@@ -71,15 +82,23 @@ public final class NotificationController {
         Node navbar = loadFxmlNode("/fxml/Navbar.fxml");
         this.navbarController = (NavbarController) navbar.getProperties().get("fx:controller");
 
-        Button backButton = new Button("\u2190");
-        backButton.getStyleClass().add("app-back-button");
-        backButton.setOnAction(e -> closeCurrentWindow());
+        if (navbar instanceof HBox navbarBox) {
+            navbarBox.getChildren().add(0, createNavbarBackButton());
+        }
 
-        HBox topContainer = new HBox(10, backButton, navbar);
-        topContainer.setAlignment(Pos.CENTER_LEFT);
-        HBox.setHgrow(navbar, Priority.ALWAYS);
-        topContainer.setPadding(new Insets(10, 18, 0, 18));
+        VBox topContainer = new VBox(navbar);
+        topContainer.setPadding(new Insets(10, 18, 0, 0));
         headerContainer.getChildren().setAll(topContainer);
+
+        URL emptyImageUrl = MainLayoutController.class.getResource("/images/no_new_noti.png");
+        if (emptyStateImageView != null && emptyImageUrl != null) {
+            emptyStateImageView.setImage(new Image(emptyImageUrl.toExternalForm(), true));
+        }
+
+        URL highlightUrl = MainLayoutController.class.getResource("/images/new_noti.png");
+        if (highlightImageView != null && highlightUrl != null) {
+            highlightImageView.setImage(new Image(highlightUrl.toExternalForm(), true));
+        }
 
         if (bodyRow != null) {
             bodyRow.widthProperty().addListener((obs, oldValue, newValue) -> applyColumnRatio());
@@ -160,8 +179,13 @@ public final class NotificationController {
         pendingCountLabel.setText(count + (count == 1 ? " Request Pending" : " Requests Pending"));
 
         boolean hasRequests = count > 0;
-        emptyStateLabel.setVisible(!hasRequests);
-        emptyStateLabel.setManaged(!hasRequests);
+        if (emptyStateBox != null) {
+            emptyStateBox.setVisible(!hasRequests);
+            emptyStateBox.setManaged(!hasRequests);
+        } else {
+            emptyStateLabel.setVisible(!hasRequests);
+            emptyStateLabel.setManaged(!hasRequests);
+        }
         requestsScrollPane.setVisible(hasRequests);
         requestsScrollPane.setManaged(hasRequests);
 
@@ -271,11 +295,34 @@ public final class NotificationController {
 
         if (stage != null) {
             Window owner = stage.getOwner();
+            stage.setFullScreen(false);
             stage.close();
             if (owner instanceof Stage ownerStage) {
+                if (!ownerStage.isShowing()) {
+                    ownerStage.show();
+                }
+                ownerStage.setIconified(false);
                 ownerStage.toFront();
                 ownerStage.requestFocus();
             }
         }
+    }
+
+    private Button createNavbarBackButton() {
+        Button backButton = new Button();
+        backButton.getStyleClass().add("navbar-back-inline");
+        backButton.setOnAction(e -> closeCurrentWindow());
+
+        URL iconUrl = MainLayoutController.class.getResource("/images/back_arrow.png");
+        if (iconUrl != null) {
+            ImageView iconView = new ImageView(new Image(iconUrl.toExternalForm(), true));
+            iconView.setFitWidth(18);
+            iconView.setFitHeight(18);
+            iconView.setPreserveRatio(true);
+            backButton.setGraphic(iconView);
+        } else {
+            backButton.setText("\u2190");
+        }
+        return backButton;
     }
 }

@@ -3,6 +3,7 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
@@ -28,7 +29,10 @@
 
                 <StackPane VBox.vgrow="ALWAYS">
                     <children>
-                        <Label fx:id="emptyStateLabel" text="No collaboration requests" styleClass="notification-empty-message"/>
+                        <VBox fx:id="emptyStateBox" spacing="10" alignment="CENTER">
+                            <ImageView fx:id="emptyStateImageView" fitWidth="120" fitHeight="120" preserveRatio="true" smooth="true"/>
+                            <Label fx:id="emptyStateLabel" text="No notification found" styleClass="notification-empty-message"/>
+                        </VBox>
 
                         <ScrollPane fx:id="requestsScrollPane" fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED"
                                     styleClass="notification-scroll">
@@ -43,7 +47,10 @@
             <VBox fx:id="rightSection" alignment="CENTER" spacing="0" styleClass="notification-right-section">
                 <Region VBox.vgrow="ALWAYS"/>
                 <StackPane styleClass="notification-highlight-card">
-                    <Label text="Connect with your Buddies!" wrapText="true" styleClass="notification-highlight-text"/>
+                    <VBox alignment="CENTER" spacing="14">
+                        <ImageView fx:id="highlightImageView" fitWidth="150" fitHeight="150" preserveRatio="true" smooth="true"/>
+                        <Label text="Connect with your Buddies!" wrapText="true" styleClass="notification-highlight-text"/>
+                    </VBox>
                 </StackPane>
                 <Region VBox.vgrow="ALWAYS"/>
             </VBox>

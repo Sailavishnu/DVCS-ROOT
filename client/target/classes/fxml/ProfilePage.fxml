@@ -5,6 +5,7 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.PasswordField?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
@@ -73,6 +74,12 @@
                             <Insets top="15" right="15" bottom="0" left="0"/>
                         </StackPane.margin>
                     </Button>
+
+                    <Button fx:id="logoutButton" text="Logout" styleClass="profile-logout-button" onAction="#onLogout" StackPane.alignment="BOTTOM_CENTER" contentDisplay="RIGHT">
+                        <StackPane.margin>
+                            <Insets top="0" right="0" bottom="12" left="0"/>
+                        </StackPane.margin>
+                    </Button>
                 </StackPane>
             </VBox>
 
@@ -91,7 +98,10 @@
                                 <RowConstraints percentHeight="50"/>
                             </rowConstraints>
                         </GridPane>
-                        <Label fx:id="popularWorkspaceEmptyLabel" text="No popular workspace found" styleClass="profile-empty-text"/>
+                        <VBox fx:id="popularWorkspaceEmptyBox" alignment="CENTER" spacing="10">
+                            <ImageView fx:id="popularWorkspaceEmptyImage" fitWidth="86" fitHeight="86" preserveRatio="true" smooth="true"/>
+                            <Label fx:id="popularWorkspaceEmptyLabel" text="No popular workspace found" styleClass="profile-empty-text"/>
+                        </VBox>
                     </StackPane>
                 </VBox>
 

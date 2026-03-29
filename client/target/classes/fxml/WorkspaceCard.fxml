@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.shape.Rectangle?>
 
 <VBox xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.dvcs.client.dashboard.workspace.WorkspaceCardController"
@@ -13,7 +13,7 @@
         <Insets top="14" right="14" bottom="14" left="14"/>
     </padding>
 
-    <Rectangle width="28" height="22" arcWidth="8" arcHeight="8" styleClass="workspace-icon"/>
+    <ImageView fx:id="iconImageView" fitWidth="28" fitHeight="22" preserveRatio="true" smooth="true"/>
 
     <Label fx:id="titleLabel" text="Workspace" styleClass="workspace-title"/>
 </VBox>

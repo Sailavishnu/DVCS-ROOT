@@ -19,6 +19,8 @@ import javafx.scene.control.ChoiceDialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextInputDialog;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
@@ -378,13 +380,17 @@ public class DashboardContentController {
             }
         }
 
+        if (sorted.isEmpty()) {
+            Node emptyMy = createEmptyWorkspacePlaceholder("No workspace here", "/images/folder_icon.png");
+            myGrid.add(emptyMy, 0, 0, 2, 1);
+        }
+
         List<WorkspaceSummary> collaborative = workspaceService == null || currentUserId == null
                 ? List.of()
                 : workspaceService.loadCollaborativeWorkspaces(currentUserId);
         if (collaborative.isEmpty()) {
-            Label empty = new Label("No collaborative workspaces yet.");
-            empty.getStyleClass().add("panel-body");
-            collabList.getChildren().add(empty);
+            collabList.getChildren()
+                    .add(createEmptyWorkspacePlaceholder("No workspace here", "/images/folder_icon.png"));
         } else {
             for (WorkspaceSummary workspace : collaborative.stream().limit(4).toList()) {
                 Node node = createCollaborativeRow(workspace.displayName());
@@ -410,6 +416,27 @@ public class DashboardContentController {
         }
         node.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> openWorkspaceDetails(workspace));
         return node;
+    }
+
+    private Node createEmptyWorkspacePlaceholder(String message, String imagePath) {
+        VBox box = new VBox(10);
+        box.getStyleClass().addAll("workspace-card", "workspace-empty-card");
+        box.setMinHeight(170);
+        box.setPrefHeight(170);
+
+        URL iconUrl = DashboardContentController.class.getResource(imagePath);
+        if (iconUrl != null) {
+            ImageView icon = new ImageView(new Image(iconUrl.toExternalForm(), true));
+            icon.setFitWidth(34);
+            icon.setFitHeight(34);
+            icon.setPreserveRatio(true);
+            box.getChildren().add(icon);
+        }
+
+        Label label = new Label(message);
+        label.getStyleClass().add("workspace-empty-label");
+        box.getChildren().add(label);
+        return box;
     }
 
     private void openWorkspaceDetails(WorkspaceSummary workspace) {
