@@ -10,15 +10,20 @@ import com.dvcs.client.workspacepage.service.WorkspaceService;
 import com.dvcs.client.workspacepage.utils.DateTimeUtils;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.fxml.FXML;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
@@ -26,6 +31,7 @@ import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
@@ -40,6 +46,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.stage.Window;
 import org.bson.types.ObjectId;
 
 public final class WorkspaceController {
@@ -54,13 +61,16 @@ public final class WorkspaceController {
     private HBox actionBar;
 
     @FXML
-    private VBox mainContainer;
+    private HBox mainContainer;
+
+    @FXML
+    private VBox leftSection;
+
+    @FXML
+    private VBox rightPanel;
 
     @FXML
     private TableView<WorkspaceFileRow> fileTable;
-
-    @FXML
-    private TableColumn<WorkspaceFileRow, String> iconColumn;
 
     @FXML
     private TableColumn<WorkspaceFileRow, String> nameColumn;
@@ -83,6 +93,15 @@ public final class WorkspaceController {
     @FXML
     private TextArea readmeTextArea;
 
+    @FXML
+    private Label overviewNameLabel;
+
+    @FXML
+    private Label overviewCommitLabel;
+
+    @FXML
+    private Label overviewModifiedLabel;
+
     private final FileSystemService fileSystemService = new FileSystemService();
 
     private WorkspaceService workspaceService;
@@ -92,17 +111,49 @@ public final class WorkspaceController {
 
     private WorkspacePageModel currentModel;
     private FileItemModel selectedFile;
+    private Path selectedPath;
     private Path workspaceRoot;
+    private Path currentBrowsePath;
+    private final Map<String, FileItemModel> metadataByRelativePath = new HashMap<>();
 
     @FXML
     private void initialize() {
         HBox.setHgrow(actionBar, Priority.ALWAYS);
+        HBox.setHgrow(leftSection, Priority.ALWAYS);
+        HBox.setHgrow(rightPanel, Priority.ALWAYS);
         VBox.setVgrow(fileTable, Priority.ALWAYS);
 
-        iconColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().icon()));
         nameColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().displayName()));
         lastCommitColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().lastCommitMessage()));
         lastModifiedColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().lastModified()));
+
+        mainContainer.widthProperty().addListener((obs, oldWidth, newWidth) -> applySplitRatios());
+        applySplitRatios();
+
+        collaboratorsList.setCellFactory(list -> new ListCell<>() {
+            @Override
+            protected void updateItem(String username, boolean empty) {
+                super.updateItem(username, empty);
+                if (empty || username == null) {
+                    setGraphic(null);
+                    setText(null);
+                    return;
+                }
+
+                Label avatar = new Label();
+                avatar.getStyleClass().add("workspace-collaborator-avatar");
+
+                Label name = new Label(username);
+                name.getStyleClass().add("workspace-collaborator-name");
+
+                HBox row = new HBox(8, avatar, name);
+                row.setAlignment(Pos.CENTER_LEFT);
+                row.getStyleClass().add("workspace-collaborator-row");
+
+                setText(null);
+                setGraphic(row);
+            }
+        });
 
         fileTable.setRowFactory(table -> {
             TableRow<WorkspaceFileRow> row = new TableRow<>();
@@ -111,18 +162,15 @@ public final class WorkspaceController {
                 if (item == null) {
                     return;
                 }
-
-                selectedFile = item.file();
-                if (event.getClickCount() == 2) {
-                    openEditorWindow(item.file());
-                }
+                openEntry(item);
             });
             return row;
         });
 
-        fileTable.getSelectionModel().selectedItemProperty().addListener((obs, oldItem, newItem) -> {
-            selectedFile = newItem == null ? null : newItem.file();
-        });
+        fileTable.getSelectionModel().selectedItemProperty()
+                .addListener((obs, oldItem, newItem) -> updateOverview(newItem));
+
+        updateOverview((FileItemModel) null);
     }
 
     public void configure(
@@ -142,6 +190,39 @@ public final class WorkspaceController {
     }
 
     @FXML
+    private void onBackRequested() {
+        if (currentBrowsePath != null && workspaceRoot != null && !currentBrowsePath.equals(workspaceRoot)) {
+            Path parent = currentBrowsePath.getParent();
+            if (parent != null && parent.startsWith(workspaceRoot)) {
+                currentBrowsePath = parent;
+                populateCurrentDirectoryTable();
+                updateOverview((WorkspaceFileRow) null);
+                return;
+            }
+        }
+
+        Stage current = resolveOwnerStage();
+        if (current == null) {
+            for (Window window : Window.getWindows()) {
+                if (window.isFocused() && window instanceof Stage focusedStage) {
+                    current = focusedStage;
+                    break;
+                }
+            }
+        }
+        if (current == null) {
+            return;
+        }
+
+        Window owner = current.getOwner();
+        current.close();
+        if (owner instanceof Stage ownerStage) {
+            ownerStage.toFront();
+            ownerStage.requestFocus();
+        }
+    }
+
+    @FXML
     private void onCreateFolder() {
         if (!ensureWorkspaceReady()) {
             return;
@@ -158,8 +239,10 @@ public final class WorkspaceController {
                 .filter(name -> !name.isEmpty())
                 .ifPresent(folderName -> {
                     try {
-                        fileSystemService.createFolder(workspaceRoot, folderName);
-                        workspaceService.ensureFolderMetadata(workspaceId, currentUserId, folderName);
+                        Path baseFolder = currentBrowsePath == null ? workspaceRoot : currentBrowsePath;
+                        Path createdFolder = fileSystemService.createFolder(baseFolder, folderName);
+                        String relativeFolder = resolveRelativePath(createdFolder);
+                        workspaceService.ensureFolderMetadata(workspaceId, currentUserId, relativeFolder);
                         reloadWorkspace();
                         showInfo("Folder created");
                     } catch (Exception e) {
@@ -185,8 +268,14 @@ public final class WorkspaceController {
                 .filter(name -> !name.isEmpty())
                 .ifPresent(fileName -> {
                     try {
-                        fileSystemService.createFile(workspaceRoot, fileName);
-                        workspaceService.ensureFileMetadata(workspaceId, currentUserId, "root", fileName);
+                        Path baseFolder = currentBrowsePath == null ? workspaceRoot : currentBrowsePath;
+                        Path createdFile = fileSystemService.createFile(baseFolder, fileName);
+                        Path parent = createdFile.getParent();
+                        String relativeFolder = (parent == null || parent.equals(workspaceRoot))
+                                ? "root"
+                                : resolveRelativePath(parent);
+                        workspaceService.ensureFileMetadata(workspaceId, currentUserId, relativeFolder,
+                                createdFile.getFileName().toString());
                         reloadWorkspace();
                         showInfo("File created");
                     } catch (Exception e) {
@@ -209,11 +298,16 @@ public final class WorkspaceController {
         }
 
         try {
-            Path importedPath = fileSystemService.importFile(workspaceRoot, sourceFile.toPath());
+            Path baseFolder = currentBrowsePath == null ? workspaceRoot : currentBrowsePath;
+            Path importedPath = fileSystemService.importFile(baseFolder, sourceFile.toPath());
+            Path parent = importedPath.getParent();
+            String relativeFolder = (parent == null || parent.equals(workspaceRoot))
+                    ? "root"
+                    : resolveRelativePath(parent);
             workspaceService.ensureFileMetadata(
                     workspaceId,
                     currentUserId,
-                    "root",
+                    relativeFolder,
                     importedPath.getFileName().toString());
             reloadWorkspace();
             showInfo("File imported into workspace");
@@ -224,7 +318,7 @@ public final class WorkspaceController {
 
     @FXML
     private void onCommitRequested() {
-        if (selectedFile == null) {
+        if (selectedFile == null || selectedPath == null) {
             showError("Select a file before committing");
             return;
         }
@@ -263,8 +357,7 @@ public final class WorkspaceController {
 
     private void commitSelectedFile(String commitMessage) {
         try {
-            Path filePath = resolveFilePath(selectedFile);
-            String content = fileSystemService.readFile(filePath);
+            String content = fileSystemService.readFile(selectedPath);
             fileService.commit(selectedFile.fileId(), currentUserId, commitMessage, content);
             reloadWorkspace();
             showInfo("Commit saved");
@@ -281,34 +374,59 @@ public final class WorkspaceController {
         collaboratorsList.getItems().setAll(currentModel.collaborators().stream().map(UserModel::username).toList());
 
         workspaceRoot = fileSystemService.normalizeWorkspaceRoot(currentModel.workspaceRootPath());
-        populateFilesTable();
+        buildMetadataIndex();
+        if (currentBrowsePath == null || !isInsideWorkspace(currentBrowsePath)) {
+            currentBrowsePath = workspaceRoot;
+        }
+        populateCurrentDirectoryTable();
         loadReadmeSection();
+        if (selectedPath != null && !Files.exists(selectedPath)) {
+            selectedPath = null;
+            selectedFile = null;
+        }
+        updateOverview((WorkspaceFileRow) null);
     }
 
-    private void populateFilesTable() {
+    private void populateCurrentDirectoryTable() {
         List<WorkspaceFileRow> rows = new ArrayList<>();
-        for (FolderModel folder : currentModel.folders()) {
-            for (FileItemModel file : folder.files()) {
-                Path filePath = resolveFilePath(file);
-                Instant modifiedAt = fileSystemService.getLastModified(filePath);
-                String modifiedLabel = modifiedAt == null
-                        ? DateTimeUtils.formatInstant(file.latestCommitAt())
-                        : formatRelative(modifiedAt);
-
-                String displayName = "root".equalsIgnoreCase(folder.folderName())
-                        ? file.filename()
-                        : folder.folderName() + "/" + file.filename();
-
-                rows.add(new WorkspaceFileRow(
-                        "FILE",
-                        displayName,
-                        file.latestCommitMessage(),
-                        modifiedLabel,
-                        file));
-            }
+        if (currentBrowsePath == null) {
+            fileTable.getItems().clear();
+            return;
         }
 
-        rows.sort((a, b) -> a.displayName().compareToIgnoreCase(b.displayName()));
+        try (var stream = Files.list(currentBrowsePath)) {
+            List<Path> entries = stream
+                    .filter(path -> !path.getFileName().toString().startsWith("."))
+                    .sorted(Comparator
+                            .comparing((Path path) -> Files.isDirectory(path) ? 0 : 1)
+                            .thenComparing(path -> path.getFileName().toString(), String.CASE_INSENSITIVE_ORDER))
+                    .toList();
+
+            for (Path path : entries) {
+                boolean isFolder = Files.isDirectory(path);
+                Instant modifiedAt = fileSystemService.getLastModified(path);
+                String modifiedLabel = modifiedAt == null ? "-" : formatRelative(modifiedAt);
+                String relative = resolveRelativePath(path);
+
+                FileItemModel metadata = isFolder ? null : metadataByRelativePath.get(relative);
+                String commitMessage = isFolder
+                        ? "-"
+                        : (metadata == null || metadata.latestCommitMessage() == null
+                                || metadata.latestCommitMessage().isBlank())
+                                        ? "No commits yet"
+                                        : metadata.latestCommitMessage();
+
+                rows.add(new WorkspaceFileRow(
+                        path.getFileName().toString(),
+                        commitMessage,
+                        modifiedLabel,
+                        metadata,
+                        path,
+                        isFolder));
+            }
+        } catch (IOException e) {
+            showError("Failed to load folder contents: " + e.getMessage());
+        }
         fileTable.getItems().setAll(rows);
     }
 
@@ -339,19 +457,42 @@ public final class WorkspaceController {
         String normalizedFolder = folderName == null ? "" : folderName.trim().toLowerCase(Locale.ROOT);
         String normalizedFile = fileName.trim().toLowerCase(Locale.ROOT);
 
+        if (!normalizedFolder.isBlank() && !"root".equalsIgnoreCase(normalizedFolder)) {
+            currentBrowsePath = workspaceRoot.resolve(normalizedFolder).normalize();
+        } else {
+            currentBrowsePath = workspaceRoot;
+        }
+        populateCurrentDirectoryTable();
+
         fileTable.getItems().stream()
+                .filter(row -> !row.isFolder() && row.file() != null)
                 .filter(row -> row.file().filename().equalsIgnoreCase(normalizedFile)
                         && (normalizedFolder.isBlank() || row.file().folderName().equalsIgnoreCase(normalizedFolder)))
                 .findFirst()
                 .ifPresent(row -> fileTable.getSelectionModel().select(row));
     }
 
-    private void openEditorWindow(FileItemModel file) {
-        if (file == null) {
+    private void openEntry(WorkspaceFileRow row) {
+        if (row == null) {
             return;
         }
 
-        Path filePath = resolveFilePath(file);
+        if (row.isFolder()) {
+            currentBrowsePath = row.path();
+            selectedFile = null;
+            selectedPath = null;
+            populateCurrentDirectoryTable();
+            updateOverview(row);
+            return;
+        }
+
+        selectedPath = row.path();
+        selectedFile = row.file();
+        updateOverview(row);
+        openEditorWindow(row.path(), row.displayName());
+    }
+
+    private void openEditorWindow(Path filePath, String displayName) {
         String initialContent;
         try {
             initialContent = fileSystemService.readFile(filePath);
@@ -367,7 +508,7 @@ public final class WorkspaceController {
         saveButton.setOnAction(event -> {
             try {
                 fileSystemService.writeFile(filePath, editor.getText());
-                populateFilesTable();
+                populateCurrentDirectoryTable();
                 showInfo("File saved to workspace");
             } catch (Exception e) {
                 showError("Save failed: " + e.getMessage());
@@ -383,7 +524,7 @@ public final class WorkspaceController {
         editorRoot.setBottom(footer);
 
         Stage stage = new Stage();
-        stage.setTitle("Edit " + file.filename());
+        stage.setTitle("Edit " + displayName);
         stage.initModality(Modality.APPLICATION_MODAL);
         Stage owner = resolveOwnerStage();
         if (owner != null) {
@@ -395,6 +536,7 @@ public final class WorkspaceController {
                 .add(Objects.requireNonNull(getClass().getResource("/css/dashboard.css")).toExternalForm());
         stage.setScene(scene);
         stage.showAndWait();
+        populateCurrentDirectoryTable();
     }
 
     private Path resolveFilePath(FileItemModel file) {
@@ -417,6 +559,77 @@ public final class WorkspaceController {
             showError("Workspace path is unavailable: " + e.getMessage());
             return false;
         }
+    }
+
+    private void applySplitRatios() {
+        double width = mainContainer.getWidth();
+        if (width <= 0) {
+            return;
+        }
+
+        double spacing = mainContainer.getSpacing();
+        double available = Math.max(0, width - spacing);
+        leftSection.setPrefWidth(available * 0.70);
+        rightPanel.setPrefWidth(available * 0.30);
+    }
+
+    private void updateOverview(FileItemModel file) {
+        if (file == null) {
+            overviewNameLabel.setText("No file selected");
+            overviewCommitLabel.setText("Commit: -");
+            overviewModifiedLabel.setText("Modified: -");
+            return;
+        }
+
+        overviewNameLabel.setText(file.filename());
+        String message = file.latestCommitMessage() == null || file.latestCommitMessage().isBlank()
+                ? "No commits yet"
+                : file.latestCommitMessage();
+        overviewCommitLabel.setText("Commit: " + message);
+
+        Instant modifiedAt = fileSystemService.getLastModified(resolveFilePath(file));
+        String modified = modifiedAt == null ? DateTimeUtils.formatInstant(file.latestCommitAt())
+                : formatRelative(modifiedAt);
+        overviewModifiedLabel.setText("Modified: " + modified);
+    }
+
+    private void updateOverview(WorkspaceFileRow row) {
+        if (row == null) {
+            updateOverview((FileItemModel) null);
+            return;
+        }
+        if (row.isFolder()) {
+            overviewNameLabel.setText(row.displayName());
+            overviewCommitLabel.setText("Type: Folder");
+            overviewModifiedLabel.setText("Modified: " + row.lastModified());
+            return;
+        }
+        updateOverview(row.file());
+    }
+
+    private void buildMetadataIndex() {
+        metadataByRelativePath.clear();
+        for (FolderModel folder : currentModel.folders()) {
+            String folderName = folder.folderName() == null ? "" : folder.folderName().trim();
+            for (FileItemModel file : folder.files()) {
+                String relative = folderName.isBlank() || "root".equalsIgnoreCase(folderName)
+                        ? file.filename()
+                        : folderName + "/" + file.filename();
+                metadataByRelativePath.put(relative.toLowerCase(Locale.ROOT), file);
+            }
+        }
+    }
+
+    private String resolveRelativePath(Path path) {
+        if (workspaceRoot == null || path == null) {
+            return "";
+        }
+        String relative = workspaceRoot.relativize(path).toString().replace('\\', '/');
+        return relative.toLowerCase(Locale.ROOT);
+    }
+
+    private boolean isInsideWorkspace(Path path) {
+        return workspaceRoot != null && path != null && path.normalize().startsWith(workspaceRoot);
     }
 
     private Stage resolveOwnerStage() {
@@ -452,20 +665,31 @@ public final class WorkspaceController {
     private void showInfo(String message) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION, message);
         alert.setHeaderText(null);
+        Stage owner = resolveOwnerStage();
+        if (owner != null) {
+            alert.initOwner(owner);
+            alert.initModality(Modality.WINDOW_MODAL);
+        }
         alert.showAndWait();
     }
 
     private void showError(String message) {
         Alert alert = new Alert(Alert.AlertType.ERROR, message);
         alert.setHeaderText("Workspace");
+        Stage owner = resolveOwnerStage();
+        if (owner != null) {
+            alert.initOwner(owner);
+            alert.initModality(Modality.WINDOW_MODAL);
+        }
         alert.showAndWait();
     }
 
     private record WorkspaceFileRow(
-            String icon,
             String displayName,
             String lastCommitMessage,
             String lastModified,
-            FileItemModel file) {
+            FileItemModel file,
+            Path path,
+            boolean isFolder) {
     }
 }

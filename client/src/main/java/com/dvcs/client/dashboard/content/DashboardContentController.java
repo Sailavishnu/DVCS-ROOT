@@ -212,6 +212,10 @@ public class DashboardContentController {
         nameDialog.setTitle("New Workspace");
         nameDialog.setHeaderText("Create Workspace");
         nameDialog.setContentText("Workspace name:");
+        Window owner = currentWindow();
+        if (owner != null) {
+            nameDialog.initOwner(owner);
+        }
 
         Optional<String> nameResult = nameDialog.showAndWait();
         if (nameResult.isEmpty() || nameResult.get().isBlank()) {
@@ -260,6 +264,10 @@ public class DashboardContentController {
         workspaceChoice.setTitle("Import Files");
         workspaceChoice.setHeaderText("Step 1: Select Workspace");
         workspaceChoice.setContentText("Workspace:");
+        Window owner = currentWindow();
+        if (owner != null) {
+            workspaceChoice.initOwner(owner);
+        }
 
         Optional<String> workspaceSelection = workspaceChoice.showAndWait();
         if (workspaceSelection.isEmpty()) {
@@ -284,6 +292,10 @@ public class DashboardContentController {
         folderChoice.setTitle("Import Files");
         folderChoice.setHeaderText("Step 2: Select Folder Inside Workspace");
         folderChoice.setContentText("Folder:");
+        if (owner != null) {
+            folderChoice.initOwner(owner);
+            folderDialog.initOwner(owner);
+        }
 
         Optional<String> folderSelection = folderChoice.showAndWait();
         if (folderSelection.isEmpty()) {
@@ -532,12 +544,22 @@ public class DashboardContentController {
     private void showInfo(String message) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION, message);
         alert.setHeaderText(null);
+        Window owner = currentWindow();
+        if (owner != null) {
+            alert.initOwner(owner);
+            alert.initModality(Modality.WINDOW_MODAL);
+        }
         alert.showAndWait();
     }
 
     private void showError(String message) {
         Alert alert = new Alert(Alert.AlertType.ERROR, message);
         alert.setHeaderText("Operation failed");
+        Window owner = currentWindow();
+        if (owner != null) {
+            alert.initOwner(owner);
+            alert.initModality(Modality.WINDOW_MODAL);
+        }
         alert.showAndWait();
     }
 

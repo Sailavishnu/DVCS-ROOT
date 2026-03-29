@@ -12,6 +12,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.BorderPane;
@@ -21,6 +22,8 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
+import javafx.stage.Window;
 import org.bson.types.ObjectId;
 
 public final class SearchController {
@@ -56,7 +59,13 @@ public final class SearchController {
         Node navbar = loadFxmlNode("/fxml/Navbar.fxml");
         this.navbarController = (NavbarController) navbar.getProperties().get("fx:controller");
 
-        VBox topContainer = new VBox(navbar);
+        Button backButton = new Button("\u2190");
+        backButton.getStyleClass().add("app-back-button");
+        backButton.setOnAction(e -> closeCurrentWindow());
+
+        HBox topContainer = new HBox(10, backButton, navbar);
+        topContainer.setAlignment(Pos.CENTER_LEFT);
+        HBox.setHgrow(navbar, Priority.ALWAYS);
         topContainer.setPadding(new Insets(10, 18, 0, 18));
         headerContainer.getChildren().setAll(topContainer);
     }
@@ -185,6 +194,31 @@ public final class SearchController {
             return node;
         } catch (IOException e) {
             throw new RuntimeException("Failed to load " + resource, e);
+        }
+    }
+
+    private void closeCurrentWindow() {
+        Stage stage = null;
+        if (root != null && root.getScene() != null && root.getScene().getWindow() instanceof Stage currentStage) {
+            stage = currentStage;
+        }
+
+        if (stage == null) {
+            for (Window window : Window.getWindows()) {
+                if (window.isFocused() && window instanceof Stage focusedStage) {
+                    stage = focusedStage;
+                    break;
+                }
+            }
+        }
+
+        if (stage != null) {
+            Window owner = stage.getOwner();
+            stage.close();
+            if (owner instanceof Stage ownerStage) {
+                ownerStage.toFront();
+                ownerStage.requestFocus();
+            }
         }
     }
 }

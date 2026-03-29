@@ -24,10 +24,14 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
+import javafx.stage.Window;
 import org.bson.types.ObjectId;
 
 public final class ProfileController {
@@ -128,7 +132,13 @@ public final class ProfileController {
         Node navbar = loadFxmlNode("/fxml/Navbar.fxml");
         this.navbarController = (NavbarController) navbar.getProperties().get("fx:controller");
 
-        VBox topContainer = new VBox(navbar);
+        Button backButton = new Button("\u2190");
+        backButton.getStyleClass().add("app-back-button");
+        backButton.setOnAction(e -> closeCurrentWindow());
+
+        HBox topContainer = new HBox(10, backButton, navbar);
+        topContainer.setAlignment(Pos.CENTER_LEFT);
+        HBox.setHgrow(navbar, Priority.ALWAYS);
         topContainer.setPadding(new Insets(10, 18, 0, 18));
         headerContainer.getChildren().setAll(topContainer);
 
@@ -381,12 +391,22 @@ public final class ProfileController {
     private void showInfo(String message) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION, message);
         alert.setHeaderText(null);
+        Window owner = root == null || root.getScene() == null ? null : root.getScene().getWindow();
+        if (owner != null) {
+            alert.initOwner(owner);
+            alert.initModality(Modality.WINDOW_MODAL);
+        }
         alert.showAndWait();
     }
 
     private void showError(String message) {
         Alert alert = new Alert(Alert.AlertType.ERROR, message);
         alert.setHeaderText("Profile update failed");
+        Window owner = root == null || root.getScene() == null ? null : root.getScene().getWindow();
+        if (owner != null) {
+            alert.initOwner(owner);
+            alert.initModality(Modality.WINDOW_MODAL);
+        }
         alert.showAndWait();
     }
 
@@ -403,6 +423,31 @@ public final class ProfileController {
             return node;
         } catch (IOException e) {
             throw new RuntimeException("Failed to load " + resource, e);
+        }
+    }
+
+    private void closeCurrentWindow() {
+        Stage stage = null;
+        if (root != null && root.getScene() != null && root.getScene().getWindow() instanceof Stage currentStage) {
+            stage = currentStage;
+        }
+
+        if (stage == null) {
+            for (Window window : Window.getWindows()) {
+                if (window.isFocused() && window instanceof Stage focusedStage) {
+                    stage = focusedStage;
+                    break;
+                }
+            }
+        }
+
+        if (stage != null) {
+            Window owner = stage.getOwner();
+            stage.close();
+            if (owner instanceof Stage ownerStage) {
+                ownerStage.toFront();
+                ownerStage.requestFocus();
+            }
         }
     }
 }

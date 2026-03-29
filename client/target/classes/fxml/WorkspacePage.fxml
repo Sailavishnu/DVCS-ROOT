@@ -26,6 +26,7 @@
             </padding>
 
             <HBox alignment="CENTER_LEFT" spacing="12" styleClass="workspace-topbar">
+                <Button text="←" onAction="#onBackRequested" styleClass="app-back-button"/>
                 <Label text="Workspace" styleClass="workspace-topbar-title"/>
                 <Region HBox.hgrow="ALWAYS"/>
                 <Label fx:id="workspaceNameHeader" text="Workspace Name" styleClass="workspace-topbar-name"/>
@@ -48,32 +49,42 @@
     </top>
 
     <center>
-        <VBox fx:id="mainContainer" spacing="14" styleClass="workspace-main-container">
+        <HBox fx:id="mainContainer" spacing="14" styleClass="workspace-main-container">
             <padding>
                 <Insets top="10" right="20" bottom="18" left="20"/>
             </padding>
 
-            <VBox spacing="8" styleClass="workspace-collaborators-card">
-                <Label text="Collaborators" styleClass="workspace-section-title"/>
-                <ListView fx:id="collaboratorsList" prefHeight="92" maxHeight="92"/>
+            <VBox fx:id="leftSection" spacing="12" HBox.hgrow="ALWAYS">
+                <VBox spacing="8" styleClass="workspace-table-card" VBox.vgrow="ALWAYS">
+                    <Label text="Files" styleClass="workspace-section-title"/>
+                    <TableView fx:id="fileTable" VBox.vgrow="ALWAYS">
+                        <columns>
+                            <TableColumn fx:id="nameColumn" text="Name" prefWidth="460"/>
+                            <TableColumn fx:id="lastCommitColumn" text="Last Commit Message" prefWidth="420"/>
+                            <TableColumn fx:id="lastModifiedColumn" text="Last Modified" prefWidth="220"/>
+                        </columns>
+                    </TableView>
+                </VBox>
+
+                <VBox fx:id="readmeSection" spacing="8" styleClass="workspace-readme-card" managed="false" visible="false">
+                    <Label text="README.md" styleClass="workspace-section-title"/>
+                    <TextArea fx:id="readmeTextArea" editable="false" wrapText="true" prefHeight="160"/>
+                </VBox>
             </VBox>
 
-            <VBox spacing="8" styleClass="workspace-table-card" VBox.vgrow="ALWAYS">
-                <Label text="Files" styleClass="workspace-section-title"/>
-                <TableView fx:id="fileTable" VBox.vgrow="ALWAYS">
-                    <columns>
-                        <TableColumn fx:id="iconColumn" text="Icon" prefWidth="92"/>
-                        <TableColumn fx:id="nameColumn" text="Name" prefWidth="360"/>
-                        <TableColumn fx:id="lastCommitColumn" text="Last Commit Message" prefWidth="420"/>
-                        <TableColumn fx:id="lastModifiedColumn" text="Last Modified" prefWidth="180"/>
-                    </columns>
-                </TableView>
-            </VBox>
+            <VBox fx:id="rightPanel" spacing="12" styleClass="workspace-right-panel">
+                <VBox spacing="8" styleClass="workspace-overview-card">
+                    <Label text="Overview" styleClass="workspace-section-title"/>
+                    <Label fx:id="overviewNameLabel" text="No file selected" styleClass="workspace-overview-main"/>
+                    <Label fx:id="overviewCommitLabel" text="Commit: -" styleClass="workspace-meta-label-dark"/>
+                    <Label fx:id="overviewModifiedLabel" text="Modified: -" styleClass="workspace-meta-label-dark"/>
+                </VBox>
 
-            <VBox fx:id="readmeSection" spacing="8" styleClass="workspace-readme-card" managed="false" visible="false">
-                <Label text="README.md" styleClass="workspace-section-title"/>
-                <TextArea fx:id="readmeTextArea" editable="false" wrapText="true" prefHeight="160"/>
+                <VBox spacing="8" styleClass="workspace-collaborators-card" VBox.vgrow="ALWAYS">
+                    <Label text="Collaborators" styleClass="workspace-section-title"/>
+                    <ListView fx:id="collaboratorsList" VBox.vgrow="ALWAYS"/>
+                </VBox>
             </VBox>
-        </VBox>
+        </HBox>
     </center>
 </BorderPane>
