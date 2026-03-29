@@ -212,6 +212,18 @@
     -fx-padding: 16;
 }
 
+.version-control-panel {
+    -fx-background-color: rgba(242, 242, 245, 0.96);
+}
+
+.version-control-heading {
+    -fx-text-fill: #111111;
+    -fx-font-size: 52px;
+    -fx-font-weight: 900;
+    -fx-text-alignment: center;
+    -fx-alignment: center;
+}
+
 .workspace-grid {
     -fx-padding: 2 0 6 0;
 }

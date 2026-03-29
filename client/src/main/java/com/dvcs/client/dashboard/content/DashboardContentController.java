@@ -1,6 +1,5 @@
 package com.dvcs.client.dashboard.content;
 
-import com.dvcs.client.dashboard.analytics.AnalyticsPanelController;
 import com.dvcs.client.dashboard.data.WorkspaceDetails;
 import com.dvcs.client.dashboard.data.WorkspaceSummary;
 import com.dvcs.client.auth.db.MongoConnection;
@@ -28,6 +27,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.VBox;
 import javafx.scene.layout.GridPane;
+import javafx.geometry.Pos;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
@@ -50,7 +50,7 @@ public class DashboardContentController {
 
     private static final double MY_WORKSPACE_CARD_HEIGHT = 160;
     private static final double COLLAB_CARD_HEIGHT = 160;
-    private static final double ANALYTICS_PANEL_MIN_WIDTH = 420;
+    private static final double RIGHT_PANEL_MIN_WIDTH = 420;
 
     @FXML
     private HBox mainCard;
@@ -79,7 +79,7 @@ public class DashboardContentController {
 
     @FXML
     private void initialize() {
-        mainCard.getChildren().setAll(buildWorkspaceSection(), loadAnalyticsPanel());
+        mainCard.getChildren().setAll(buildWorkspaceSection(), loadVersionControlPanel());
         if (!mainCard.getChildren().isEmpty()) {
             HBox.setHgrow(mainCard.getChildren().getFirst(), Priority.ALWAYS);
             if (mainCard.getChildren().size() > 1) {
@@ -533,19 +533,34 @@ public class DashboardContentController {
         return node;
     }
 
-    private Node loadAnalyticsPanel() {
-        Node node = loadFxmlNode("/fxml/AnalyticsPanel.fxml");
-        node.getStyleClass().add("glass-analytics");
-        if (node instanceof javafx.scene.layout.Region region) {
-            region.setMinWidth(ANALYTICS_PANEL_MIN_WIDTH);
-            region.setPrefWidth(ANALYTICS_PANEL_MIN_WIDTH);
-            region.setMaxWidth(Double.MAX_VALUE);
+    private Node loadVersionControlPanel() {
+        javafx.scene.layout.StackPane panel = new javafx.scene.layout.StackPane();
+        panel.getStyleClass().addAll("glass-analytics", "version-control-panel");
+        panel.setTranslateY(-24);
+        panel.setPadding(new javafx.geometry.Insets(28, 24, 24, 24));
+        panel.setMinWidth(RIGHT_PANEL_MIN_WIDTH);
+        panel.setPrefWidth(RIGHT_PANEL_MIN_WIDTH);
+        panel.setMaxWidth(Double.MAX_VALUE);
+
+        VBox content = new VBox(28);
+        content.setAlignment(Pos.TOP_CENTER);
+
+        Label heading = new Label("Control Your Code.\nCommand Your Workflow.");
+        heading.getStyleClass().add("version-control-heading");
+        heading.setWrapText(true);
+
+        ImageView imageView = new ImageView();
+        URL imageUrl = DashboardContentController.class.getResource("/images/version_control.png");
+        if (imageUrl != null) {
+            imageView.setImage(new Image(imageUrl.toExternalForm(), true));
         }
-        Object controller = node.getProperties().get("fx:controller");
-        if (controller instanceof AnalyticsPanelController analytics) {
-            analytics.setStats(42, 6);
-        }
-        return node;
+        imageView.setPreserveRatio(true);
+        imageView.setFitWidth(260);
+        imageView.setFitHeight(260);
+
+        content.getChildren().addAll(heading, imageView);
+        panel.getChildren().add(content);
+        return panel;
     }
 
     private Node createWorkspaceCard(String title) {
