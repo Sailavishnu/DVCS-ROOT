@@ -228,6 +228,12 @@
     -fx-padding: 2 0 6 0;
 }
 
+.workspace-card-wrapper {
+    -fx-pref-width: 220;
+    -fx-min-width: 220;
+    -fx-max-width: 220;
+}
+
 .workspace-card {
     -fx-background-color: #f9fafb;
     -fx-background-radius: 18;
@@ -236,7 +242,16 @@
     -fx-border-color: rgba(15, 23, 42, 0.08);
     -fx-pref-width: 220;
     -fx-min-width: 220;
-    -fx-padding: 20 20 20 20;
+    -fx-pref-height: 140;
+    -fx-min-height: 140;
+    -fx-max-height: 140;
+    -fx-padding: 0;
+    -fx-alignment: center;
+}
+
+.workspace-card-image {
+    -fx-fit-width: 220;
+    -fx-fit-height: 140;
 }
 
 .workspace-empty-card {
@@ -305,8 +320,10 @@
 }
 
 .workspace-title {
+    -fx-font-size: 13px;
     -fx-font-weight: 700;
     -fx-text-fill: #111827;
+    -fx-padding: 0 4 0 4;
 }
 
 .analytics-panel {
@@ -949,6 +966,37 @@
     -fx-font-weight: 800;
 }
 
+.workspace-breadcrumb-bar {
+    -fx-alignment: center-left;
+}
+
+.workspace-breadcrumb-segment {
+    -fx-text-fill: #2b5aa7;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+    -fx-cursor: hand;
+}
+
+.workspace-breadcrumb-segment:hover {
+    -fx-underline: true;
+}
+
+.workspace-breadcrumb-current {
+    -fx-text-fill: #163a7f;
+    -fx-font-weight: 800;
+    -fx-cursor: default;
+}
+
+.workspace-breadcrumb-current:hover {
+    -fx-underline: false;
+}
+
+.workspace-breadcrumb-separator {
+    -fx-text-fill: #6d87b5;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+}
+
 .workspace-collaborators-card .list-view,
 .workspace-readme-card .text-area,
 .workspace-table-card .table-view {
@@ -1061,13 +1109,64 @@
 }
 
 .workspace-commit-dialog {
-    -fx-background-color: #f6f9ff;
+    -fx-background-color: linear-gradient(to bottom,
+        rgba(255, 255, 255, 0.90),
+        rgba(241, 247, 255, 0.88));
+    -fx-border-color: rgba(34, 86, 178, 0.34);
+    -fx-border-width: 1;
+    -fx-background-radius: 14;
+    -fx-border-radius: 14;
+    -fx-effect: dropshadow(gaussian, rgba(18, 44, 105, 0.22), 24, 0.20, 0, 10);
 }
 
 .workspace-commit-dialog .header-panel {
-    -fx-background-color: #e8f1ff;
+    -fx-background-color: rgba(228, 239, 255, 0.92);
+    -fx-background-radius: 14 14 0 0;
 }
 
 .workspace-commit-dialog .content {
     -fx-padding: 12;
+}
+
+.workspace-popup-dialog {
+    -fx-background-color: linear-gradient(to bottom,
+        rgba(255, 255, 255, 0.90),
+        rgba(241, 247, 255, 0.88));
+    -fx-border-color: rgba(34, 86, 178, 0.34);
+    -fx-border-width: 1;
+    -fx-background-radius: 14;
+    -fx-border-radius: 14;
+    -fx-effect: dropshadow(gaussian, rgba(18, 44, 105, 0.22), 24, 0.20, 0, 10);
+}
+
+.workspace-popup-dialog .header-panel {
+    -fx-background-color: rgba(228, 239, 255, 0.92);
+    -fx-background-radius: 14 14 0 0;
+}
+
+.workspace-popup-dialog .content {
+    -fx-padding: 12;
+}
+
+.workspace-popup-dialog .label {
+    -fx-text-fill: #1a3e86;
+    -fx-font-weight: 700;
+}
+
+.workspace-popup-dialog .text-field,
+.workspace-popup-dialog .text-area {
+    -fx-background-color: rgba(255, 255, 255, 0.92);
+    -fx-border-color: rgba(28, 84, 184, 0.30);
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+    -fx-text-fill: #12346c;
+}
+
+.workspace-popup-dialog .button-bar .button,
+.workspace-popup-dialog .button {
+    -fx-background-color: linear-gradient(to bottom, #2e6de0, #1d53be);
+    -fx-text-fill: white;
+    -fx-font-weight: 700;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
 }

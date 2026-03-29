@@ -56,7 +56,11 @@
 
             <VBox fx:id="leftSection" spacing="12" HBox.hgrow="ALWAYS">
                 <VBox spacing="8" styleClass="workspace-table-card" VBox.vgrow="ALWAYS">
-                    <Label text="Files" styleClass="workspace-section-title"/>
+                    <HBox alignment="CENTER_LEFT" spacing="6">
+                        <Label text="Files" styleClass="workspace-section-title"/>
+                        <Label text="/" styleClass="workspace-breadcrumb-separator"/>
+                        <HBox fx:id="breadcrumbBar" alignment="CENTER_LEFT" spacing="4" styleClass="workspace-breadcrumb-bar" HBox.hgrow="ALWAYS"/>
+                    </HBox>
                     <TableView fx:id="fileTable" VBox.vgrow="ALWAYS">
                         <columns>
                             <TableColumn fx:id="nameColumn" text="Name" prefWidth="460"/>

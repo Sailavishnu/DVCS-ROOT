@@ -67,6 +67,9 @@ public final class WorkspaceController {
     private VBox leftSection;
 
     @FXML
+    private HBox breadcrumbBar;
+
+    @FXML
     private VBox rightPanel;
 
     @FXML
@@ -232,7 +235,11 @@ public final class WorkspaceController {
         dialog.setTitle("Create Folder");
         dialog.setHeaderText("Create folder in workspace");
         dialog.setContentText("Folder name:");
-        dialog.initOwner(resolveOwnerStage());
+        Stage owner = resolveOwnerStage();
+        if (owner != null) {
+            dialog.initOwner(owner);
+        }
+        applyDialogTheme(dialog);
 
         dialog.showAndWait()
                 .map(String::trim)
@@ -261,7 +268,11 @@ public final class WorkspaceController {
         dialog.setTitle("Create File");
         dialog.setHeaderText("Create file in workspace root");
         dialog.setContentText("File name:");
-        dialog.initOwner(resolveOwnerStage());
+        Stage owner = resolveOwnerStage();
+        if (owner != null) {
+            dialog.initOwner(owner);
+        }
+        applyDialogTheme(dialog);
 
         dialog.showAndWait()
                 .map(String::trim)
@@ -335,6 +346,7 @@ public final class WorkspaceController {
         ButtonType confirmType = new ButtonType("Confirm", ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(confirmType, ButtonType.CANCEL);
         dialog.getDialogPane().getStyleClass().add("workspace-commit-dialog");
+        applyDialogTheme(dialog);
 
         TextField commitMessageField = new TextField();
         commitMessageField.setPromptText("Commit message");
@@ -391,6 +403,7 @@ public final class WorkspaceController {
         List<WorkspaceFileRow> rows = new ArrayList<>();
         if (currentBrowsePath == null) {
             fileTable.getItems().clear();
+            updateBreadcrumbPath();
             return;
         }
 
@@ -428,6 +441,61 @@ public final class WorkspaceController {
             showError("Failed to load folder contents: " + e.getMessage());
         }
         fileTable.getItems().setAll(rows);
+        updateBreadcrumbPath();
+    }
+
+    private void updateBreadcrumbPath() {
+        if (breadcrumbBar == null) {
+            return;
+        }
+
+        breadcrumbBar.getChildren().clear();
+        if (workspaceRoot == null || currentBrowsePath == null) {
+            return;
+        }
+
+        List<Path> segmentPaths = new ArrayList<>();
+        List<String> segmentNames = new ArrayList<>();
+
+        segmentPaths.add(workspaceRoot);
+        segmentNames.add("root");
+
+        Path normalizedBrowse = currentBrowsePath.normalize();
+        if (normalizedBrowse.startsWith(workspaceRoot)) {
+            Path relative = workspaceRoot.relativize(normalizedBrowse);
+            Path running = workspaceRoot;
+            for (Path part : relative) {
+                running = running.resolve(part);
+                segmentPaths.add(running);
+                segmentNames.add(part.toString());
+            }
+        }
+
+        for (int i = 0; i < segmentNames.size(); i++) {
+            boolean isLast = i == segmentNames.size() - 1;
+            Label segment = new Label(segmentNames.get(i));
+            segment.getStyleClass().add("workspace-breadcrumb-segment");
+
+            if (isLast) {
+                segment.getStyleClass().add("workspace-breadcrumb-current");
+            } else {
+                Path target = segmentPaths.get(i);
+                segment.setOnMouseClicked(event -> {
+                    currentBrowsePath = target;
+                    selectedFile = null;
+                    selectedPath = null;
+                    populateCurrentDirectoryTable();
+                    updateOverview((WorkspaceFileRow) null);
+                });
+            }
+            breadcrumbBar.getChildren().add(segment);
+
+            if (!isLast) {
+                Label separator = new Label("/");
+                separator.getStyleClass().add("workspace-breadcrumb-separator");
+                breadcrumbBar.getChildren().add(separator);
+            }
+        }
     }
 
     private void loadReadmeSection() {
@@ -505,11 +573,21 @@ public final class WorkspaceController {
         editor.setWrapText(false);
 
         Button saveButton = new Button("Save");
+
+        Stage stage = new Stage();
+        stage.setTitle("Edit " + displayName);
+        stage.initModality(Modality.APPLICATION_MODAL);
+        Stage owner = resolveOwnerStage();
+        if (owner != null) {
+            stage.initOwner(owner);
+        }
+
         saveButton.setOnAction(event -> {
             try {
                 fileSystemService.writeFile(filePath, editor.getText());
                 populateCurrentDirectoryTable();
                 showInfo("File saved to workspace");
+                stage.close();
             } catch (Exception e) {
                 showError("Save failed: " + e.getMessage());
             }
@@ -522,14 +600,6 @@ public final class WorkspaceController {
         HBox footer = new HBox(saveButton);
         footer.getStyleClass().add("workspace-editor-footer");
         editorRoot.setBottom(footer);
-
-        Stage stage = new Stage();
-        stage.setTitle("Edit " + displayName);
-        stage.initModality(Modality.APPLICATION_MODAL);
-        Stage owner = resolveOwnerStage();
-        if (owner != null) {
-            stage.initOwner(owner);
-        }
 
         Scene scene = new Scene(editorRoot, 900, 620);
         scene.getStylesheets()
@@ -670,6 +740,7 @@ public final class WorkspaceController {
             alert.initOwner(owner);
             alert.initModality(Modality.WINDOW_MODAL);
         }
+        applyDialogTheme(alert);
         alert.showAndWait();
     }
 
@@ -681,7 +752,22 @@ public final class WorkspaceController {
             alert.initOwner(owner);
             alert.initModality(Modality.WINDOW_MODAL);
         }
+        applyDialogTheme(alert);
         alert.showAndWait();
+    }
+
+    private void applyDialogTheme(Dialog<?> dialog) {
+        if (dialog == null || dialog.getDialogPane() == null) {
+            return;
+        }
+
+        String css = Objects.requireNonNull(getClass().getResource("/css/dashboard.css")).toExternalForm();
+        if (!dialog.getDialogPane().getStylesheets().contains(css)) {
+            dialog.getDialogPane().getStylesheets().add(css);
+        }
+        if (!dialog.getDialogPane().getStyleClass().contains("workspace-popup-dialog")) {
+            dialog.getDialogPane().getStyleClass().add("workspace-popup-dialog");
+        }
     }
 
     private record WorkspaceFileRow(
