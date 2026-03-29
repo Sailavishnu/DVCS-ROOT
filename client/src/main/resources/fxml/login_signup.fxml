@@ -6,6 +6,7 @@
 <?import javafx.scene.control.PasswordField?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Priority?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
@@ -28,25 +29,37 @@
                     <StackPane fx:id="formStack" maxWidth="390" prefWidth="390" prefHeight="360" minHeight="360" maxHeight="360">
                         <children>
                             <VBox fx:id="loginForm" spacing="10" alignment="TOP_CENTER" styleClass="form-box" visible="true" managed="true" prefHeight="360" minHeight="360" maxHeight="360">
-                                <Label text="Enter your username" styleClass="field-hint" maxWidth="390"/>
+                                <Label fx:id="loginUsernameHintLabel" text="Enter your username" styleClass="field-hint" maxWidth="390"/>
                                 <TextField fx:id="loginUsernameField" maxWidth="390" prefHeight="44"/>
 
-                                <Label text="Enter your password" styleClass="field-hint" maxWidth="390"/>
-                                <PasswordField fx:id="loginPasswordField" maxWidth="390" prefHeight="44"/>
+                                <Label fx:id="loginPasswordHintLabel" text="Enter your password" styleClass="field-hint" maxWidth="390"/>
+                                <StackPane fx:id="loginPasswordRow" maxWidth="390" prefHeight="44">
+                                    <PasswordField fx:id="loginPasswordField" maxWidth="390" prefHeight="44" styleClass="password-overlay-field"/>
+                                    <TextField fx:id="loginPasswordVisibleField" maxWidth="390" prefHeight="44" styleClass="password-overlay-field" visible="false" managed="false"/>
+                                    <Button text="👁" styleClass="eye-inline-button" onAction="#onToggleLoginPassword" StackPane.alignment="CENTER_RIGHT"/>
+                                </StackPane>
 
                                 <Region VBox.vgrow="ALWAYS"/>
                                 <Button fx:id="loginButton" text="Login" styleClass="primary-button" maxWidth="390" onAction="#onLogin"/>
                             </VBox>
 
                             <VBox fx:id="signupForm" spacing="10" alignment="TOP_CENTER" styleClass="form-box" visible="false" managed="false" prefHeight="360" minHeight="360" maxHeight="360">
-                                <Label text="Enter your username" styleClass="field-hint" maxWidth="390"/>
+                                <Label fx:id="signupUsernameHintLabel" text="Enter your username" styleClass="field-hint" maxWidth="390"/>
                                 <TextField fx:id="signupUsernameField" maxWidth="390" prefHeight="44"/>
 
-                                <Label text="Enter your password" styleClass="field-hint" maxWidth="390"/>
-                                <PasswordField fx:id="signupPasswordField" maxWidth="390" prefHeight="44"/>
+                                <Label fx:id="signupPasswordHintLabel" text="Enter your password" styleClass="field-hint" maxWidth="390"/>
+                                <StackPane fx:id="signupPasswordRow" maxWidth="390" prefHeight="44">
+                                    <PasswordField fx:id="signupPasswordField" maxWidth="390" prefHeight="44" styleClass="password-overlay-field"/>
+                                    <TextField fx:id="signupPasswordVisibleField" maxWidth="390" prefHeight="44" styleClass="password-overlay-field" visible="false" managed="false"/>
+                                    <Button text="👁" styleClass="eye-inline-button" onAction="#onToggleSignupPassword" StackPane.alignment="CENTER_RIGHT"/>
+                                </StackPane>
 
-                                <Label text="Enter your confirm password" styleClass="field-hint" maxWidth="390"/>
-                                <PasswordField fx:id="signupConfirmPasswordField" maxWidth="390" prefHeight="44"/>
+                                <Label fx:id="signupConfirmHintLabel" text="Enter your confirm password" styleClass="field-hint" maxWidth="390"/>
+                                <StackPane fx:id="signupConfirmPasswordRow" maxWidth="390" prefHeight="44">
+                                    <PasswordField fx:id="signupConfirmPasswordField" maxWidth="390" prefHeight="44" styleClass="password-overlay-field"/>
+                                    <TextField fx:id="signupConfirmPasswordVisibleField" maxWidth="390" prefHeight="44" styleClass="password-overlay-field" visible="false" managed="false"/>
+                                    <Button text="👁" styleClass="eye-inline-button" onAction="#onToggleSignupConfirmPassword" StackPane.alignment="CENTER_RIGHT"/>
+                                </StackPane>
 
                                 <Region VBox.vgrow="ALWAYS"/>
                                 <Button fx:id="signupButton" text="Sign Up" styleClass="primary-button" maxWidth="390" onAction="#onSignup"/>
