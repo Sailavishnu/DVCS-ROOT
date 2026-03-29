@@ -1,19 +1,23 @@
 package com.dvcs.client.controller;
 
 import com.dvcs.client.auth.service.UserService;
-import javafx.animation.*;
-import javafx.concurrent.Task;
-import javafx.fxml.FXML;
-import javafx.scene.control.*;
-import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
-import javafx.scene.shape.Rectangle;
-import javafx.util.Duration;
-
 import java.util.Objects;
 import java.util.function.Consumer;
+import javafx.animation.FadeTransition;
+import javafx.animation.Interpolator;
+import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
+import javafx.animation.Timeline;
+import javafx.concurrent.Task;
+import javafx.fxml.FXML;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.PasswordField;
+import javafx.scene.control.TextField;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
+import javafx.util.Duration;
 
 public class LoginSignupController {
 
@@ -21,22 +25,13 @@ public class LoginSignupController {
     private StackPane rootPane;
 
     @FXML
-    private HBox mainContainer;
-
-    @FXML
-    private StackPane formPane;
-
-    @FXML
-    private StackPane infoPane;
+    private StackPane glassCard;
 
     @FXML
     private VBox loginForm;
 
     @FXML
     private VBox signupForm;
-
-    @FXML
-    private StackPane formStack;
 
     @FXML
     private TextField loginUsernameField;
@@ -63,10 +58,10 @@ public class LoginSignupController {
     private Label errorLabel;
 
     @FXML
-    private Label switchPromptLabel;
+    private Label switchActionLabel;
 
     @FXML
-    private Label switchActionLabel;
+    private Label switchPromptLabel;
 
     @FXML
     private Label formTitleLabel;
@@ -74,13 +69,7 @@ public class LoginSignupController {
     @FXML
     private Label formSubtitleLabel;
 
-    @FXML
-    private Label infoTitleLabel;
-
-    @FXML
-    private Label infoDescriptionLabel;
-
-    private boolean loginMode = true; // true = login, false = signup
+    private boolean loginMode = true;
     private boolean isAnimating = false;
 
     private UserService userService;
@@ -96,41 +85,78 @@ public class LoginSignupController {
 
     @FXML
     private void initialize() {
-        setActiveForm(loginMode);
+        setActiveForm(true);
         updateModeTexts();
 
-        // Clip the main container so panels never draw outside its bounds
-        Rectangle clip = new Rectangle();
-        clip.widthProperty().bind(mainContainer.widthProperty());
-        clip.heightProperty().bind(mainContainer.heightProperty());
-        mainContainer.setClip(clip);
+        // Slow, subtle card entrance for premium feel.
+        glassCard.setOpacity(0.0);
+        glassCard.setTranslateY(26);
+        FadeTransition fadeIn = new FadeTransition(Duration.millis(950), glassCard);
+        fadeIn.setFromValue(0.0);
+        fadeIn.setToValue(1.0);
+
+        Timeline liftIn = new Timeline(
+                new KeyFrame(Duration.ZERO, new KeyValue(glassCard.translateYProperty(), 26, Interpolator.EASE_BOTH)),
+                new KeyFrame(Duration.millis(1050),
+                        new KeyValue(glassCard.translateYProperty(), 0, Interpolator.EASE_BOTH)));
+
+        fadeIn.play();
+        liftIn.play();
     }
 
     @FXML
     private void onSwitchMode(MouseEvent event) {
-        if (!isAnimating) {
-            toggleModeWithAnimation();
+        if (isAnimating) {
+            return;
         }
+        isAnimating = true;
+        clearError();
+
+        VBox outgoing = loginMode ? loginForm : signupForm;
+        VBox incoming = loginMode ? signupForm : loginForm;
+
+        FadeTransition fadeOut = new FadeTransition(Duration.millis(280), outgoing);
+        fadeOut.setFromValue(1.0);
+        fadeOut.setToValue(0.0);
+        fadeOut.setInterpolator(Interpolator.EASE_BOTH);
+
+        fadeOut.setOnFinished(e -> {
+            outgoing.setVisible(false);
+            outgoing.setManaged(false);
+            incoming.setVisible(true);
+            incoming.setManaged(true);
+            incoming.setOpacity(0.0);
+
+            loginMode = !loginMode;
+            updateModeTexts();
+
+            FadeTransition fadeIn = new FadeTransition(Duration.millis(420), incoming);
+            fadeIn.setFromValue(0.0);
+            fadeIn.setToValue(1.0);
+            fadeIn.setInterpolator(Interpolator.EASE_BOTH);
+            fadeIn.setOnFinished(done -> isAnimating = false);
+            fadeIn.play();
+        });
+
+        fadeOut.play();
     }
 
     @FXML
     private void onLogin() {
         clearError();
-        String username = loginUsernameField.getText() != null ? loginUsernameField.getText().trim() : "";
-        String password = loginPasswordField.getText() != null ? loginPasswordField.getText() : "";
+        String username = loginUsernameField.getText() == null ? "" : loginUsernameField.getText().trim();
+        String password = loginPasswordField.getText() == null ? "" : loginPasswordField.getText();
 
         if (username.isEmpty() || password.isEmpty()) {
             showError("Please enter both username and password.");
             return;
         }
-
         if (userService == null) {
             showError("Auth service is not configured.");
             return;
         }
 
-        loginButton.setDisable(true);
-        signupButton.setDisable(true);
+        setBusyState(true);
 
         Task<UserService.AuthResult> task = new Task<>() {
             @Override
@@ -140,55 +166,48 @@ public class LoginSignupController {
         };
 
         task.setOnSucceeded(e -> {
-            loginButton.setDisable(false);
-            signupButton.setDisable(false);
-
+            setBusyState(false);
             UserService.AuthResult result = task.getValue();
             if (result != null && result.success()) {
                 if (onAuthSuccess != null) {
                     onAuthSuccess.accept(username);
                 }
-            } else {
-                showError(result == null ? "Login failed" : result.message());
+                return;
             }
+            showError(result == null ? "Login failed" : result.message());
         });
 
         task.setOnFailed(e -> {
-            loginButton.setDisable(false);
-            signupButton.setDisable(false);
+            setBusyState(false);
             showError("Login failed");
-            task.getException().printStackTrace();
         });
 
-        Thread t = new Thread(task, "login-task");
-        t.setDaemon(true);
-        t.start();
+        Thread thread = new Thread(task, "login-task");
+        thread.setDaemon(true);
+        thread.start();
     }
 
     @FXML
     private void onSignup() {
         clearError();
-        String username = signupUsernameField.getText() != null ? signupUsernameField.getText().trim() : "";
-        String password = signupPasswordField.getText() != null ? signupPasswordField.getText() : "";
-        String confirm = signupConfirmPasswordField.getText() != null ? signupConfirmPasswordField.getText() : "";
+        String username = signupUsernameField.getText() == null ? "" : signupUsernameField.getText().trim();
+        String password = signupPasswordField.getText() == null ? "" : signupPasswordField.getText();
+        String confirm = signupConfirmPasswordField.getText() == null ? "" : signupConfirmPasswordField.getText();
 
         if (username.isEmpty() || password.isEmpty() || confirm.isEmpty()) {
             showError("All fields are required.");
             return;
         }
-
         if (!password.equals(confirm)) {
             showError("Passwords do not match.");
             return;
         }
-
         if (userService == null) {
             showError("Auth service is not configured.");
             return;
         }
 
-        loginButton.setDisable(true);
-        signupButton.setDisable(true);
+        setBusyState(true);
 
         Task<UserService.AuthResult> task = new Task<>() {
             @Override
@@ -198,153 +217,66 @@ public class LoginSignupController {
         };
 
         task.setOnSucceeded(e -> {
-            loginButton.setDisable(false);
-            signupButton.setDisable(false);
-
+            setBusyState(false);
             UserService.AuthResult result = task.getValue();
             if (result != null && result.success()) {
                 if (onAuthSuccess != null) {
                     onAuthSuccess.accept(username);
                 }
-            } else {
-                showError(result == null ? "Signup failed" : result.message());
+                return;
             }
+            showError(result == null ? "Sign up failed" : result.message());
         });
 
         task.setOnFailed(e -> {
-            loginButton.setDisable(false);
-            signupButton.setDisable(false);
-            showError("Signup failed");
-            task.getException().printStackTrace();
+            setBusyState(false);
+            showError("Sign up failed");
         });
 
-        Thread t = new Thread(task, "signup-task");
-        t.setDaemon(true);
-        t.start();
+        Thread thread = new Thread(task, "signup-task");
+        thread.setDaemon(true);
+        thread.start();
     }
 
-    @FXML
-    private void onForgotPassword() {
-        // Placeholder - could open a dialog later
-        System.out.println("Forgot password clicked");
-    }
-
-    private void toggleModeWithAnimation() {
-        isAnimating = true;
-
-        // Prepare the next form before animation starts to avoid layout shift
-        boolean nextModeIsLogin = !loginMode;
-        setActiveForm(nextModeIsLogin);
-
-        // Distance between the two panels = panel width + spacing
-        double cardWidth = formPane.getBoundsInParent().getWidth();
-        if (cardWidth <= 0) {
-            cardWidth = 420; // fallback to design width
+    private void setBusyState(boolean busy) {
+        loginButton.setDisable(busy);
+        signupButton.setDisable(busy);
+        switchActionLabel.setDisable(busy || isAnimating);
+        if (switchPromptLabel != null) {
+            switchPromptLabel.setDisable(busy || isAnimating);
         }
-        double offset = cardWidth + mainContainer.getSpacing();
-
-        // Slide animations (single smooth phase)
-        TranslateTransition formSlide = new TranslateTransition(Duration.millis(500), formPane);
-        TranslateTransition infoSlide = new TranslateTransition(Duration.millis(500), infoPane);
-        formSlide.setInterpolator(Interpolator.EASE_BOTH);
-        infoSlide.setInterpolator(Interpolator.EASE_BOTH);
-
-        // Soft fade for subtle depth effect
-        FadeTransition formFade = new FadeTransition(Duration.millis(500), formPane);
-        formFade.setFromValue(1.0);
-        formFade.setToValue(0.85);
-        formFade.setAutoReverse(true);
-        formFade.setCycleCount(2);
-
-        FadeTransition infoFade = new FadeTransition(Duration.millis(500), infoPane);
-        infoFade.setFromValue(1.0);
-        infoFade.setToValue(0.85);
-        infoFade.setAutoReverse(true);
-        infoFade.setCycleCount(2);
-
-        if (loginMode) {
-            // Login -> Signup
-            formSlide.setFromX(0);
-            formSlide.setToX(offset);
-            infoSlide.setFromX(0);
-            infoSlide.setToX(-offset);
-        } else {
-            // Signup -> Login
-            formSlide.setFromX(0);
-            formSlide.setToX(-offset);
-            infoSlide.setFromX(0);
-            infoSlide.setToX(offset);
-        }
-
-        ParallelTransition parallel = new ParallelTransition(formSlide, infoSlide, formFade, infoFade);
-        parallel.setOnFinished(e -> {
-            // Reset translations
-            formPane.setTranslateX(0);
-            infoPane.setTranslateX(0);
-
-            // Swap panes in HBox so sides are actually swapped
-            if (loginMode) {
-                mainContainer.getChildren().setAll(infoPane, formPane);
-            } else {
-                mainContainer.getChildren().setAll(formPane, infoPane);
-            }
-
-            // Toggle mode and update UI content
-            loginMode = !loginMode;
-            updateModeTexts();
-            isAnimating = false;
-        });
-
-        parallel.play();
     }
 
     private void updateModeTexts() {
-        clearError();
         if (loginMode) {
-            formTitleLabel.setText("Welcome back");
-            formSubtitleLabel.setText("Please enter your credentials to access the workspace.");
-
+            formTitleLabel.setText("Login");
+            formSubtitleLabel.setText("Access your workspace securely.");
             switchPromptLabel.setText("Don't have an account?");
             switchActionLabel.setText("Sign Up");
-
-            infoTitleLabel.setText("Secure, focused workspace.");
-            infoDescriptionLabel.setText(
-                    "Pick up where you left off, review recent edits, " +
-                            "and stay in sync across your projects.");
+            setActiveForm(true);
         } else {
-            formTitleLabel.setText("Join the Atelier");
-            formSubtitleLabel
-                    .setText("Begin your journey in a space designed for creative excellence and meticulous curation.");
-
+            formTitleLabel.setText("Sign Up");
+            formSubtitleLabel.setText("Create your account to continue.");
             switchPromptLabel.setText("Already have an account?");
-            switchActionLabel.setText("Sign In");
-
-            infoTitleLabel.setText("Built for creative teams.");
-            infoDescriptionLabel.setText(
-                    "Create your account, invite collaborators, and version every document " +
-                            "with reliable history and instant rollback.");
+            switchActionLabel.setText("Login");
+            setActiveForm(false);
         }
     }
 
+    private void setActiveForm(boolean loginActive) {
+        loginForm.setVisible(loginActive);
+        loginForm.setManaged(loginActive);
+        signupForm.setVisible(!loginActive);
+        signupForm.setManaged(!loginActive);
+        loginForm.setOpacity(loginActive ? 1.0 : 0.0);
+        signupForm.setOpacity(loginActive ? 0.0 : 1.0);
+    }
+
     private void showError(String message) {
-        errorLabel.setText(message);
+        errorLabel.setText(message == null ? "" : message);
     }
 
     private void clearError() {
         errorLabel.setText("");
-    }
-
-    private void setActiveForm(boolean loginActive) {
-        if (loginActive) {
-            loginForm.setVisible(true);
-            loginForm.setManaged(true);
-            signupForm.setVisible(false);
-            signupForm.setManaged(false);
-        } else {
-            loginForm.setVisible(false);
-            loginForm.setManaged(false);
-            signupForm.setVisible(true);
-            signupForm.setManaged(true);
-        }
     }
 }
