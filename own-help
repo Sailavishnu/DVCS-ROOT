@@ -2,6 +2,35 @@ setx JAVAFX_HOME "C:\Users\vishn\Downloads\openjfx-26_windows-x64_bin-sdk\javafx
 
 
 
+$DVCS_ROOT = "D:\dvcs-root"
+
+
+$javafxLib = "$env:JAVAFX_HOME\lib"
+
+
+Test-Path "$javafxLib\javafx.controls.jar"
+
+(shoudl return true )
+
+
+Test-Path "$javafxLib\javafx.fxml.jar"
+
+(shoudl return true )
+
+
+compile
+
+javac --module-path "$javafxLib" --add-modules javafx.controls,javafx.fxml -cp "$DVCS_ROOT\client\lib\*" -d "$DVCS_ROOT\client\out" (Get-ChildItem "$DVCS_ROOT\client\src\main\java" -Recurse -Filter *.java).FullName
+
+run 
+
+java --enable-native-access=javafx.graphics --module-path "$javafxLib" --add-modules javafx.controls,javafx.fxml -cp "$DVCS_ROOT\client\out;$DVCS_ROOT\client\src\main\resources;$DVCS_ROOT\client\lib\*" com.dvcs.client.MainApp 
+
+
+
+
+
+
 setting true
 
 
@@ -16,6 +45,10 @@ True
 PS D:\dvcs-root> Test-Path "$javafxLib\javafx.fxml.jar"
 >>
 True
+
+
+
+
 PS D:\dvcs-root> $DVCS_ROOT = "D:\dvcs-root"
 >>
 PS D:\dvcs-root> javac --module-path "$javafxLib" --add-modules javafx.controls,javafx.fxml -cp "$DVCS_ROOT\client\lib\*" -d "$DVCS_ROOT\client\out" (Get-ChildItem "$DVCS_ROOT\client\src\main\java" -Recurse -Filter *.java).FullName
@@ -42,3 +75,10 @@ Mar 27, 2026 4:22:05 AM com.mongodb.internal.diagnostics.logging.Loggers shouldU
 WARNING: SLF4J not found on the classpath.  Logging is disabled for the 'org.mongodb.driver' component
 PS D:\dvcs-root> 
  *  History restored 
+
+
+setting up
+
+setx JAVAFX_HOME "C:\Users\vishn\Downloads\openjfx-26_windows-x64_bin-sdk\javafx-sdk-26"
+
+
