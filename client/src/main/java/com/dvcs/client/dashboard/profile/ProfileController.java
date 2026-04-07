@@ -389,15 +389,21 @@ public final class ProfileController {
                 : null;
         Stage ownerStage = currentStage != null && currentStage.getOwner() instanceof Stage os ? os : null;
 
-        if (ownerStage == null) {
-            closeCurrentWindow();
+        Stage loginStage = ownerStage != null ? ownerStage : currentStage;
+        if (loginStage == null) {
+            showError("Logout failed. Please try again.");
             return;
         }
 
         try {
-            showLoginOnStage(ownerStage);
-            currentStage.setFullScreen(false);
-            currentStage.close();
+            showLoginOnStage(loginStage);
+
+            // If profile was opened in a child stage, close it after restoring login on
+            // owner.
+            if (ownerStage != null && currentStage != null && currentStage != loginStage) {
+                currentStage.setFullScreen(false);
+                currentStage.close();
+            }
         } catch (Exception e) {
             showError("Logout failed. Please try again.");
         }

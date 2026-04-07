@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-
-<?import javafx.scene.layout.BorderPane?>
-
-<BorderPane fx:id="root" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.dvcs.client.dashboard.MainLayoutController"
-            stylesheets="@../css/dashboard.css" styleClass="dvcs-root">
-
-</BorderPane>
