@@ -16,6 +16,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -42,11 +43,13 @@ import javafx.scene.control.TextInputDialog;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.Window;
+import org.bson.Document;
 import org.bson.types.ObjectId;
 
 public final class WorkspaceController {
@@ -88,9 +91,6 @@ public final class WorkspaceController {
     private Label totalCommitsLabel;
 
     @FXML
-    private ListView<String> collaboratorsList;
-
-    @FXML
     private VBox readmeSection;
 
     @FXML
@@ -104,6 +104,9 @@ public final class WorkspaceController {
 
     @FXML
     private Label overviewModifiedLabel;
+
+    @FXML
+    private ListView<CommitItem> commitsList;
 
     private final FileSystemService fileSystemService = new FileSystemService();
 
@@ -133,25 +136,35 @@ public final class WorkspaceController {
         mainContainer.widthProperty().addListener((obs, oldWidth, newWidth) -> applySplitRatios());
         applySplitRatios();
 
-        collaboratorsList.setCellFactory(list -> new ListCell<>() {
+        commitsList.setCellFactory(list -> new ListCell<CommitItem>() {
             @Override
-            protected void updateItem(String username, boolean empty) {
-                super.updateItem(username, empty);
-                if (empty || username == null) {
+            protected void updateItem(CommitItem commit, boolean empty) {
+                super.updateItem(commit, empty);
+                if (empty || commit == null) {
                     setGraphic(null);
                     setText(null);
                     return;
                 }
 
-                Label avatar = new Label();
-                avatar.getStyleClass().add("workspace-collaborator-avatar");
+                Label message = new Label(commit.message());
+                message.setStyle("-fx-font-weight: bold; -fx-font-size: 11;");
 
-                Label name = new Label(username);
-                name.getStyleClass().add("workspace-collaborator-name");
+                Label metadata = new Label("#" + commit.snapshotId() + " • " + commit.formattedTime());
+                metadata.setStyle("-fx-font-size: 9; -fx-text-fill: #666;");
 
-                HBox row = new HBox(8, avatar, name);
+                Button restoreBtn = new Button("Restore");
+                restoreBtn.setPrefWidth(60);
+                restoreBtn.setStyle("-fx-font-size: 9;");
+                restoreBtn.setOnAction(e -> restoreToVersion(commit));
+
+                VBox content = new VBox(2);
+                content.getChildren().addAll(message, metadata);
+
+                HBox row = new HBox(8);
                 row.setAlignment(Pos.CENTER_LEFT);
-                row.getStyleClass().add("workspace-collaborator-row");
+                row.getChildren().addAll(content, new Region(), restoreBtn);
+                HBox.setHgrow(content, Priority.ALWAYS);
+                row.setStyle("-fx-padding: 6; -fx-border-color: #e0e0e0; -fx-border-width: 0 0 1 0;");
 
                 setText(null);
                 setGraphic(row);
@@ -171,7 +184,10 @@ public final class WorkspaceController {
         });
 
         fileTable.getSelectionModel().selectedItemProperty()
-                .addListener((obs, oldItem, newItem) -> updateOverview(newItem));
+                .addListener((obs, oldItem, newItem) -> {
+                    updateOverview(newItem);
+                    loadCommitsForSelectedFile(newItem);
+                });
 
         updateOverview((FileItemModel) null);
     }
@@ -382,8 +398,6 @@ public final class WorkspaceController {
         currentModel = workspaceService.loadWorkspace(workspaceId);
         workspaceNameHeader.setText(currentModel.workspaceName());
         totalCommitsLabel.setText(String.valueOf(currentModel.totalCommits()));
-
-        collaboratorsList.getItems().setAll(currentModel.collaborators().stream().map(UserModel::username).toList());
 
         workspaceRoot = fileSystemService.normalizeWorkspaceRoot(currentModel.workspaceRootPath());
         buildMetadataIndex();
@@ -756,6 +770,64 @@ public final class WorkspaceController {
         alert.showAndWait();
     }
 
+    private void loadCommitsForSelectedFile(WorkspaceFileRow row) {
+        commitsList.getItems().clear();
+        if (row == null || row.isFolder() || row.file() == null) {
+            return;
+        }
+
+        try {
+            ObjectId fileId = row.file().fileId();
+            List<Document> commitDocs = fileService.loadFileCommits(fileId);
+            List<CommitItem> commits = new ArrayList<>();
+            for (Document doc : commitDocs) {
+                Integer snapshotId = doc.getInteger("snapshotId");
+                String message = doc.getString("message");
+                Date committedAt = doc.getDate("committedAt");
+                ObjectId commitId = doc.getObjectId("_id");
+                if (snapshotId != null && message != null) {
+                    commits.add(new CommitItem(commitId, snapshotId, message, committedAt));
+                }
+            }
+            commitsList.getItems().setAll(commits);
+        } catch (Exception e) {
+            showError("Failed to load commits: " + e.getMessage());
+        }
+    }
+
+    private void restoreToVersion(CommitItem commit) {
+        if (selectedFile == null || selectedPath == null) {
+            showError("No file selected");
+            return;
+        }
+
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+        confirm.setTitle("Restore Version");
+        confirm.setHeaderText("Restore to this version?");
+        confirm.setContentText("Replace current file with version #" + commit.snapshotId());
+        Stage owner = resolveOwnerStage();
+        if (owner != null) {
+            confirm.initOwner(owner);
+            confirm.initModality(Modality.WINDOW_MODAL);
+        }
+        applyDialogTheme(confirm);
+
+        confirm.showAndWait().ifPresent(response -> {
+            if (response == ButtonType.OK) {
+                try {
+                    String restoredContent = fileService.loadSnapshotContent(selectedFile.fileId(),
+                            commit.snapshotId());
+                    fileService.restoreSnapshot(selectedFile.fileId(), commit.snapshotId(), restoredContent);
+                    fileSystemService.writeFile(selectedPath, restoredContent);
+                    reloadWorkspace();
+                    showInfo("File restored to version #" + commit.snapshotId());
+                } catch (Exception e) {
+                    showError("Restore failed: " + e.getMessage());
+                }
+            }
+        });
+    }
+
     private void applyDialogTheme(Dialog<?> dialog) {
         if (dialog == null || dialog.getDialogPane() == null) {
             return;
@@ -777,5 +849,18 @@ public final class WorkspaceController {
             FileItemModel file,
             Path path,
             boolean isFolder) {
+    }
+
+    private record CommitItem(
+            ObjectId id,
+            int snapshotId,
+            String message,
+            Date committedAt) {
+        String formattedTime() {
+            if (committedAt == null) {
+                return "Unknown";
+            }
+            return DateTimeUtils.formatInstant(committedAt.toInstant());
+        }
     }
 }

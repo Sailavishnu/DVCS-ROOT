@@ -1,18 +1,139 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Priority?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
 
 <StackPane xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1"
            fx:controller="com.dvcs.client.controller.LandingController"
-           stylesheets="@../css/styles.css" styleClass="app-root">
+           stylesheets="@../css/styles.css"
+           styleClass="landing-root">
 
     <children>
-        <Label fx:id="welcomeLabel" text="Welcome" styleClass="form-title" />
-    </children>
+        <BorderPane styleClass="landing-overlay">
+            <top>
+                <HBox styleClass="landing-topbar" alignment="CENTER_LEFT" spacing="12">
+                    <padding>
+                        <Insets top="0" right="24" bottom="0" left="24"/>
+                    </padding>
+                    <children>
+                        <Label text="&gt;_" styleClass="landing-terminal-icon"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Button fx:id="loginButton" text="LOG IN" styleClass="landing-nav-button"/>
+                        <Button fx:id="signupButton" text="SIGN UP" styleClass="landing-nav-button,landing-nav-button-filled"/>
+                    </children>
+                </HBox>
+            </top>
 
-    <padding>
-        <Insets top="40" right="40" bottom="40" left="40" />
-    </padding>
+            <center>
+                <HBox spacing="24" alignment="CENTER_LEFT" styleClass="landing-main-wrap">
+                    <padding>
+                        <Insets top="24" right="40" bottom="24" left="40"/>
+                    </padding>
+
+                    <children>
+                        <VBox spacing="20" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS" maxWidth="840">
+                            <children>
+                                <Label text="v1.0.0 STABLE" styleClass="landing-version-pill"/>
+
+                                <VBox spacing="2" alignment="CENTER_LEFT">
+                                    <children>
+                                        <Label text="Track Every Changes." styleClass="landing-hero-line"/>
+                                        <Label text="Own Your History." styleClass="landing-hero-line"/>
+                                        <Label text="No Cloud Required." styleClass="landing-hero-line-accent"/>
+                                    </children>
+                                </VBox>
+
+                                <Label wrapText="true" maxWidth="640"
+                                       text="VersionVault is a fully offline document version control system designed for professionals who demand absolute privacy and instant performance. Versioning, without the complexity of git."
+                                       styleClass="landing-description"/>
+
+                                <Button fx:id="getStartedButton" text="GET STARTED" styleClass="landing-cta-button">
+                                    <VBox.margin>
+                                        <Insets top="-8" right="0" bottom="0" left="0"/>
+                                    </VBox.margin>
+                                </Button>
+                            </children>
+                        </VBox>
+
+                        <VBox alignment="CENTER_RIGHT" HBox.hgrow="ALWAYS">
+                            <children>
+                                <VBox styleClass="landing-terminal-card" maxWidth="500" prefWidth="500">
+                                    <children>
+                                        <HBox alignment="CENTER_LEFT" styleClass="landing-terminal-header" spacing="8">
+                                            <children>
+                                                <Region styleClass="landing-dot"/>
+                                                <Region styleClass="landing-dot"/>
+                                                <Region styleClass="landing-dot"/>
+                                                <Region HBox.hgrow="ALWAYS"/>
+                                                <Label text="VAULT --LOG" styleClass="landing-terminal-title"/>
+                                            </children>
+                                        </HBox>
+
+                                        <VBox styleClass="landing-log-list" spacing="18">
+                                            <children>
+                                                <HBox spacing="14" alignment="CENTER_LEFT">
+                                                    <children>
+                                                        <Label text="e8c2f1a" styleClass="landing-log-hash"/>
+                                                        <Label text="Update Q4_report.pdf with final figures" styleClass="landing-log-text" HBox.hgrow="ALWAYS"/>
+                                                        <Label text="2m ago" styleClass="landing-log-time"/>
+                                                    </children>
+                                                </HBox>
+
+                                                <HBox spacing="14" alignment="CENTER_LEFT">
+                                                    <children>
+                                                        <Label text="7a3d9b0" styleClass="landing-log-hash"/>
+                                                        <Label text="Revert changes to blueprint_v2.cad" styleClass="landing-log-text" HBox.hgrow="ALWAYS"/>
+                                                        <Label text="1h ago" styleClass="landing-log-time"/>
+                                                    </children>
+                                                </HBox>
+
+                                                <HBox spacing="14" alignment="CENTER_LEFT">
+                                                    <children>
+                                                        <Label text="2f9e4c1" styleClass="landing-log-hash"/>
+                                                        <Label text="Initial commit for legal_contracts/" styleClass="landing-log-text" HBox.hgrow="ALWAYS"/>
+                                                        <Label text="3h ago" styleClass="landing-log-time"/>
+                                                    </children>
+                                                </HBox>
+
+                                                <HBox spacing="14" alignment="CENTER_LEFT">
+                                                    <children>
+                                                        <Label text="d5b7a8c" styleClass="landing-log-hash"/>
+                                                        <Label text="Auto-save: project_specs.docx" styleClass="landing-log-text" HBox.hgrow="ALWAYS"/>
+                                                        <Label text="5h ago" styleClass="landing-log-time"/>
+                                                    </children>
+                                                </HBox>
+
+                                                <HBox spacing="14" alignment="CENTER_LEFT" opacity="0.55">
+                                                    <children>
+                                                        <Label text="bc9120e" styleClass="landing-log-hash"/>
+                                                        <Label text="Setup workspace environment" styleClass="landing-log-text" HBox.hgrow="ALWAYS"/>
+                                                        <Label text="Yesterday" styleClass="landing-log-time"/>
+                                                    </children>
+                                                </HBox>
+                                            </children>
+                                        </VBox>
+                                    </children>
+                                </VBox>
+                            </children>
+                        </VBox>
+                    </children>
+                </HBox>
+            </center>
+
+            <bottom>
+                <HBox styleClass="landing-footer" alignment="CENTER">
+                    <children>
+                        <Label text="DOCUMENT VERSION CONTROL SYSTEM" styleClass="landing-footer-text"/>
+                    </children>
+                </HBox>
+            </bottom>
+        </BorderPane>
+    </children>
 </StackPane>

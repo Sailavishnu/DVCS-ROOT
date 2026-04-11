@@ -151,3 +151,162 @@
     -fx-font-weight: 700;
     -fx-padding: 4 0 0 0;
 }
+
+.landing-root {
+    -fx-background-color: #0a0a0a;
+}
+
+.landing-overlay {
+    -fx-background-color: rgba(10, 10, 10, 0.78);
+}
+
+.landing-topbar {
+    -fx-min-height: 80;
+    -fx-pref-height: 80;
+    -fx-max-height: 80;
+    -fx-border-color: #1e1e1e;
+    -fx-border-width: 0 0 1 0;
+    -fx-background-color: rgba(13, 13, 13, 0.88);
+}
+
+.landing-terminal-icon {
+    -fx-text-fill: #00ff88;
+    -fx-font-size: 27px;
+    -fx-font-family: "Consolas";
+    -fx-font-weight: 800;
+}
+
+.landing-nav-button {
+    -fx-min-width: 92;
+    -fx-pref-width: 92;
+    -fx-padding: 8 10 8 10;
+    -fx-background-color: transparent;
+    -fx-border-color: #00ff88;
+    -fx-border-width: 1;
+    -fx-text-fill: #00ff88;
+    -fx-font-size: 12px;
+    -fx-font-family: "Consolas";
+    -fx-font-weight: 700;
+    -fx-background-radius: 0;
+    -fx-border-radius: 0;
+}
+
+.landing-nav-button-filled {
+    -fx-background-color: #00ff88;
+    -fx-text-fill: #042718;
+}
+
+.landing-main-wrap {
+    -fx-max-width: 1720;
+}
+
+.landing-version-pill {
+    -fx-text-fill: #00ff88;
+    -fx-font-size: 14px;
+    -fx-font-family: "Consolas";
+    -fx-padding: 6 14 6 14;
+    -fx-border-color: #2d5a42;
+    -fx-border-width: 1;
+    -fx-background-color: rgba(14, 14, 14, 0.78);
+}
+
+.landing-hero-line {
+    -fx-text-fill: #ececec;
+    -fx-font-size: 62px;
+    -fx-font-family: "Consolas";
+    -fx-font-weight: 900;
+}
+
+.landing-hero-line-accent {
+    -fx-text-fill: #00ff88;
+    -fx-font-size: 62px;
+    -fx-font-family: "Consolas";
+    -fx-font-weight: 900;
+}
+
+.landing-description {
+    -fx-text-fill: #a9b5af;
+    -fx-font-size: 24px;
+    -fx-line-spacing: 4px;
+}
+
+.landing-cta-button {
+    -fx-padding: 14 34 14 34;
+    -fx-background-color: #00ff88;
+    -fx-text-fill: #042718;
+    -fx-font-size: 24px;
+    -fx-font-family: "Consolas";
+    -fx-font-weight: 700;
+    -fx-background-radius: 0;
+    -fx-border-radius: 0;
+    -fx-border-color: #00ff88;
+    -fx-border-width: 1;
+}
+
+.landing-terminal-card {
+    -fx-background-color: rgba(15, 15, 15, 0.90);
+    -fx-border-color: #1f1f1f;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.45), 20, 0.2, 0, 8);
+}
+
+.landing-terminal-header {
+    -fx-padding: 14 18 14 18;
+    -fx-border-color: #1e1e1e;
+    -fx-border-width: 0 0 1 0;
+}
+
+.landing-dot {
+    -fx-min-width: 10;
+    -fx-pref-width: 10;
+    -fx-max-width: 10;
+    -fx-min-height: 10;
+    -fx-pref-height: 10;
+    -fx-max-height: 10;
+    -fx-background-color: #2a2a2a;
+}
+
+.landing-terminal-title {
+    -fx-text-fill: #58605d;
+    -fx-font-size: 11px;
+    -fx-font-family: "Consolas";
+    -fx-font-weight: 700;
+}
+
+.landing-log-list {
+    -fx-padding: 20 18 22 18;
+}
+
+.landing-log-hash {
+    -fx-text-fill: #00ff88;
+    -fx-font-size: 15px;
+    -fx-font-family: "Consolas";
+    -fx-font-weight: 700;
+}
+
+.landing-log-text {
+    -fx-text-fill: #efefef;
+    -fx-font-size: 15px;
+}
+
+.landing-log-time {
+    -fx-text-fill: #4d4d4d;
+    -fx-font-size: 14px;
+}
+
+.landing-footer {
+    -fx-min-height: 80;
+    -fx-pref-height: 80;
+    -fx-max-height: 80;
+    -fx-border-color: #1e1e1e;
+    -fx-border-width: 1 0 0 0;
+    -fx-background-color: rgba(13, 13, 13, 0.88);
+}
+
+.landing-footer-text {
+    -fx-text-fill: #00ff88;
+    -fx-font-family: "Consolas";
+    -fx-font-size: 13px;
+    -fx-font-weight: 700;
+    -fx-letter-spacing: 3px;
+}

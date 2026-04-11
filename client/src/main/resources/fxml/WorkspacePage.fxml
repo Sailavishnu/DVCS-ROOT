@@ -84,9 +84,9 @@
                     <Label fx:id="overviewModifiedLabel" text="Modified: -" styleClass="workspace-meta-label-dark"/>
                 </VBox>
 
-                <VBox spacing="8" styleClass="workspace-collaborators-card" VBox.vgrow="ALWAYS">
-                    <Label text="Collaborators" styleClass="workspace-section-title"/>
-                    <ListView fx:id="collaboratorsList" VBox.vgrow="ALWAYS"/>
+                <VBox spacing="8" styleClass="workspace-commits-card" VBox.vgrow="ALWAYS">
+                    <Label text="Commit History" styleClass="workspace-section-title"/>
+                    <ListView fx:id="commitsList" VBox.vgrow="ALWAYS"/>
                 </VBox>
             </VBox>
         </HBox>

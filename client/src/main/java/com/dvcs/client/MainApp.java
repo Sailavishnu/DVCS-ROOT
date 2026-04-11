@@ -24,7 +24,7 @@ public class MainApp extends Application {
 
         primaryStage.setTitle("Document Version Control System");
         primaryStage.setMaximized(true);
-        showLogin(primaryStage);
+        showLandingPage(primaryStage);
         primaryStage.show();
     }
 
@@ -54,6 +54,19 @@ public class MainApp extends Application {
             }
         });
 
+        stage.setScene(new Scene(root));
+    }
+
+    private void showLandingPage(Stage stage) throws Exception {
+        URL fxmlUrl = getClass().getResource("/fxml/landing.fxml");
+        if (fxmlUrl == null) {
+            throw new IllegalStateException(
+                    "FXML '/fxml/landing.fxml' not found on classpath. "
+                            + "Include 'client/src/main/resources' (or copy resources into your output folder) when running.");
+        }
+
+        FXMLLoader loader = new FXMLLoader(fxmlUrl);
+        Parent root = loader.load();
         stage.setScene(new Scene(root));
     }
 

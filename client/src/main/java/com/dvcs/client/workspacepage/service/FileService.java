@@ -1,6 +1,7 @@
 package com.dvcs.client.workspacepage.service;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 
 import org.bson.Document;
@@ -50,5 +51,28 @@ public final class FileService {
         fileDAO.createSnapshot(fileId, nextSnapshotId, content == null ? "" : content, now);
         commitService.createCommit(fileId, nextSnapshotId, normalizedMessage, committedBy, now);
         fileDAO.updateFileHead(fileId, nextSnapshotId, normalizedMessage, committedBy, now);
+    }
+
+    public List<Document> loadFileCommits(ObjectId fileId) {
+        Objects.requireNonNull(fileId, "fileId");
+        return fileDAO.findCommitsByFileId(fileId);
+    }
+
+    public String loadSnapshotContent(ObjectId fileId, int snapshotId) {
+        Objects.requireNonNull(fileId, "fileId");
+        return fileDAO.loadSnapshotContent(fileId, snapshotId);
+    }
+
+    public void restoreSnapshot(ObjectId fileId, int snapshotId, String content) {
+        Objects.requireNonNull(fileId, "fileId");
+
+        Document file = fileDAO.findFileById(fileId)
+                .orElseThrow(() -> new IllegalArgumentException("File not found"));
+
+        int nextSnapshotId = file.getInteger("currentSnapshotId", 0) + 1;
+        Date now = new Date();
+
+        fileDAO.createSnapshot(fileId, nextSnapshotId, content, now);
+        fileDAO.updateFileHead(fileId, nextSnapshotId, "Restored from snapshot #" + snapshotId, null, now);
     }
 }

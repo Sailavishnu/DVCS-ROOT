@@ -131,4 +131,10 @@ public final class FileDAO {
         snapshots.deleteMany(in("fileId", fileIds));
         commits.deleteMany(in("fileId", fileIds));
     }
+
+    public List<Document> findCommitsByFileId(ObjectId fileId) {
+        return commits.find(eq("fileId", fileId))
+                .sort(new Document("snapshotId", -1))
+                .into(new ArrayList<>());
+    }
 }
