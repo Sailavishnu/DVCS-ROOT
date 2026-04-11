@@ -44,6 +44,10 @@ import org.bson.types.ObjectId;
 
 public final class ProfileController {
 
+    private static final String ICON_BACK_URL = "https://img.icons8.com/fluency-systems-filled/48/00ff88/left.png";
+    private static final String ICON_LOGOUT_URL = "https://img.icons8.com/fluency-systems-filled/48/00ff88/logout-rounded-left.png";
+    private static final String ICON_USER_PROFILE_URL = "https://img.icons8.com/fluency-systems-filled/96/00ff88/user-male-circle.png";
+
     @FXML
     private BorderPane root;
 
@@ -179,9 +183,8 @@ public final class ProfileController {
             popularWorkspaceGrid.setMaxHeight(220);
         }
 
-        URL profileEmptyUrl = MainLayoutController.class.getResource("/images/user_profile.png");
-        if (popularWorkspaceEmptyImage != null && profileEmptyUrl != null) {
-            popularWorkspaceEmptyImage.setImage(new Image(profileEmptyUrl.toExternalForm(), true));
+        if (popularWorkspaceEmptyImage != null) {
+            popularWorkspaceEmptyImage.setImage(new Image(ICON_USER_PROFILE_URL, true));
         }
         if (activityBox != null) {
             activityBox.setPrefHeight(200);
@@ -525,25 +528,16 @@ public final class ProfileController {
         backButton.getStyleClass().add("navbar-back-inline");
         backButton.setOnAction(e -> closeCurrentWindow());
 
-        URL iconUrl = MainLayoutController.class.getResource("/images/back_arrow.png");
-        if (iconUrl != null) {
-            ImageView iconView = new ImageView(new Image(iconUrl.toExternalForm(), true));
-            iconView.setFitWidth(18);
-            iconView.setFitHeight(18);
-            iconView.setPreserveRatio(true);
-            backButton.setGraphic(iconView);
-        } else {
-            backButton.setText("\u2190");
-        }
+        ImageView iconView = new ImageView(new Image(ICON_BACK_URL, true));
+        iconView.setFitWidth(18);
+        iconView.setFitHeight(18);
+        iconView.setPreserveRatio(true);
+        backButton.setGraphic(iconView);
         return backButton;
     }
 
     private void configureLogoutButtonGraphic() {
-        URL iconUrl = MainLayoutController.class.getResource("/images/logout_icon.png");
-        if (iconUrl == null) {
-            return;
-        }
-        ImageView iconView = new ImageView(new Image(iconUrl.toExternalForm(), true));
+        ImageView iconView = new ImageView(new Image(ICON_LOGOUT_URL, true));
         iconView.setFitWidth(14);
         iconView.setFitHeight(14);
         iconView.setPreserveRatio(true);

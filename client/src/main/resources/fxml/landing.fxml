@@ -25,8 +25,8 @@
                     <children>
                         <Label text="&gt;_" styleClass="landing-terminal-icon"/>
                         <Region HBox.hgrow="ALWAYS"/>
-                        <Button fx:id="loginButton" text="LOG IN" styleClass="landing-nav-button"/>
-                        <Button fx:id="signupButton" text="SIGN UP" styleClass="landing-nav-button,landing-nav-button-filled"/>
+                        <Button fx:id="loginButton" text="LOG IN" styleClass="landing-nav-button" onAction="#handleLogin"/>
+                        <Button fx:id="signupButton" text="SIGN UP" styleClass="landing-nav-button,landing-nav-button-filled" onAction="#handleSignUp"/>
                     </children>
                 </HBox>
             </top>
@@ -54,7 +54,7 @@
                                        text="VersionVault is a fully offline document version control system designed for professionals who demand absolute privacy and instant performance. Versioning, without the complexity of git."
                                        styleClass="landing-description"/>
 
-                                <Button fx:id="getStartedButton" text="GET STARTED" styleClass="landing-cta-button">
+                                <Button fx:id="getStartedButton" text="GET STARTED" styleClass="landing-cta-button" onAction="#handleGetStarted">
                                     <VBox.margin>
                                         <Insets top="-8" right="0" bottom="0" left="0"/>
                                     </VBox.margin>

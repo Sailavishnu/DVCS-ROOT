@@ -30,6 +30,9 @@ import org.bson.types.ObjectId;
 
 public final class SearchController {
 
+    private static final String ICON_BACK_URL = "https://img.icons8.com/fluency-systems-filled/48/00ff88/left.png";
+    private static final String ICON_SEARCH_EMPTY_URL = "https://img.icons8.com/fluency-systems-filled/96/00ff88/search--v1.png";
+
     @FXML
     private BorderPane root;
 
@@ -75,9 +78,8 @@ public final class SearchController {
         topContainer.setPadding(new Insets(10, 18, 0, 0));
         headerContainer.getChildren().setAll(topContainer);
 
-        URL emptyImageUrl = MainLayoutController.class.getResource("/images/search_not_found.png");
-        if (emptyStateImageView != null && emptyImageUrl != null) {
-            emptyStateImageView.setImage(new Image(emptyImageUrl.toExternalForm(), true));
+        if (emptyStateImageView != null) {
+            emptyStateImageView.setImage(new Image(ICON_SEARCH_EMPTY_URL, true));
         }
     }
 
@@ -260,16 +262,11 @@ public final class SearchController {
         backButton.getStyleClass().add("navbar-back-inline");
         backButton.setOnAction(e -> closeCurrentWindow());
 
-        URL iconUrl = MainLayoutController.class.getResource("/images/back_arrow.png");
-        if (iconUrl != null) {
-            ImageView iconView = new ImageView(new Image(iconUrl.toExternalForm(), true));
-            iconView.setFitWidth(18);
-            iconView.setFitHeight(18);
-            iconView.setPreserveRatio(true);
-            backButton.setGraphic(iconView);
-        } else {
-            backButton.setText("\u2190");
-        }
+        ImageView iconView = new ImageView(new Image(ICON_BACK_URL, true));
+        iconView.setFitWidth(18);
+        iconView.setFitHeight(18);
+        iconView.setPreserveRatio(true);
+        backButton.setGraphic(iconView);
         return backButton;
     }
 }

@@ -23,6 +23,12 @@
                         <Insets top="30" right="34" bottom="30" left="34"/>
                     </padding>
 
+                    <HBox alignment="CENTER_RIGHT" maxWidth="390">
+                        <children>
+                            <Button text="x" styleClass="auth-close-button" onAction="#onClosePopup"/>
+                        </children>
+                    </HBox>
+
                     <Label fx:id="formTitleLabel" text="Login" styleClass="form-title"/>
                     <Label fx:id="formSubtitleLabel" text="Access your workspace securely." styleClass="form-subtitle"/>
 

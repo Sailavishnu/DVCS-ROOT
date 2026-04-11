@@ -132,6 +132,7 @@ public final class WorkspaceController {
         nameColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().displayName()));
         lastCommitColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().lastCommitMessage()));
         lastModifiedColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().lastModified()));
+        fileTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
         mainContainer.widthProperty().addListener((obs, oldWidth, newWidth) -> applySplitRatios());
         applySplitRatios();
@@ -147,14 +148,20 @@ public final class WorkspaceController {
                 }
 
                 Label message = new Label(commit.message());
-                message.setStyle("-fx-font-weight: bold; -fx-font-size: 11;");
+                message.setStyle("-fx-font-weight: bold; -fx-font-size: 11; -fx-text-fill: #e8fff2;");
 
                 Label metadata = new Label("#" + commit.snapshotId() + " • " + commit.formattedTime());
-                metadata.setStyle("-fx-font-size: 9; -fx-text-fill: #666;");
+                metadata.setStyle("-fx-font-size: 9; -fx-text-fill: #99b8a8;");
 
                 Button restoreBtn = new Button("Restore");
                 restoreBtn.setPrefWidth(60);
-                restoreBtn.setStyle("-fx-font-size: 9;");
+                restoreBtn.setStyle(
+                        "-fx-font-size: 9;"
+                                + "-fx-background-color: #152821;"
+                                + "-fx-text-fill: #8de0b6;"
+                                + "-fx-border-color: rgba(0, 255, 136, 0.30);"
+                                + "-fx-border-radius: 8;"
+                                + "-fx-background-radius: 8;");
                 restoreBtn.setOnAction(e -> restoreToVersion(commit));
 
                 VBox content = new VBox(2);
@@ -164,7 +171,7 @@ public final class WorkspaceController {
                 row.setAlignment(Pos.CENTER_LEFT);
                 row.getChildren().addAll(content, new Region(), restoreBtn);
                 HBox.setHgrow(content, Priority.ALWAYS);
-                row.setStyle("-fx-padding: 6; -fx-border-color: #e0e0e0; -fx-border-width: 0 0 1 0;");
+                row.setStyle("-fx-padding: 6; -fx-border-color: rgba(0, 255, 136, 0.20); -fx-border-width: 0 0 1 0;");
 
                 setText(null);
                 setGraphic(row);

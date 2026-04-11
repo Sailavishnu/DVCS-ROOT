@@ -1,28 +1,28 @@
 .dvcs-root {
-    -fx-background-color: #f3f4f6;
+    -fx-background-color: #0a0a0a;
 }
 
 /* Navbar */
 .navbar {
-    -fx-background-color: linear-gradient(to right, #0F52BA, #1E90FF);
+    -fx-background-color: linear-gradient(to right, #0f1d18, #132821);
     -fx-background-radius: 22;
     -fx-border-radius: 22;
     -fx-border-width: 1;
-    -fx-border-color: rgba(255, 255, 255, 0.32);
-    -fx-effect: dropshadow(gaussian, rgba(15, 23, 42, 0.22), 36, 0.2, 0, 10);
+    -fx-border-color: rgba(0, 255, 136, 0.26);
+    -fx-effect: dropshadow(gaussian, rgba(0, 255, 136, 0.18), 28, 0.18, 0, 8);
 }
 
 .navbar-title {
-    -fx-text-fill: white;
+    -fx-text-fill: #e7fff1;
     -fx-font-size: 21px;
     -fx-font-weight: 800;
 }
 
 .navbar-search {
     -fx-background-radius: 22;
-    -fx-background-color: rgba(255, 255, 255, 0.26);
-    -fx-text-fill: rgba(255, 255, 255, 0.96);
-    -fx-prompt-text-fill: rgba(255, 255, 255, 0.78);
+    -fx-background-color: rgba(20, 37, 31, 0.92);
+    -fx-text-fill: rgba(232, 255, 242, 0.98);
+    -fx-prompt-text-fill: rgba(176, 208, 192, 0.78);
     -fx-font-size: 14px;
     -fx-font-weight: 700;
     -fx-padding: 11 18 11 18;
@@ -30,23 +30,23 @@
     -fx-pref-width: 460;
     -fx-border-radius: 22;
     -fx-border-width: 1;
-    -fx-border-color: rgba(255, 255, 255, 0.35);
+    -fx-border-color: rgba(0, 255, 136, 0.28);
 }
 
 
 
 .navbar-icon {
-    -fx-text-fill: rgba(255, 255, 255, 0.95);
+    -fx-text-fill: rgba(222, 255, 238, 0.95);
     -fx-font-size: 19px;
 }
 
 .navbar-icon:hover {
-    -fx-text-fill: #ffffff;
+    -fx-text-fill: #00ff88;
 }
 
 .navbar-avatar {
-    -fx-fill: rgba(255, 255, 255, 0.34);
-    -fx-stroke: rgba(255, 255, 255, 0.55);
+    -fx-fill: rgba(23, 45, 37, 0.92);
+    -fx-stroke: rgba(0, 255, 136, 0.42);
     -fx-stroke-width: 1.2;
 }
 
@@ -89,11 +89,11 @@
 }
 
 .dashboard-bg-top {
-    -fx-background-color: linear-gradient(to right, #0F52BA, #1E90FF);
+    -fx-background-color: linear-gradient(to right, #0d1713, #14231d);
 }
 
 .dashboard-bg-bottom {
-    -fx-background-color: white;
+    -fx-background-color: #0a0a0a;
 }
 
 .dashboard-scroll {
@@ -101,6 +101,10 @@
 }
 
 .dashboard-scroll > .viewport {
+    -fx-background-color: transparent;
+}
+
+.dashboard-empty-right {
     -fx-background-color: transparent;
 }
 
@@ -115,12 +119,12 @@
 
 /* Reusable glass panel */
 .glass {
-    -fx-background-color: rgba(255, 255, 255, 0.82);
+    -fx-background-color: rgba(14, 25, 21, 0.90);
     -fx-background-radius: 20;
     -fx-border-radius: 20;
     -fx-border-width: 1;
-    -fx-border-color: rgba(255, 255, 255, 0.55);
-    -fx-effect: dropshadow(gaussian, rgba(15, 23, 42, 0.26), 40, 0.22, 0, 16);
+    -fx-border-color: rgba(0, 255, 136, 0.22);
+    -fx-effect: dropshadow(gaussian, rgba(0, 255, 136, 0.13), 30, 0.18, 0, 10);
 }
 
 #mainCard {
@@ -145,26 +149,26 @@
 .section-title {
     -fx-font-size: 18px;
     -fx-font-weight: 800;
-    -fx-text-fill: #111827;
+    -fx-text-fill: #deffed;
 }
 
 .primary-button {
     -fx-background-radius: 20;
-    -fx-background-color: #2563eb;
-    -fx-text-fill: white;
+    -fx-background-color: #00df7a;
+    -fx-text-fill: #032312;
     -fx-font-weight: 700;
     -fx-padding: 8 14 8 14;
 }
 
 .secondary-button {
     -fx-background-radius: 20;
-    -fx-background-color: rgba(255, 255, 255, 0.16);
-    -fx-text-fill: rgba(255, 255, 255, 0.92);
+    -fx-background-color: rgba(20, 40, 32, 0.92);
+    -fx-text-fill: rgba(214, 248, 231, 0.95);
     -fx-font-weight: 800;
     -fx-padding: 8 14 8 14;
     -fx-border-radius: 20;
     -fx-border-width: 1;
-    -fx-border-color: rgba(255, 255, 255, 0.30);
+    -fx-border-color: rgba(0, 255, 136, 0.30);
 }
 
 
@@ -181,13 +185,13 @@
 .hero-title {
     -fx-font-size: 28px;
     -fx-font-weight: 900;
-    -fx-text-fill: rgba(255, 255, 255, 0.95);
+    -fx-text-fill: rgba(235, 255, 244, 0.96);
 }
 
 .hero-subtitle {
     -fx-font-size: 13px;
     -fx-font-weight: 700;
-    -fx-text-fill: rgba(255, 255, 255, 0.75);
+    -fx-text-fill: rgba(173, 205, 189, 0.85);
 }
 
 .workspace-glass {
@@ -195,12 +199,12 @@
 }
 
 .glass-analytics {
-    -fx-background-color: rgba(255, 255, 255, 0.84);
+    -fx-background-color: rgba(15, 28, 23, 0.90);
     -fx-background-radius: 20;
     -fx-border-radius: 20;
     -fx-border-width: 1;
-    -fx-border-color: rgba(255, 255, 255, 0.62);
-    -fx-effect: dropshadow(gaussian, rgba(15, 23, 42, 0.24), 34, 0.22, 0, 14);
+    -fx-border-color: rgba(0, 255, 136, 0.22);
+    -fx-effect: dropshadow(gaussian, rgba(0, 255, 136, 0.12), 24, 0.18, 0, 10);
 }
 
 /* Ensure analytics aligns to top of main card */
@@ -235,11 +239,11 @@
 }
 
 .workspace-card {
-    -fx-background-color: #f9fafb;
+    -fx-background-color: #12201b;
     -fx-background-radius: 18;
     -fx-border-radius: 18;
     -fx-border-width: 1;
-    -fx-border-color: rgba(15, 23, 42, 0.08);
+    -fx-border-color: rgba(0, 255, 136, 0.18);
     -fx-pref-width: 220;
     -fx-min-width: 220;
     -fx-pref-height: 140;
@@ -256,20 +260,20 @@
 
 .workspace-empty-card {
     -fx-alignment: center;
-    -fx-border-color: rgba(37, 99, 235, 0.22);
+    -fx-border-color: rgba(0, 255, 136, 0.28);
     -fx-border-style: segments(6, 6);
 }
 
 .workspace-empty-label {
-    -fx-text-fill: #31559c;
+    -fx-text-fill: #7fd8ae;
     -fx-font-size: 14px;
     -fx-font-weight: 700;
 }
 
 .workspace-card-highlighted {
-    -fx-border-color: #2563eb;
+    -fx-border-color: #00ff88;
     -fx-border-width: 2;
-    -fx-effect: dropshadow(gaussian, rgba(37, 99, 235, 0.18), 18, 0.2, 0, 6);
+    -fx-effect: dropshadow(gaussian, rgba(0, 255, 136, 0.28), 18, 0.2, 0, 6);
 }
 
 
@@ -309,8 +313,8 @@
 }
 
 .workspace-icon {
-    -fx-fill: rgba(37, 99, 235, 0.18);
-    -fx-stroke: rgba(37, 99, 235, 0.35);
+    -fx-fill: rgba(0, 255, 136, 0.14);
+    -fx-stroke: rgba(0, 255, 136, 0.28);
     -fx-scale-x: 1.12;
     -fx-scale-y: 1.12;
 }
@@ -322,7 +326,7 @@
 .workspace-title {
     -fx-font-size: 13px;
     -fx-font-weight: 700;
-    -fx-text-fill: #111827;
+    -fx-text-fill: #e1ffef;
     -fx-padding: 0 4 0 4;
 }
 
@@ -1169,4 +1173,547 @@
     -fx-font-weight: 700;
     -fx-background-radius: 10;
     -fx-border-radius: 10;
+}
+
+/* ===== Theme Overrides: Search / Notification / Profile ===== */
+.search-page-root {
+    -fx-background-color: #0a0a0a;
+}
+
+.search-match-count {
+    -fx-text-fill: #e8fff2;
+}
+
+.search-empty-message {
+    -fx-text-fill: #8cdab3;
+}
+
+.search-result-card {
+    -fx-background-color: #121f1b;
+    -fx-border-color: rgba(0, 255, 136, 0.22);
+}
+
+.search-result-card:hover {
+    -fx-background-color: #172a23;
+    -fx-border-color: rgba(0, 255, 136, 0.38);
+}
+
+.search-file-name {
+    -fx-text-fill: #e5fff0;
+}
+
+.search-file-path {
+    -fx-text-fill: #99b8a8;
+}
+
+.notification-page-root {
+    -fx-background-color: #0a0a0a;
+}
+
+.notification-count-label {
+    -fx-text-fill: #e8fff2;
+}
+
+.notification-empty-message {
+    -fx-text-fill: #8cdab3;
+}
+
+.notification-highlight-card {
+    -fx-background-color: linear-gradient(to bottom right, #102019, #163226);
+    -fx-border-color: rgba(0, 255, 136, 0.22);
+    -fx-border-width: 1;
+    -fx-border-radius: 24;
+}
+
+.notification-highlight-text {
+    -fx-text-fill: #deffeb;
+}
+
+.notification-card {
+    -fx-background-color: #121f1b;
+    -fx-border-color: rgba(0, 255, 136, 0.26);
+}
+
+.notification-card:hover {
+    -fx-background-color: #172a23;
+}
+
+.notification-icon-box {
+    -fx-background-color: #132720;
+    -fx-border-color: rgba(0, 255, 136, 0.30);
+}
+
+.notification-icon-text {
+    -fx-text-fill: #00ff88;
+}
+
+.notification-workspace-name {
+    -fx-text-fill: #e8fff2;
+}
+
+.notification-message {
+    -fx-text-fill: #9ab7a8;
+}
+
+.notification-accept-button {
+    -fx-background-color: #00df7a;
+    -fx-text-fill: #032312;
+}
+
+.notification-accept-button:hover {
+    -fx-background-color: #00ff88;
+}
+
+.notification-decline-button {
+    -fx-text-fill: #8cdab3;
+    -fx-border-color: rgba(0, 255, 136, 0.34);
+}
+
+.notification-decline-button:hover {
+    -fx-background-color: #162a23;
+}
+
+.profile-page-root {
+    -fx-background-color: #0a0a0a;
+}
+
+.profile-card,
+.profile-panel,
+.profile-stat-card,
+.profile-workspace-item {
+    -fx-background-color: #121f1b;
+    -fx-border-color: rgba(0, 255, 136, 0.22);
+}
+
+.profile-avatar-circle {
+    -fx-fill: #133026;
+    -fx-stroke: rgba(0, 255, 136, 0.40);
+}
+
+.profile-avatar-text,
+.profile-section-title,
+.profile-workspace-name,
+.profile-stat-value,
+.profile-field-value {
+    -fx-text-fill: #e6fff1;
+}
+
+.profile-field-label,
+.profile-workspace-commits,
+.profile-stat-label,
+.profile-empty-text {
+    -fx-text-fill: #9ab7a8;
+}
+
+.profile-input {
+    -fx-background-color: #152922;
+    -fx-text-fill: #e5fff0;
+    -fx-prompt-text-fill: #8cae9c;
+    -fx-border-color: rgba(0, 255, 136, 0.24);
+}
+
+.profile-edit-button,
+.profile-save-button {
+    -fx-background-color: #00df7a;
+    -fx-text-fill: #032312;
+}
+
+.profile-cancel-button {
+    -fx-text-fill: #8cdab3;
+    -fx-border-color: rgba(0, 255, 136, 0.32);
+}
+
+.profile-logout-button {
+    -fx-background-color: #121f1b;
+    -fx-text-fill: #8cdab3;
+    -fx-border-color: rgba(0, 255, 136, 0.32);
+}
+
+.profile-logout-button:hover {
+    -fx-background-color: #172a23;
+}
+
+.profile-activity-cell {
+    -fx-border-color: rgba(0, 255, 136, 0.24);
+}
+
+/* ===== Final Global Theme Lock (Black + Green + Elevation) ===== */
+.dvcs-root,
+.dashboard-bg-bottom,
+.search-page-root,
+.notification-page-root,
+.profile-page-root {
+    -fx-background-color: #0a0a0a;
+}
+
+.navbar,
+.dashboard-bg-top {
+    -fx-background-color: linear-gradient(to right, #0f1d18, #14261f);
+    -fx-border-color: rgba(0, 255, 136, 0.28);
+    -fx-effect: dropshadow(gaussian, rgba(0, 255, 136, 0.20), 30, 0.20, 0, 8);
+}
+
+.glass,
+.glass-analytics,
+.workspace-card,
+.search-result-card,
+.notification-card,
+.notification-highlight-card,
+.profile-card,
+.profile-panel,
+.profile-stat-card,
+.profile-workspace-item {
+    -fx-background-color: #121f1b;
+    -fx-border-color: rgba(0, 255, 136, 0.24);
+    -fx-effect: dropshadow(gaussian, rgba(0, 255, 136, 0.18), 22, 0.18, 0, 7);
+}
+
+.section-title,
+.hero-title,
+.search-match-count,
+.notification-count-label,
+.notification-workspace-name,
+.profile-section-title,
+.profile-workspace-name,
+.profile-stat-value,
+.workspace-title {
+    -fx-text-fill: #e8fff2;
+}
+
+.hero-subtitle,
+.search-file-path,
+.notification-message,
+.profile-field-label,
+.profile-workspace-commits,
+.profile-stat-label,
+.profile-empty-text,
+.search-empty-message,
+.notification-empty-message {
+    -fx-text-fill: #9fc9b3;
+}
+
+.primary-button,
+.notification-accept-button,
+.profile-edit-button,
+.profile-save-button,
+.workspace-primary-button,
+.landing-cta-button {
+    -fx-background-color: #00df7a;
+    -fx-text-fill: #032312;
+    -fx-effect: dropshadow(gaussian, rgba(0, 255, 136, 0.30), 16, 0.25, 0, 0);
+}
+
+.primary-button:hover,
+.notification-accept-button:hover,
+.profile-edit-button:hover,
+.profile-save-button:hover,
+.workspace-primary-button:hover,
+.landing-cta-button:hover {
+    -fx-background-color: #00ff88;
+    -fx-effect: dropshadow(gaussian, rgba(0, 255, 136, 0.44), 20, 0.28, 0, 0);
+}
+
+.secondary-button,
+.notification-decline-button,
+.profile-cancel-button,
+.profile-logout-button,
+.workspace-action-button {
+    -fx-background-color: #152821;
+    -fx-text-fill: #8de0b6;
+    -fx-border-color: rgba(0, 255, 136, 0.32);
+}
+
+.secondary-button:hover,
+.notification-decline-button:hover,
+.profile-cancel-button:hover,
+.profile-logout-button:hover,
+.workspace-action-button:hover {
+    -fx-background-color: #193128;
+}
+
+.navbar-icon:hover,
+.switch-link,
+.notification-icon-text,
+.workspace-card-highlighted,
+.landing-nav-button:hover {
+    -fx-text-fill: #00ff88;
+}
+
+/* ===== Workspace Page Alignment With Primary Theme ===== */
+.workspace-page-root,
+.workspace-main-container,
+.workspace-right-panel,
+.workspace-header-wrap {
+    -fx-background-color: #0a0a0a;
+}
+
+.workspace-topbar,
+.workspace-action-bar,
+.workspace-collaborators-card,
+.workspace-table-card,
+.workspace-readme-card,
+.workspace-overview-card,
+.workspace-commits-card,
+.workspace-commit-dialog,
+.workspace-popup-dialog {
+    -fx-background-color: #121f1b;
+    -fx-border-color: rgba(0, 255, 136, 0.24);
+    -fx-effect: dropshadow(gaussian, rgba(0, 255, 136, 0.18), 22, 0.18, 0, 7);
+}
+
+.workspace-topbar-title,
+.workspace-topbar-name,
+.workspace-overview-main,
+.workspace-section-title,
+.workspace-collaborator-name,
+.workspace-table-card .table-view .column-header .label,
+.workspace-table-card .table-row-cell,
+.workspace-popup-dialog .label,
+.workspace-breadcrumb-current {
+    -fx-text-fill: #e8fff2;
+}
+
+.workspace-meta-label-dark,
+.workspace-breadcrumb-segment,
+.workspace-breadcrumb-separator,
+.workspace-readme-card .text-area,
+.workspace-table-card .table-view,
+.workspace-collaborators-card .list-view {
+    -fx-text-fill: #99b8a8;
+}
+
+.workspace-action-button {
+    -fx-background-color: #152821;
+    -fx-text-fill: #8de0b6;
+    -fx-border-color: rgba(0, 255, 136, 0.30);
+}
+
+.workspace-action-button:hover {
+    -fx-background-color: #193128;
+}
+
+.workspace-primary-button {
+    -fx-background-color: #00df7a;
+    -fx-text-fill: #032312;
+    -fx-effect: dropshadow(gaussian, rgba(0, 255, 136, 0.30), 16, 0.25, 0, 0);
+}
+
+.workspace-primary-button:hover {
+    -fx-background-color: #00ff88;
+    -fx-effect: dropshadow(gaussian, rgba(0, 255, 136, 0.42), 20, 0.28, 0, 0);
+}
+
+.app-back-button {
+    -fx-background-color: #152821;
+    -fx-text-fill: #8de0b6;
+    -fx-border-color: rgba(0, 255, 136, 0.30);
+}
+
+.app-back-button:hover {
+    -fx-background-color: #193128;
+}
+
+/* ===== Workspace Absolute Black Lock ===== */
+.workspace-page-root,
+.workspace-page-root .viewport,
+.workspace-main-container,
+.workspace-right-panel,
+.workspace-header-wrap,
+.workspace-editor-root,
+.workspace-editor-footer {
+    -fx-background-color: #050505;
+}
+
+.workspace-topbar,
+.workspace-action-bar,
+.workspace-collaborators-card,
+.workspace-table-card,
+.workspace-readme-card,
+.workspace-overview-card,
+.workspace-commits-card,
+.workspace-commit-dialog,
+.workspace-popup-dialog {
+    -fx-background-color: #0b0b0b;
+    -fx-border-color: rgba(0, 255, 136, 0.24);
+}
+
+.workspace-collaborators-card .list-view,
+.workspace-commits-card .list-view,
+.workspace-collaborators-card .list-view .virtual-flow,
+.workspace-commits-card .list-view .virtual-flow,
+.workspace-collaborators-card .list-view .clipped-container,
+.workspace-commits-card .list-view .clipped-container,
+.workspace-collaborators-card .list-view .sheet,
+.workspace-commits-card .list-view .sheet,
+.workspace-readme-card .text-area,
+.workspace-readme-card .text-area .content,
+.workspace-table-card .table-view,
+.workspace-table-card .table-view .virtual-flow,
+.workspace-table-card .table-view .clipped-container,
+.workspace-table-card .table-view .sheet,
+.workspace-editor-root .text-area,
+.workspace-editor-root .text-area .content {
+    -fx-background-color: #050505;
+    -fx-background-insets: 0;
+}
+
+.workspace-table-card .table-view .column-header-background,
+.workspace-table-card .table-view .filler,
+.workspace-table-card .table-view .column-header {
+    -fx-background-color: #0f1814;
+    -fx-border-color: transparent transparent rgba(0, 255, 136, 0.20) transparent;
+}
+
+.workspace-table-card .table-row-cell,
+.workspace-collaborators-card .list-view .list-cell,
+.workspace-commits-card .list-view .list-cell {
+    -fx-background-color: #080808;
+    -fx-text-fill: #dfffea;
+}
+
+.workspace-table-card .table-row-cell:selected,
+.workspace-collaborators-card .list-view .list-cell:selected,
+.workspace-commits-card .list-view .list-cell:selected {
+    -fx-background-color: rgba(0, 255, 136, 0.16);
+    -fx-text-fill: #eafff3;
+}
+
+.workspace-readme-card .text-area,
+.workspace-readme-card .text-area .content,
+.workspace-table-card .table-view,
+.workspace-collaborators-card .list-view,
+.workspace-commits-card .list-view,
+.workspace-popup-dialog .text-field,
+.workspace-popup-dialog .text-area {
+    -fx-text-fill: #d7f8e6;
+    -fx-prompt-text-fill: #80b89b;
+    -fx-highlight-fill: rgba(0, 255, 136, 0.22);
+    -fx-highlight-text-fill: #03180e;
+}
+
+.workspace-commit-dialog .header-panel,
+.workspace-popup-dialog .header-panel {
+    -fx-background-color: #0f1814;
+}
+
+.workspace-commit-dialog .text-field,
+.workspace-commit-dialog .text-area,
+.workspace-commit-dialog .content {
+    -fx-background-color: #050505;
+    -fx-text-fill: #d7f8e6;
+    -fx-prompt-text-fill: #80b89b;
+    -fx-border-color: rgba(0, 255, 136, 0.28);
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+}
+
+.workspace-table-card .table-view .scroll-bar:horizontal,
+.workspace-collaborators-card .list-view .scroll-bar:horizontal,
+.workspace-commits-card .list-view .scroll-bar:horizontal,
+.workspace-readme-card .text-area .scroll-bar:horizontal {
+    -fx-pref-height: 0;
+    -fx-max-height: 0;
+    -fx-opacity: 0;
+}
+
+/* ===== Profile Absolute Black Lock ===== */
+.profile-page-root,
+.profile-main-row,
+.profile-left-section,
+.profile-right-section,
+.profile-card-content,
+.profile-popular-grid-wrapper,
+.profile-popular-grid,
+.profile-stats-row {
+    -fx-background-color: #050505;
+}
+
+.profile-card,
+.profile-panel,
+.profile-stat-card,
+.profile-workspace-item,
+.profile-popular-panel,
+.profile-activity-box {
+    -fx-background-color: #0b0b0b;
+    -fx-border-color: rgba(0, 255, 136, 0.24);
+    -fx-effect: dropshadow(gaussian, rgba(0, 255, 136, 0.16), 20, 0.18, 0, 6);
+}
+
+.profile-input,
+.profile-input .content {
+    -fx-background-color: #060606;
+    -fx-text-fill: #d7f8e6;
+    -fx-prompt-text-fill: #7db396;
+    -fx-border-color: rgba(0, 255, 136, 0.28);
+}
+
+.profile-avatar-circle {
+    -fx-fill: #0f1814;
+    -fx-stroke: rgba(0, 255, 136, 0.40);
+}
+
+.profile-avatar-text,
+.profile-section-title,
+.profile-workspace-name,
+.profile-stat-value,
+.profile-field-value {
+    -fx-text-fill: #e4ffef;
+}
+
+.profile-field-label,
+.profile-workspace-commits,
+.profile-stat-label,
+.profile-empty-text {
+    -fx-text-fill: #93c4a8;
+}
+
+.profile-edit-button,
+.profile-save-button {
+    -fx-background-color: #00df7a;
+    -fx-text-fill: #032312;
+}
+
+.profile-cancel-button,
+.profile-logout-button {
+    -fx-background-color: #0f1814;
+    -fx-text-fill: #8ddfb6;
+    -fx-border-color: rgba(0, 255, 136, 0.32);
+}
+
+.profile-logout-button:hover,
+.profile-cancel-button:hover {
+    -fx-background-color: #14231d;
+}
+
+/* ===== Header + Page Black Enforcement ===== */
+.search-page-root,
+.notification-page-root,
+.profile-page-root,
+.search-page-root #headerContainer,
+.notification-page-root #headerContainer,
+.profile-page-root #headerContainer {
+    -fx-background-color: #050505;
+}
+
+.search-page-root .top,
+.notification-page-root .top,
+.profile-page-root .top {
+    -fx-background-color: #050505;
+}
+
+.search-page-root .navbar,
+.notification-page-root .navbar,
+.profile-page-root .navbar {
+    -fx-background-color: linear-gradient(to right, #0d1713, #11211b);
+    -fx-border-color: rgba(0, 255, 136, 0.28);
+    -fx-effect: dropshadow(gaussian, rgba(0, 255, 136, 0.18), 26, 0.18, 0, 8);
+}
+
+.navbar-back-inline {
+    -fx-background-color: #111d18;
+    -fx-border-color: rgba(0, 255, 136, 0.34);
+}
+
+.navbar-back-inline:hover {
+    -fx-background-color: #172a23;
 }

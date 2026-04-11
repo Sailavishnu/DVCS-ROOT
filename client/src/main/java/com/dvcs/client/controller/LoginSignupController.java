@@ -20,6 +20,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.stage.Window;
 import javafx.util.Duration;
 
 public class LoginSignupController {
@@ -119,13 +120,22 @@ public class LoginSignupController {
         this.onAuthSuccess = onAuthSuccess;
     }
 
+    public void setInitialMode(boolean loginMode) {
+        this.loginMode = loginMode;
+        if (formTitleLabel != null) {
+            clearError();
+            setActiveForm(loginMode);
+            applyModeTexts(false, null);
+        }
+    }
+
     @FXML
     private void initialize() {
         setupPasswordVisibility(loginPasswordField, loginPasswordVisibleField);
         setupPasswordVisibility(signupPasswordField, signupPasswordVisibleField);
         setupPasswordVisibility(signupConfirmPasswordField, signupConfirmPasswordVisibleField);
 
-        setActiveForm(true);
+        setActiveForm(loginMode);
         applyModeTexts(false, null);
 
         // Slow, subtle card entrance for premium feel.
@@ -431,6 +441,16 @@ public class LoginSignupController {
     @FXML
     private void onToggleSignupConfirmPassword() {
         togglePasswordVisibility(signupConfirmPasswordField, signupConfirmPasswordVisibleField);
+    }
+
+    @FXML
+    private void onClosePopup() {
+        if (rootPane != null && rootPane.getScene() != null) {
+            Window window = rootPane.getScene().getWindow();
+            if (window != null) {
+                window.hide();
+            }
+        }
     }
 
     private static void setupPasswordVisibility(PasswordField hiddenField, TextField visibleField) {

@@ -31,6 +31,10 @@ import org.bson.types.ObjectId;
 
 public final class NotificationController {
 
+    private static final String ICON_BACK_URL = "https://img.icons8.com/fluency-systems-filled/48/00ff88/left.png";
+    private static final String ICON_EMPTY_NOTIFICATION_URL = "https://img.icons8.com/fluency-systems-filled/96/00ff88/bell-off.png";
+    private static final String ICON_NEW_NOTIFICATION_URL = "https://img.icons8.com/fluency-systems-filled/96/00ff88/appointment-reminders.png";
+
     @FXML
     private BorderPane root;
 
@@ -90,14 +94,12 @@ public final class NotificationController {
         topContainer.setPadding(new Insets(10, 18, 0, 0));
         headerContainer.getChildren().setAll(topContainer);
 
-        URL emptyImageUrl = MainLayoutController.class.getResource("/images/no_new_noti.png");
-        if (emptyStateImageView != null && emptyImageUrl != null) {
-            emptyStateImageView.setImage(new Image(emptyImageUrl.toExternalForm(), true));
+        if (emptyStateImageView != null) {
+            emptyStateImageView.setImage(new Image(ICON_EMPTY_NOTIFICATION_URL, true));
         }
 
-        URL highlightUrl = MainLayoutController.class.getResource("/images/new_noti.png");
-        if (highlightImageView != null && highlightUrl != null) {
-            highlightImageView.setImage(new Image(highlightUrl.toExternalForm(), true));
+        if (highlightImageView != null) {
+            highlightImageView.setImage(new Image(ICON_NEW_NOTIFICATION_URL, true));
         }
 
         if (bodyRow != null) {
@@ -313,16 +315,11 @@ public final class NotificationController {
         backButton.getStyleClass().add("navbar-back-inline");
         backButton.setOnAction(e -> closeCurrentWindow());
 
-        URL iconUrl = MainLayoutController.class.getResource("/images/back_arrow.png");
-        if (iconUrl != null) {
-            ImageView iconView = new ImageView(new Image(iconUrl.toExternalForm(), true));
-            iconView.setFitWidth(18);
-            iconView.setFitHeight(18);
-            iconView.setPreserveRatio(true);
-            backButton.setGraphic(iconView);
-        } else {
-            backButton.setText("\u2190");
-        }
+        ImageView iconView = new ImageView(new Image(ICON_BACK_URL, true));
+        iconView.setFitWidth(18);
+        iconView.setFitHeight(18);
+        iconView.setPreserveRatio(true);
+        backButton.setGraphic(iconView);
         return backButton;
     }
 }

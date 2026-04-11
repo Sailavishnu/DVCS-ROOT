@@ -8,6 +8,8 @@ import javafx.scene.image.ImageView;
 
 public class WorkspaceCardController {
 
+    private static final String ICON_FOLDER_URL = "https://img.icons8.com/fluency-systems-filled/96/00ff88/folder-invoices.png";
+
     @FXML
     private Label titleLabel;
 
@@ -16,7 +18,7 @@ public class WorkspaceCardController {
 
     @FXML
     private void initialize() {
-        setIcon("/images/folder_icon.png");
+        setIcon(ICON_FOLDER_URL);
     }
 
     public void setTitle(String title) {
@@ -27,6 +29,10 @@ public class WorkspaceCardController {
 
     public void setIcon(String resourcePath) {
         if (iconImageView == null || resourcePath == null || resourcePath.isBlank()) {
+            return;
+        }
+        if (resourcePath.startsWith("http://") || resourcePath.startsWith("https://")) {
+            iconImageView.setImage(new Image(resourcePath, true));
             return;
         }
         URL iconUrl = WorkspaceCardController.class.getResource(resourcePath);

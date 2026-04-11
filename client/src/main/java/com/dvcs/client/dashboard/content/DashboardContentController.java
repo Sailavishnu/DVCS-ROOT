@@ -16,7 +16,6 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceDialog;
 import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -51,6 +50,7 @@ public class DashboardContentController {
     private static final double MY_WORKSPACE_CARD_HEIGHT = 160;
     private static final double COLLAB_CARD_HEIGHT = 160;
     private static final double RIGHT_PANEL_MIN_WIDTH = 420;
+    private static final String ICON_FOLDER_URL = "https://img.icons8.com/fluency-systems-filled/96/00ff88/folder-invoices.png";
 
     @FXML
     private HBox mainCard;
@@ -76,14 +76,15 @@ public class DashboardContentController {
 
     private final List<WorkspaceSummary> ownedWorkspaces = new ArrayList<>();
     private Set<ObjectId> highlightedWorkspaceIds = Set.of();
+    private boolean initialCardGeometryLocked;
 
     @FXML
     private void initialize() {
-        mainCard.getChildren().setAll(buildWorkspaceSection(), loadVersionControlPanel());
+        mainCard.getChildren().setAll(buildWorkspaceSection(), createEmptyRightSpace());
         if (!mainCard.getChildren().isEmpty()) {
             HBox.setHgrow(mainCard.getChildren().getFirst(), Priority.ALWAYS);
             if (mainCard.getChildren().size() > 1) {
-                HBox.setHgrow(mainCard.getChildren().get(1), Priority.ALWAYS);
+                HBox.setHgrow(mainCard.getChildren().get(1), Priority.NEVER);
             }
         }
 
@@ -100,6 +101,15 @@ public class DashboardContentController {
         }
 
         layoutCard();
+    }
+
+    private Node createEmptyRightSpace() {
+        javafx.scene.layout.Region empty = new javafx.scene.layout.Region();
+        empty.setMinWidth(RIGHT_PANEL_MIN_WIDTH);
+        empty.setPrefWidth(RIGHT_PANEL_MIN_WIDTH);
+        empty.setMaxWidth(RIGHT_PANEL_MIN_WIDTH);
+        empty.getStyleClass().add("dashboard-empty-right");
+        return empty;
     }
 
     public void configure(WorkspaceService workspaceService, ObjectId currentUserId, String currentUsername) {
@@ -128,17 +138,31 @@ public class DashboardContentController {
         if (availableW <= 0 || availableH <= 0)
             return;
 
+        if (initialCardGeometryLocked) {
+            return;
+        }
+
         // Dominant card with comfortable glass margins.
         double cardW = Math.max(1080, availableW * 0.92);
         double cardH = Math.max(660, availableH * 0.80);
 
-        mainCard.setPrefWidth(Math.min(cardW, availableW - 24));
-        mainCard.setPrefHeight(Math.min(cardH, availableH - 24));
+        double lockedW = Math.min(cardW, availableW - 24);
+        double lockedH = Math.min(cardH, availableH - 24);
+
+        // Lock initial geometry so the dashboard doesn't visibly resize during
+        // startup pulses.
+        mainCard.setMinWidth(lockedW);
+        mainCard.setPrefWidth(lockedW);
+        mainCard.setMaxWidth(lockedW);
+        mainCard.setMinHeight(lockedH);
+        mainCard.setPrefHeight(lockedH);
+        mainCard.setMaxHeight(lockedH);
 
         // Center card and keep the hero/title zone visually detached from the glass
         // card.
-        AnchorPane.setLeftAnchor(mainCard, (availableW - mainCard.getPrefWidth()) / 2.0);
-        AnchorPane.setTopAnchor(mainCard, Math.max(158, 300 - (mainCard.getPrefHeight() * 0.22)));
+        AnchorPane.setLeftAnchor(mainCard, (availableW - lockedW) / 2.0);
+        AnchorPane.setTopAnchor(mainCard, Math.max(158, 300 - (lockedH * 0.22)));
+        initialCardGeometryLocked = true;
     }
 
     private Node buildWorkspaceSection() {
@@ -196,12 +220,7 @@ public class DashboardContentController {
         workspaceGlass.getChildren().addAll(workspaceRegion);
         workspaceContent.getChildren().addAll(workspaceGlass);
 
-        ScrollPane scrollPane = new ScrollPane(workspaceContent);
-        scrollPane.setFitToWidth(true);
-        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        scrollPane.getStyleClass().add("workspace-scroll");
-
-        return scrollPane;
+        return workspaceContent;
     }
 
     private void onNewWorkspace() {
@@ -381,7 +400,7 @@ public class DashboardContentController {
         }
 
         if (sorted.isEmpty()) {
-            Node emptyMy = createEmptyWorkspacePlaceholder("No workspace here", "/images/folder_icon.png");
+            Node emptyMy = createEmptyWorkspacePlaceholder("No workspace here", ICON_FOLDER_URL);
             myGrid.add(emptyMy, 0, 0, 2, 1);
         }
 
@@ -390,7 +409,7 @@ public class DashboardContentController {
                 : workspaceService.loadCollaborativeWorkspaces(currentUserId);
         if (collaborative.isEmpty()) {
             collabList.getChildren()
-                    .add(createEmptyWorkspacePlaceholder("No workspace here", "/images/folder_icon.png"));
+                    .add(createEmptyWorkspacePlaceholder("No workspace here", ICON_FOLDER_URL));
         } else {
             for (WorkspaceSummary workspace : collaborative.stream().limit(4).toList()) {
                 Node node = createCollaborativeRow(workspace.displayName());
@@ -424,13 +443,23 @@ public class DashboardContentController {
         box.setMinHeight(170);
         box.setPrefHeight(170);
 
-        URL iconUrl = DashboardContentController.class.getResource(imagePath);
-        if (iconUrl != null) {
-            ImageView icon = new ImageView(new Image(iconUrl.toExternalForm(), true));
-            icon.setFitWidth(34);
-            icon.setFitHeight(34);
-            icon.setPreserveRatio(true);
-            box.getChildren().add(icon);
+        if (imagePath != null && !imagePath.isBlank()) {
+            Image image = null;
+            if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) {
+                image = new Image(imagePath, true);
+            } else {
+                URL iconUrl = DashboardContentController.class.getResource(imagePath);
+                if (iconUrl != null) {
+                    image = new Image(iconUrl.toExternalForm(), true);
+                }
+            }
+            if (image != null) {
+                ImageView icon = new ImageView(image);
+                icon.setFitWidth(34);
+                icon.setFitHeight(34);
+                icon.setPreserveRatio(true);
+                box.getChildren().add(icon);
+            }
         }
 
         Label label = new Label(message);

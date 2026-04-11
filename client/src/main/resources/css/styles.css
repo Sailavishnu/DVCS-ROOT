@@ -1,22 +1,19 @@
 .app-root {
-    -fx-background-image: url("../images/login_bg.jpeg");
-    -fx-background-size: cover;
-    -fx-background-position: center center;
-    -fx-background-repeat: no-repeat;
-    -fx-padding: 44;
+    -fx-background-color: rgba(6, 10, 9, 0.86);
+    -fx-padding: 34;
 }
 
 .glass-card {
     -fx-background-color:
         linear-gradient(to bottom,
-            rgba(255, 255, 255, 0.26) 0%,
-            rgba(255, 255, 255, 0.17) 36%,
-            rgba(255, 255, 255, 0.16) 100%);
+            rgba(12, 24, 20, 0.93) 0%,
+            rgba(10, 20, 18, 0.90) 40%,
+            rgba(8, 15, 13, 0.92) 100%);
     -fx-background-radius: 24;
     -fx-border-radius: 24;
     -fx-border-width: 1;
-    -fx-border-color: rgba(255, 255, 255, 0.38);
-    -fx-effect: dropshadow(gaussian, rgba(8, 23, 56, 0.35), 42, 0.22, 0, 10);
+    -fx-border-color: rgba(0, 255, 136, 0.30);
+    -fx-effect: dropshadow(gaussian, rgba(0, 255, 136, 0.22), 42, 0.22, 0, 10);
 }
 
 .card-content {
@@ -25,13 +22,13 @@
 }
 
 .form-title {
-    -fx-text-fill: #0f264d;
+    -fx-text-fill: #e7fff1;
     -fx-font-size: 30px;
     -fx-font-weight: 800;
 }
 
 .form-subtitle {
-    -fx-text-fill: rgba(18, 43, 84, 0.88);
+    -fx-text-fill: rgba(182, 205, 193, 0.92);
     -fx-font-size: 13px;
     -fx-font-weight: 700;
     -fx-padding: 0 0 8 0;
@@ -43,7 +40,7 @@
 }
 
 .field-hint {
-    -fx-text-fill: rgba(18, 43, 84, 0.90);
+    -fx-text-fill: rgba(196, 224, 209, 0.90);
     -fx-font-size: 12px;
     -fx-font-weight: 700;
     -fx-alignment: center-left;
@@ -51,49 +48,49 @@
 
 .text-field,
 .password-field {
-    -fx-background-color: rgba(255, 255, 255, 0.26);
+    -fx-background-color: rgba(21, 38, 32, 0.88);
     -fx-background-radius: 14;
     -fx-border-radius: 14;
     -fx-border-width: 1;
-    -fx-border-color: rgba(255, 255, 255, 0.46);
-    -fx-text-fill: #0f264d;
-    -fx-prompt-text-fill: rgba(33, 64, 116, 0.65);
+    -fx-border-color: rgba(0, 255, 136, 0.26);
+    -fx-text-fill: #e8fff2;
+    -fx-prompt-text-fill: rgba(163, 197, 179, 0.68);
     -fx-font-size: 14px;
     -fx-font-weight: 600;
     -fx-padding: 12 14 12 14;
-    -fx-effect: dropshadow(gaussian, rgba(10, 27, 60, 0.20), 10, 0.18, 0, 3);
+    -fx-effect: dropshadow(gaussian, rgba(0, 255, 136, 0.08), 10, 0.18, 0, 3);
 }
 
 .text-field:focused,
 .password-field:focused {
-    -fx-background-color: rgba(255, 255, 255, 0.24);
-    -fx-border-color: rgba(173, 204, 255, 0.82);
-    -fx-effect: dropshadow(gaussian, rgba(165, 202, 255, 0.34), 14, 0.22, 0, 0);
+    -fx-background-color: rgba(24, 45, 38, 0.95);
+    -fx-border-color: rgba(0, 255, 136, 0.75);
+    -fx-effect: dropshadow(gaussian, rgba(0, 255, 136, 0.30), 14, 0.22, 0, 0);
 }
 
 .primary-button {
-    -fx-background-color: linear-gradient(to bottom, #2b67cf, #1a4caa);
+    -fx-background-color: linear-gradient(to bottom, #10f59a, #00d977);
     -fx-background-radius: 999;
     -fx-border-radius: 999;
     -fx-border-width: 1;
-    -fx-border-color: rgba(220, 235, 255, 0.38);
-    -fx-text-fill: rgba(245, 250, 255, 0.98);
+    -fx-border-color: rgba(166, 255, 216, 0.45);
+    -fx-text-fill: #052719;
     -fx-font-size: 14px;
     -fx-font-weight: 700;
     -fx-padding: 11 18 11 18;
 }
 
 .primary-button:hover {
-    -fx-background-color: linear-gradient(to bottom, #336fda, #1f55b8);
-    -fx-effect: dropshadow(gaussian, rgba(122, 168, 255, 0.30), 16, 0.24, 0, 0);
+    -fx-background-color: linear-gradient(to bottom, #24ffab, #06e986);
+    -fx-effect: dropshadow(gaussian, rgba(0, 255, 136, 0.45), 18, 0.25, 0, 0);
 }
 
 .primary-button:pressed {
-    -fx-background-color: linear-gradient(to bottom, #255fc2, #1949a3);
+    -fx-background-color: linear-gradient(to bottom, #00d977, #00bb68);
 }
 
 .switch-link {
-    -fx-text-fill: #113d8a;
+    -fx-text-fill: #6dffba;
     -fx-font-size: 12px;
     -fx-font-weight: 700;
     -fx-underline: true;
@@ -101,7 +98,7 @@
 }
 
 .switch-link:hover {
-    -fx-text-fill: #0d3272;
+    -fx-text-fill: #9dffd1;
 }
 
 .switch-row {
@@ -109,7 +106,7 @@
 }
 
 .switch-prompt {
-    -fx-text-fill: rgba(18, 43, 84, 0.88);
+    -fx-text-fill: rgba(183, 211, 196, 0.90);
     -fx-font-size: 12px;
     -fx-font-weight: 700;
 }
@@ -125,31 +122,45 @@
     -fx-min-height: 30;
     -fx-pref-height: 30;
     -fx-max-height: 30;
-    -fx-background-color: rgba(255, 255, 255, 0.42);
+    -fx-background-color: rgba(26, 47, 40, 0.88);
     -fx-background-radius: 999;
     -fx-border-radius: 999;
-    -fx-border-color: rgba(255, 255, 255, 0.58);
+    -fx-border-color: rgba(0, 255, 136, 0.34);
     -fx-border-width: 1;
     -fx-font-size: 13px;
-    -fx-text-fill: #0f264d;
+    -fx-text-fill: #b8ffdb;
     -fx-cursor: hand;
     -fx-padding: 0;
     -fx-translate-x: -8;
 }
 
 .eye-inline-button:hover {
-    -fx-background-color: rgba(255, 255, 255, 0.56);
+    -fx-background-color: rgba(37, 65, 56, 0.95);
 }
 
 .eye-inline-button:pressed {
-    -fx-background-color: rgba(255, 255, 255, 0.66);
+    -fx-background-color: rgba(24, 48, 41, 0.95);
 }
 
 .error-label {
-    -fx-text-fill: #0b2a59;
+    -fx-text-fill: #ff9f9f;
     -fx-font-size: 12px;
     -fx-font-weight: 700;
     -fx-padding: 4 0 0 0;
+}
+
+.auth-close-button {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: rgba(186, 214, 200, 0.40);
+    -fx-font-size: 16px;
+    -fx-font-weight: 700;
+    -fx-cursor: hand;
+    -fx-padding: 0 2 0 2;
+}
+
+.auth-close-button:hover {
+    -fx-text-fill: rgba(210, 238, 225, 0.70);
 }
 
 .landing-root {
@@ -189,6 +200,10 @@
     -fx-font-weight: 700;
     -fx-background-radius: 0;
     -fx-border-radius: 0;
+}
+
+.landing-nav-button:hover {
+    -fx-effect: dropshadow(gaussian, rgba(0, 255, 136, 0.45), 14, 0.30, 0, 0);
 }
 
 .landing-nav-button-filled {
@@ -241,6 +256,10 @@
     -fx-border-radius: 0;
     -fx-border-color: #00ff88;
     -fx-border-width: 1;
+}
+
+.landing-cta-button:hover {
+    -fx-effect: dropshadow(gaussian, rgba(0, 255, 136, 0.55), 18, 0.30, 0, 0);
 }
 
 .landing-terminal-card {
