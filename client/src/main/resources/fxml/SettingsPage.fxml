@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Priority?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.dvcs.client.dashboard.settings.SettingsController"
+            stylesheets="@../css/dashboard.css" styleClass="dvcs-root settings-page-root">
+
+    <top>
+        <VBox spacing="12" styleClass="settings-header">
+            <Label text="Settings" styleClass="settings-title"/>
+            <Separator/>
+        </VBox>
+    </top>
+
+    <center>
+        <TabPane fx:id="settingsTabPane" tabClosingPolicy="UNAVAILABLE" styleClass="settings-tab-pane">
+            
+            <!-- TAB 1: Commit History -->
+            <Tab text="Commit History">
+                <VBox spacing="12" styleClass="settings-tab-content" VBox.vgrow="ALWAYS">
+                    <padding>
+                        <Insets top="16" right="24" bottom="16" left="24"/>
+                    </padding>
+
+                    <HBox spacing="12" alignment="CENTER_LEFT">
+                        <Label text="Select Workspace:" styleClass="settings-label"/>
+                        <ComboBox fx:id="commitHistoryWorkspaceCombo" prefWidth="250" styleClass="settings-combo-box"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Button text="Refresh" onAction="#onRefreshCommitHistory" styleClass="settings-action-button"/>
+                    </HBox>
+
+                    <Label text="All Commits:" styleClass="settings-sublabel"/>
+                    
+                    <TableView fx:id="commitHistoryTable" VBox.vgrow="ALWAYS" prefHeight="400" styleClass="settings-table">
+                        <columns>
+                            <TableColumn fx:id="fileNameColumn" text="File Name" prefWidth="150"/>
+                            <TableColumn fx:id="commitMessageColumn" text="Commit Message" prefWidth="250"/>
+                            <TableColumn fx:id="committedAtColumn" text="Timestamp" prefWidth="150"/>
+                            <TableColumn fx:id="committedByColumn" text="Committed By" prefWidth="120"/>
+                            <TableColumn fx:id="snapshotIdColumn" text="Version" prefWidth="80"/>
+                            <TableColumn fx:id="commitActionsColumn" text="Actions" prefWidth="150"/>
+                        </columns>
+                    </TableView>
+                </VBox>
+            </Tab>
+
+            <!-- TAB 2: File Comparison -->
+            <Tab text="File Comparison">
+                <VBox spacing="12" styleClass="settings-tab-content" VBox.vgrow="ALWAYS">
+                    <padding>
+                        <Insets top="16" right="24" bottom="16" left="24"/>
+                    </padding>
+
+                    <HBox spacing="12" alignment="TOP_LEFT">
+                        <VBox spacing="6">
+                            <Label text="Workspace:" styleClass="settings-label"/>
+                            <ComboBox fx:id="comparisonWorkspaceCombo" prefWidth="200" styleClass="settings-combo-box"/>
+                        </VBox>
+                        <VBox spacing="6">
+                            <Label text="File:" styleClass="settings-label"/>
+                            <ComboBox fx:id="comparisonFileCombo" prefWidth="200" styleClass="settings-combo-box"/>
+                        </VBox>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Button text="Load Snapshots" onAction="#onLoadComparisonSnapshots" styleClass="settings-action-button"/>
+                    </HBox>
+
+                    <HBox spacing="20" VBox.vgrow="ALWAYS">
+                        <!-- Left Side: Old Version -->
+                        <VBox spacing="8" HBox.hgrow="ALWAYS">
+                            <HBox spacing="8" alignment="CENTER_LEFT">
+                                <Label text="Old Version:" styleClass="settings-sublabel"/>
+                                <ComboBox fx:id="leftSnapshotCombo" prefWidth="180" styleClass="settings-combo-box"/>
+                            </HBox>
+                            <StackPane fx:id="leftEditorContainer" styleClass="comparison-editor-container" VBox.vgrow="ALWAYS" prefHeight="300"/>
+                        </VBox>
+
+                        <!-- Divider -->
+                        <VBox styleClass="comparison-divider">
+                            <Region VBox.vgrow="ALWAYS"/>
+                        </VBox>
+
+                        <!-- Right Side: New Version -->
+                        <VBox spacing="8" HBox.hgrow="ALWAYS">
+                            <HBox spacing="8" alignment="CENTER_LEFT">
+                                <Label text="New Version:" styleClass="settings-sublabel"/>
+                                <ComboBox fx:id="rightSnapshotCombo" prefWidth="180" styleClass="settings-combo-box"/>
+                            </HBox>
+                            <StackPane fx:id="rightEditorContainer" styleClass="comparison-editor-container" VBox.vgrow="ALWAYS" prefHeight="300"/>
+                        </VBox>
+                    </HBox>
+
+                    <HBox spacing="10" alignment="CENTER_RIGHT">
+                        <Button text="Compare" onAction="#onLoadComparison" styleClass="settings-action-button"/>
+                    </HBox>
+                </VBox>
+            </Tab>
+
+        </TabPane>
+    </center>
+
+</BorderPane>

@@ -137,4 +137,57 @@ public final class FileDAO {
                 .sort(new Document("snapshotId", -1))
                 .into(new ArrayList<>());
     }
+
+    public void renameFile(ObjectId fileId, String filename, String extension, String relativePath) {
+        files.updateOne(eq("_id", fileId), Updates.combine(
+                Updates.set("filename", filename),
+                Updates.set("extension", extension),
+                Updates.set("path.relativePath", relativePath),
+                Updates.set("path.versionRoot", ".versions/" + filename)));
+    }
+
+    public void deleteFile(ObjectId fileId) {
+        snapshots.deleteMany(eq("fileId", fileId));
+        commits.deleteMany(eq("fileId", fileId));
+        files.deleteOne(eq("_id", fileId));
+    }
+
+    public List<Document> findCommitsByWorkspace(ObjectId workspaceId) {
+        List<ObjectId> folderIds = folders.find(eq("workspaceId", workspaceId))
+                .map(doc -> doc.getObjectId("_id"))
+                .into(new ArrayList<>());
+        if (folderIds.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        List<ObjectId> fileIds = files.find(in("folderId", folderIds))
+                .map(doc -> doc.getObjectId("_id"))
+                .into(new ArrayList<>());
+        if (fileIds.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        return commits.find(in("fileId", fileIds))
+                .sort(new Document("committedAt", -1))
+                .into(new ArrayList<>());
+    }
+
+    public List<Document> findSnapshotsByFileId(ObjectId fileId) {
+        return snapshots.find(eq("fileId", fileId))
+                .sort(new Document("snapshotId", 1))
+                .into(new ArrayList<>());
+    }
+
+    public List<Document> findFilesByWorkspace(ObjectId workspaceId) {
+        List<ObjectId> folderIds = folders.find(eq("workspaceId", workspaceId))
+                .map(doc -> doc.getObjectId("_id"))
+                .into(new ArrayList<>());
+        if (folderIds.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        return files.find(in("folderId", folderIds))
+                .sort(new Document("filename", 1))
+                .into(new ArrayList<>());
+    }
 }

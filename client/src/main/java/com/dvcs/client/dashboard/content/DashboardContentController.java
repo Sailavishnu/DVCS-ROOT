@@ -5,6 +5,7 @@ import com.dvcs.client.dashboard.data.WorkspaceSummary;
 import com.dvcs.client.auth.db.MongoConnection;
 import com.dvcs.client.dashboard.service.WorkspaceService;
 import com.dvcs.client.dashboard.workspace.WorkspaceCardController;
+import com.dvcs.client.ui.PopupDialogs;
 import com.dvcs.client.workspacepage.controller.WorkspaceController;
 import com.mongodb.client.MongoDatabase;
 import javafx.fxml.FXML;
@@ -12,11 +13,8 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
-import javafx.scene.control.ChoiceDialog;
 import javafx.scene.control.Label;
-import javafx.scene.control.TextInputDialog;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
@@ -41,7 +39,6 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import org.bson.types.ObjectId;
 
@@ -224,17 +221,16 @@ public class DashboardContentController {
             return;
         }
 
-        TextInputDialog nameDialog = new TextInputDialog();
-        nameDialog.setTitle("New Workspace");
-        nameDialog.setHeaderText("Create Workspace");
-        nameDialog.setContentText("Workspace name:");
         Window owner = currentWindow();
-        if (owner != null) {
-            nameDialog.initOwner(owner);
-        }
-
-        Optional<String> nameResult = nameDialog.showAndWait();
-        if (nameResult.isEmpty() || nameResult.get().isBlank()) {
+        String workspaceName = PopupDialogs.showTextInput(
+                owner,
+                "New Workspace",
+                "Create a workspace in your selected local directory.",
+                "Workspace name",
+                "Enter workspace name",
+                "Create")
+                .orElse(null);
+        if (workspaceName == null || workspaceName.isBlank()) {
             return;
         }
 
@@ -248,7 +244,7 @@ public class DashboardContentController {
         try {
             WorkspaceSummary created = workspaceService.createWorkspace(
                     currentUserId,
-                    nameResult.get().trim(),
+                    workspaceName.trim(),
                     selectedDirectory.toPath());
             ownedWorkspaces.add(created);
             renderWorkspaceCards();
@@ -276,27 +272,26 @@ public class DashboardContentController {
         }
 
         List<String> workspaceLabels = new ArrayList<>(workspaceByLabel.keySet());
-        ChoiceDialog<String> workspaceChoice = new ChoiceDialog<>(workspaceLabels.getFirst(), workspaceLabels);
-        workspaceChoice.setTitle("Import Files");
-        workspaceChoice.setHeaderText("Step 1: Select Workspace");
-        workspaceChoice.setContentText("Workspace:");
         Window owner = currentWindow();
-        if (owner != null) {
-            workspaceChoice.initOwner(owner);
-        }
-
-        Optional<String> workspaceSelection = workspaceChoice.showAndWait();
-        if (workspaceSelection.isEmpty()) {
+        String selectedWorkspaceLabel = PopupDialogs.showChoice(
+                owner,
+                "Import Files",
+                "Step 1 of 3",
+                "Select workspace",
+                workspaceLabels,
+                workspaceLabels.getFirst(),
+                "Continue")
+                .orElse(null);
+        if (selectedWorkspaceLabel == null) {
             return;
         }
 
-        WorkspaceSummary selectedWorkspace = workspaceByLabel.get(workspaceSelection.get());
+        WorkspaceSummary selectedWorkspace = workspaceByLabel.get(selectedWorkspaceLabel);
         if (selectedWorkspace == null) {
             showError("Invalid workspace selection.");
             return;
         }
 
-        TextInputDialog folderDialog = new TextInputDialog("root");
         WorkspaceDetails details = workspaceService.loadWorkspaceDetails(selectedWorkspace.workspaceId());
         List<String> folderChoices = new ArrayList<>(details.folders());
         if (!folderChoices.contains("root")) {
@@ -304,30 +299,32 @@ public class DashboardContentController {
         }
         folderChoices.add("Create new folder...");
 
-        ChoiceDialog<String> folderChoice = new ChoiceDialog<>(folderChoices.getFirst(), folderChoices);
-        folderChoice.setTitle("Import Files");
-        folderChoice.setHeaderText("Step 2: Select Folder Inside Workspace");
-        folderChoice.setContentText("Folder:");
-        if (owner != null) {
-            folderChoice.initOwner(owner);
-            folderDialog.initOwner(owner);
-        }
-
-        Optional<String> folderSelection = folderChoice.showAndWait();
-        if (folderSelection.isEmpty()) {
+        String selectedFolder = PopupDialogs.showChoice(
+                owner,
+                "Import Files",
+                "Step 2 of 3",
+                "Select folder inside workspace",
+                folderChoices,
+                folderChoices.getFirst(),
+                "Continue")
+                .orElse(null);
+        if (selectedFolder == null) {
             return;
         }
 
-        String selectedFolder = folderSelection.get();
         if ("Create new folder...".equals(selectedFolder)) {
-            folderDialog.setTitle("Import Files");
-            folderDialog.setHeaderText("Create Folder");
-            folderDialog.setContentText("New folder name:");
-            Optional<String> newFolder = folderDialog.showAndWait();
-            if (newFolder.isEmpty() || newFolder.get().isBlank()) {
+            String newFolder = PopupDialogs.showTextInput(
+                    owner,
+                    "Import Files",
+                    "Step 2 of 3",
+                    "New folder name",
+                    "Enter folder name",
+                    "Create Folder")
+                    .orElse(null);
+            if (newFolder == null || newFolder.isBlank()) {
                 return;
             }
-            selectedFolder = newFolder.get().trim();
+            selectedFolder = newFolder.trim();
         }
 
         FileChooser fileChooser = new FileChooser();
@@ -625,25 +622,11 @@ public class DashboardContentController {
     }
 
     private void showInfo(String message) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION, message);
-        alert.setHeaderText(null);
-        Window owner = currentWindow();
-        if (owner != null) {
-            alert.initOwner(owner);
-            alert.initModality(Modality.WINDOW_MODAL);
-        }
-        alert.showAndWait();
+        PopupDialogs.showInfo(currentWindow(), "Workspace", message);
     }
 
     private void showError(String message) {
-        Alert alert = new Alert(Alert.AlertType.ERROR, message);
-        alert.setHeaderText("Operation failed");
-        Window owner = currentWindow();
-        if (owner != null) {
-            alert.initOwner(owner);
-            alert.initModality(Modality.WINDOW_MODAL);
-        }
-        alert.showAndWait();
+        PopupDialogs.showError(currentWindow(), "Operation Failed", message);
     }
 
     private static Node loadFxmlNode(String resource) {

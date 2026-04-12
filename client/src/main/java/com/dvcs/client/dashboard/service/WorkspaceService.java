@@ -407,4 +407,14 @@ public final class WorkspaceService {
     private static String safe(String value) {
         return value == null ? "" : value;
     }
+
+    public List<Object> loadUserWorkspaces(ObjectId currentUserId) {
+        Objects.requireNonNull(currentUserId, "currentUserId");
+        List<WorkspaceSummary> ownedWorkspaces = loadOwnedWorkspaces(currentUserId);
+        List<WorkspaceSummary> collaborativeWorkspaces = loadCollaborativeWorkspaces(currentUserId);
+
+        List<Object> allWorkspaces = new ArrayList<>(ownedWorkspaces);
+        allWorkspaces.addAll(collaborativeWorkspaces);
+        return allWorkspaces;
+    }
 }

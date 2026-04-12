@@ -243,6 +243,23 @@ public final class WorkspaceService {
         workspaceDAO.deleteWorkspaceCascade(workspaceId, folderIds, fileIds);
     }
 
+    public void renameFileMetadata(FileItemModel file, String newFilename) {
+        Objects.requireNonNull(file, "file");
+        String normalizedFilename = normalizeFileName(newFilename);
+        String normalizedFolderName = normalizeFolderName(file.folderName());
+        String relativePath = "root".equalsIgnoreCase(normalizedFolderName)
+                ? normalizedFilename
+                : normalizedFolderName + "/" + normalizedFilename;
+        fileDAO.renameFile(file.fileId(), normalizedFilename, extractExtension(normalizedFilename), relativePath);
+    }
+
+    public void deleteFileMetadata(FileItemModel file) {
+        if (file == null || file.fileId() == null) {
+            return;
+        }
+        fileDAO.deleteFile(file.fileId());
+    }
+
     private static List<ObjectId> toObjectIdList(Object rawValue) {
         if (!(rawValue instanceof List<?> rawList)) {
             return List.of();

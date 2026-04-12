@@ -53,9 +53,10 @@
                     </HBox>
                     <TableView fx:id="fileTable" VBox.vgrow="ALWAYS">
                         <columns>
-                            <TableColumn fx:id="nameColumn" text="Name" prefWidth="460"/>
-                            <TableColumn fx:id="lastCommitColumn" text="Last Commit Message" prefWidth="420"/>
-                            <TableColumn fx:id="lastModifiedColumn" text="Last Modified" prefWidth="220"/>
+                            <TableColumn fx:id="nameColumn" text="Name" prefWidth="400"/>
+                            <TableColumn fx:id="lastCommitColumn" text="Last Commit Message" prefWidth="380"/>
+                            <TableColumn fx:id="lastModifiedColumn" text="Last Modified" prefWidth="200"/>
+                            <TableColumn fx:id="actionsColumn" text="" prefWidth="80"/>
                         </columns>
                     </TableView>
                 </VBox>

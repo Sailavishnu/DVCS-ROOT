@@ -29,3 +29,16 @@ java --enable-native-access=javafx.graphics --module-path "$javafxLib" --add-mod
 
 
 
+
+
+
+
+Error: --module-path requires module path specification
+PS D:\dvcs-root> $DVCS_ROOT = "D:\dvcs-root"                                         
+PS D:\dvcs-root> $javafxLib = "$env:JAVAFX_HOME\lib"                                 
+PS D:\dvcs-root> javac --module-path "$javafxLib" --add-modules javafx.controls,javafx.fxml,javafx.swing -cp "$DVCS_ROOT\client\lib\*" -d "$DVCS_ROOT\client\out" (Get-ChildItem "$DVCS_ROOT\client\src\main\java" -Recurse -Filter *.java).FullName           
+Note: D:\dvcs-root\client\src\main\java\com\dvcs\client\workspacepage\controller\WorkspaceController.java uses or overrides a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+Note: D:\dvcs-root\client\src\main\java\com\dvcs\client\dashboard\analytics\AnalyticsPanelController.java uses unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.
+PS D:\dvcs-root> java --enable-native-access=javafx.graphics --module-path "$javafxLib" --add-modules javafx.controls,javafx.fxml,javafx.swing -cp "$DVCS_ROOT\client\out;$DVCS_ROOT\client\src\main\resources;$DVCS_ROOT\client\lib\*" com.dvcs.client.MainApp
