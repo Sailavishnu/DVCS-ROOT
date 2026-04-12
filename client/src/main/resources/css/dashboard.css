@@ -1717,3 +1717,746 @@
 .navbar-back-inline:hover {
     -fx-background-color: #172a23;
 }
+
+/* Profile page final visual fixes */
+.profile-change-password-button {
+    -fx-background-color: #0f1814;
+    -fx-text-fill: #8ddfb6;
+    -fx-font-weight: 700;
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+    -fx-border-color: rgba(0, 255, 136, 0.30);
+    -fx-border-width: 1;
+    -fx-padding: 8 12 8 12;
+}
+
+.profile-change-password-button:hover {
+    -fx-background-color: #14231d;
+}
+
+.profile-logout-button {
+    -fx-min-width: 120;
+    -fx-alignment: center;
+}
+
+.profile-page-root,
+.profile-page-root #headerContainer,
+.profile-page-root .top {
+    -fx-background-color: #050505;
+    -fx-border-color: #050505;
+    -fx-border-width: 0;
+}
+
+.profile-page-root #headerContainer,
+.profile-page-root #headerContainer > *,
+.profile-page-root #headerContainer .navbar {
+    -fx-background-color: #050505;
+    -fx-border-color: #050505;
+    -fx-border-width: 0;
+}
+
+.profile-page-root .navbar {
+    -fx-border-width: 0;
+}
+
+.profile-password-overlay {
+    -fx-background-color: rgba(6, 10, 9, 0.80);
+    -fx-padding: 24;
+    -fx-alignment: center;
+}
+
+.profile-password-modal {
+    -fx-background-color:
+        linear-gradient(to bottom,
+            rgba(12, 24, 20, 0.95) 0%,
+            rgba(10, 20, 18, 0.92) 40%,
+            rgba(8, 15, 13, 0.94) 100%);
+    -fx-background-radius: 24;
+    -fx-border-radius: 24;
+    -fx-border-color: rgba(0, 255, 136, 0.30);
+    -fx-border-width: 1;
+    -fx-padding: 20;
+    -fx-alignment: top-center;
+    -fx-min-width: 540;
+    -fx-pref-width: 540;
+    -fx-max-width: 540;
+    -fx-min-height: 540;
+    -fx-pref-height: 540;
+    -fx-max-height: 540;
+    -fx-effect: dropshadow(gaussian, rgba(0, 255, 136, 0.22), 42, 0.22, 0, 10);
+}
+
+.profile-password-title {
+    -fx-text-fill: #e7fff1;
+    -fx-font-size: 28px;
+    -fx-font-weight: 800;
+}
+
+.profile-password-subtitle {
+    -fx-text-fill: rgba(182, 205, 193, 0.92);
+    -fx-font-size: 13px;
+    -fx-font-weight: 700;
+    -fx-padding: 0 0 8 0;
+}
+
+/* Change password glassmorphism dialog */
+.profile-password-dialog {
+    -fx-background-color: rgba(7, 16, 13, 0.82);
+    -fx-background-radius: 18;
+    -fx-border-radius: 18;
+    -fx-border-color: rgba(164, 255, 214, 0.30);
+    -fx-border-width: 1;
+    -fx-padding: 14;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.58), 26, 0.24, 0, 10);
+}
+
+.profile-password-dialog:header *.header-panel {
+    -fx-background-color: rgba(255, 255, 255, 0.08);
+    -fx-background-radius: 12;
+    -fx-padding: 10 12 10 12;
+    -fx-border-color: rgba(183, 255, 225, 0.28);
+    -fx-border-radius: 12;
+}
+
+.profile-password-dialog:header *.header-panel *.label {
+    -fx-text-fill: #e5fff1;
+    -fx-font-weight: 800;
+}
+
+.profile-password-dialog > *.content.label {
+    -fx-text-fill: #b9e9d1;
+}
+
+.profile-password-dialog .button-bar {
+    -fx-padding: 10 0 0 0;
+}
+
+.profile-password-form {
+    -fx-background-color: transparent;
+    -fx-background-radius: 0;
+    -fx-padding: 6 0 0 0;
+    -fx-border-color: transparent;
+    -fx-border-radius: 0;
+    -fx-hgap: 10;
+    -fx-vgap: 10;
+}
+
+.profile-password-label {
+    -fx-text-fill: rgba(196, 224, 209, 0.90);
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+}
+
+.profile-password-form .profile-input {
+    -fx-background-color: rgba(21, 38, 32, 0.88);
+    -fx-background-radius: 14;
+    -fx-border-radius: 14;
+    -fx-border-width: 1;
+    -fx-border-color: rgba(0, 255, 136, 0.26);
+    -fx-text-fill: #e8fff2;
+    -fx-prompt-text-fill: rgba(163, 197, 179, 0.68);
+    -fx-font-size: 14px;
+    -fx-font-weight: 600;
+    -fx-padding: 12 14 12 14;
+    -fx-effect: dropshadow(gaussian, rgba(0, 255, 136, 0.08), 10, 0.18, 0, 3);
+}
+
+.profile-password-form .profile-input:focused {
+    -fx-background-color: rgba(24, 45, 38, 0.95);
+    -fx-border-color: rgba(0, 255, 136, 0.75);
+    -fx-effect: dropshadow(gaussian, rgba(0, 255, 136, 0.30), 14, 0.22, 0, 0);
+}
+
+.profile-password-ok-button {
+    -fx-background-color: linear-gradient(to bottom, #10f59a, #00d977);
+    -fx-background-radius: 999;
+    -fx-border-radius: 999;
+    -fx-border-width: 1;
+    -fx-border-color: rgba(166, 255, 216, 0.45);
+    -fx-text-fill: #052719;
+    -fx-font-size: 14px;
+    -fx-font-weight: 800;
+    -fx-padding: 11 18 11 18;
+}
+
+.profile-password-ok-button:hover {
+    -fx-background-color: linear-gradient(to bottom, #24ffab, #06e986);
+    -fx-effect: dropshadow(gaussian, rgba(0, 255, 136, 0.45), 18, 0.25, 0, 0);
+}
+
+.profile-password-ok-button:pressed {
+    -fx-background-color: linear-gradient(to bottom, #00d977, #00bb68);
+}
+
+.profile-password-cancel-button {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: #6dffba;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+    -fx-underline: true;
+    -fx-cursor: hand;
+    -fx-padding: 8 10 8 10;
+}
+
+.profile-password-cancel-button:hover {
+    -fx-text-fill: #9dffd1;
+}
+
+/* Workspace language analytics panel */
+.workspace-languages-card {
+    -fx-background-color: #0b0b0b;
+    -fx-background-radius: 16;
+    -fx-border-radius: 16;
+    -fx-border-color: rgba(0, 255, 136, 0.24);
+    -fx-border-width: 1;
+    -fx-padding: 14;
+}
+
+.workspace-language-project {
+    -fx-text-fill: #e8fff2;
+    -fx-font-size: 16px;
+    -fx-font-weight: 800;
+}
+
+.workspace-language-bar {
+    -fx-min-height: 14;
+    -fx-pref-height: 14;
+    -fx-max-height: 14;
+    -fx-background-color: #111a16;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-border-color: rgba(0, 255, 136, 0.20);
+    -fx-border-width: 1;
+    -fx-padding: 0;
+}
+
+.workspace-language-segment {
+    -fx-min-height: 12;
+    -fx-pref-height: 12;
+    -fx-max-height: 12;
+}
+
+.workspace-language-legend {
+    -fx-padding: 4 0 0 0;
+}
+
+.workspace-language-dot {
+    -fx-min-width: 10;
+    -fx-pref-width: 10;
+    -fx-max-width: 10;
+    -fx-min-height: 10;
+    -fx-pref-height: 10;
+    -fx-max-height: 10;
+    -fx-background-radius: 999;
+}
+
+.workspace-language-legend-label {
+    -fx-text-fill: #d7f8e6;
+    -fx-font-size: 13px;
+    -fx-font-weight: 700;
+}
+
+/* ===== Final Visibility Refresh (Main-page font + brighter palette) ===== */
+.dvcs-root,
+.dashboard-bg,
+.dashboard-bg-top,
+.dashboard-bg-bottom,
+.workspace-page-root,
+.search-page-root,
+.notification-page-root,
+.profile-page-root {
+    -fx-background-color:
+        radial-gradient(center 18% 12%, radius 70%, rgba(132, 178, 255, 0.30), rgba(132, 178, 255, 0.0)),
+        radial-gradient(center 82% 14%, radius 72%, rgba(87, 224, 255, 0.20), rgba(87, 224, 255, 0.0)),
+        linear-gradient(to bottom right, #182742, #22355a 55%, #2d4a7f);
+}
+
+.dvcs-root,
+.navbar,
+.glass,
+.glass-analytics,
+.workspace-topbar,
+.workspace-action-bar,
+.workspace-table-card,
+.workspace-readme-card,
+.workspace-languages-card,
+.search-result-card,
+.notification-card,
+.notification-highlight-card,
+.profile-card,
+.profile-panel,
+.profile-stat-card,
+.profile-workspace-item,
+.profile-password-modal,
+.workspace-commit-dialog,
+.workspace-popup-dialog {
+    -fx-font-family: "Consolas";
+}
+
+.navbar,
+.workspace-topbar,
+.workspace-action-bar,
+.glass,
+.glass-analytics,
+.workspace-table-card,
+.workspace-readme-card,
+.workspace-languages-card,
+.search-result-card,
+.notification-card,
+.notification-highlight-card,
+.profile-card,
+.profile-panel,
+.profile-stat-card,
+.profile-workspace-item {
+    -fx-background-color: rgba(19, 30, 50, 0.88);
+    -fx-border-color: rgba(168, 205, 255, 0.44);
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, rgba(3, 12, 30, 0.38), 24, 0.18, 0, 8);
+}
+
+.navbar-title,
+.section-title,
+.hero-title,
+.hero-subtitle,
+.workspace-title,
+.workspace-topbar-title,
+.workspace-topbar-name,
+.workspace-section-title,
+.workspace-overview-main,
+.workspace-language-project,
+.workspace-language-legend-label,
+.workspace-meta-label-dark,
+.workspace-breadcrumb-segment,
+.workspace-breadcrumb-separator,
+.workspace-breadcrumb-current,
+.search-match-count,
+.search-empty-message,
+.search-file-name,
+.search-file-path,
+.notification-count-label,
+.notification-empty-message,
+.notification-highlight-text,
+.notification-workspace-name,
+.notification-message,
+.profile-section-title,
+.profile-workspace-name,
+.profile-workspace-commits,
+.profile-stat-value,
+.profile-stat-label,
+.profile-field-label,
+.profile-field-value,
+.profile-empty-text,
+.profile-password-title,
+.profile-password-subtitle,
+.profile-password-label {
+    -fx-text-fill: #ffffff;
+}
+
+.navbar-title,
+.hero-title,
+.workspace-topbar-title,
+.search-match-count,
+.notification-count-label,
+.profile-section-title,
+.profile-workspace-name,
+.profile-stat-value,
+.workspace-language-project {
+    -fx-font-size: 20px;
+    -fx-font-weight: 800;
+}
+
+.workspace-topbar-name,
+.workspace-section-title,
+.workspace-language-legend-label,
+.search-file-name,
+.notification-message,
+.profile-workspace-commits,
+.profile-field-value {
+    -fx-font-size: 14px;
+    -fx-font-weight: 700;
+}
+
+.navbar-search,
+.profile-input,
+.workspace-popup-dialog .text-field,
+.workspace-popup-dialog .text-area,
+.workspace-commit-dialog .text-field,
+.workspace-commit-dialog .text-area,
+.workspace-readme-card .text-area,
+.workspace-table-card .table-view,
+.workspace-collaborators-card .list-view {
+    -fx-background-color: rgba(12, 20, 36, 0.90);
+    -fx-text-fill: #ffffff;
+    -fx-prompt-text-fill: rgba(255, 255, 255, 0.70);
+    -fx-border-color: rgba(176, 210, 255, 0.46);
+}
+
+.workspace-table-card .table-view .column-header-background,
+.workspace-table-card .table-view .column-header,
+.workspace-table-card .table-view .filler {
+    -fx-background-color: rgba(34, 53, 88, 0.96);
+}
+
+.workspace-table-card .table-view .column-header .label,
+.workspace-table-card .table-row-cell,
+.workspace-collaborators-card .list-view .list-cell,
+.workspace-popup-dialog .label {
+    -fx-text-fill: #ffffff;
+}
+
+.workspace-table-card .table-row-cell,
+.workspace-collaborators-card .list-view .list-cell,
+.search-result-card,
+.notification-card,
+.profile-workspace-item {
+    -fx-background-color: rgba(18, 29, 48, 0.92);
+}
+
+.workspace-table-card .table-row-cell:selected,
+.workspace-collaborators-card .list-view .list-cell:selected {
+    -fx-background-color: rgba(92, 167, 255, 0.30);
+    -fx-text-fill: #ffffff;
+}
+
+.primary-button,
+.workspace-primary-button,
+.notification-accept-button,
+.profile-edit-button,
+.profile-save-button,
+.landing-cta-button,
+.profile-password-ok-button {
+    -fx-background-color: linear-gradient(to bottom, #76b8ff, #4b93f2);
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 14px;
+    -fx-font-weight: 800;
+    -fx-border-color: rgba(214, 232, 255, 0.72);
+    -fx-border-width: 1;
+}
+
+.primary-button:hover,
+.workspace-primary-button:hover,
+.notification-accept-button:hover,
+.profile-edit-button:hover,
+.profile-save-button:hover,
+.landing-cta-button:hover,
+.profile-password-ok-button:hover {
+    -fx-background-color: linear-gradient(to bottom, #8bc4ff, #5ca0fb);
+}
+
+.secondary-button,
+.workspace-action-button,
+.notification-decline-button,
+.profile-cancel-button,
+.profile-logout-button,
+.app-back-button,
+.profile-change-password-button,
+.navbar-back-inline,
+.profile-password-cancel-button {
+    -fx-background-color: rgba(24, 39, 66, 0.94);
+    -fx-text-fill: #ffffff;
+    -fx-border-color: rgba(181, 213, 255, 0.52);
+    -fx-border-width: 1;
+    -fx-font-size: 13px;
+    -fx-font-weight: 700;
+}
+
+.secondary-button:hover,
+.workspace-action-button:hover,
+.notification-decline-button:hover,
+.profile-cancel-button:hover,
+.profile-logout-button:hover,
+.app-back-button:hover,
+.profile-change-password-button:hover,
+.navbar-back-inline:hover,
+.profile-password-cancel-button:hover {
+    -fx-background-color: rgba(35, 56, 90, 0.96);
+}
+
+.workspace-language-bar {
+    -fx-background-color: rgba(11, 19, 32, 0.96);
+    -fx-border-color: rgba(181, 213, 255, 0.52);
+}
+
+/* ===== Workspace Readability Final Pass ===== */
+.workspace-page-root,
+.workspace-page-root .label,
+.workspace-page-root .text,
+.workspace-page-root .button,
+.workspace-page-root .menu-button,
+.workspace-page-root .menu-item,
+.workspace-page-root .table-view,
+.workspace-page-root .table-row-cell,
+.workspace-page-root .table-cell,
+.workspace-page-root .list-view,
+.workspace-page-root .list-cell,
+.workspace-page-root .text-area,
+.workspace-page-root .text-field {
+    -fx-font-family: "Cascadia Code", "Consolas";
+}
+
+.workspace-page-root .label,
+.workspace-page-root .text,
+.workspace-page-root .table-view,
+.workspace-page-root .table-row-cell,
+.workspace-page-root .table-cell,
+.workspace-page-root .list-cell,
+.workspace-page-root .text-area,
+.workspace-page-root .text-field,
+.workspace-page-root .menu-button,
+.workspace-page-root .menu-item,
+.workspace-page-root .button,
+.workspace-page-root .menu-button .label,
+.workspace-page-root .button .text,
+.workspace-page-root .menu-item .label {
+    -fx-text-fill: #ffffff;
+    -fx-font-weight: 800;
+}
+
+.workspace-page-root .workspace-meta-label-dark,
+.workspace-page-root .workspace-breadcrumb-segment,
+.workspace-page-root .workspace-breadcrumb-separator,
+.workspace-page-root .workspace-breadcrumb-current,
+.workspace-page-root .workspace-language-legend-label {
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 14px;
+    -fx-font-weight: 800;
+}
+
+/* Remove horizontal row separators in files table */
+.workspace-page-root .workspace-table-card .table-view .table-row-cell,
+.workspace-page-root .workspace-table-card .table-view .table-cell {
+    -fx-border-width: 0;
+    -fx-table-cell-border-color: transparent;
+    -fx-background-insets: 0;
+}
+
+.workspace-page-root .workspace-table-card .table-view .column-header,
+.workspace-page-root .workspace-table-card .table-view .filler,
+.workspace-page-root .workspace-table-card .table-view .column-header-background {
+    -fx-border-color: transparent;
+}
+
+/* ===== Dashboard Home Final Revert: Black + Neon Green ===== */
+.dvcs-root,
+.dashboard-bg,
+.dashboard-bg-top,
+.dashboard-bg-bottom {
+    -fx-background-color: #050505;
+}
+
+.navbar {
+    -fx-background-color: linear-gradient(to right, #0d1713, #12211c);
+    -fx-border-color: rgba(0, 255, 136, 0.28);
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, rgba(0, 255, 136, 0.18), 26, 0.18, 0, 8);
+}
+
+.navbar-title,
+.navbar-icon,
+.section-title,
+.hero-title,
+.hero-subtitle,
+.workspace-title,
+.workspace-empty-label,
+.version-control-heading {
+    -fx-text-fill: #e8fff2;
+}
+
+.navbar-search {
+    -fx-background-color: rgba(16, 30, 25, 0.92);
+    -fx-text-fill: #e8fff2;
+    -fx-prompt-text-fill: rgba(165, 202, 183, 0.78);
+    -fx-border-color: rgba(0, 255, 136, 0.30);
+}
+
+.glass,
+.glass-analytics,
+.workspace-card,
+.workspace-empty-card,
+.workspace-card-wrapper .workspace-card {
+    -fx-background-color: #101c18;
+    -fx-border-color: rgba(0, 255, 136, 0.24);
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, rgba(0, 255, 136, 0.16), 22, 0.18, 0, 7);
+}
+
+.primary-button,
+.landing-cta-button {
+    -fx-background-color: #00df7a;
+    -fx-text-fill: #032312;
+    -fx-border-color: rgba(170, 255, 219, 0.50);
+}
+
+.secondary-button,
+.landing-nav-button,
+.navbar-back-inline {
+    -fx-background-color: #132720;
+    -fx-text-fill: #8dffca;
+    -fx-border-color: rgba(0, 255, 136, 0.34);
+}
+
+.primary-button:hover,
+.landing-cta-button:hover {
+    -fx-background-color: #00ff88;
+}
+
+.secondary-button:hover,
+.landing-nav-button:hover,
+.navbar-back-inline:hover {
+    -fx-background-color: #193328;
+}
+
+/* Dashboard quick-action button focus ring cleanup */
+.hero-actions .primary-button:focused,
+.hero-actions .secondary-button:focused,
+.hero-actions .button:focused {
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+/* Workspace editor save button placement and color */
+.workspace-editor-footer {
+    -fx-alignment: center-right;
+}
+
+.workspace-editor-commit-button {
+    -fx-background-color: #00df7a;
+    -fx-text-fill: #032312;
+    -fx-font-weight: 800;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-border-color: rgba(170, 255, 219, 0.45);
+    -fx-border-width: 1;
+    -fx-padding: 7 16 7 16;
+}
+
+.workspace-editor-commit-button:hover {
+    -fx-background-color: #00ff88;
+}
+
+.workspace-editor-commit-button:disabled {
+    -fx-background-color: rgba(22, 43, 36, 0.85);
+    -fx-text-fill: rgba(200, 228, 214, 0.45);
+    -fx-border-color: rgba(126, 167, 146, 0.35);
+    -fx-opacity: 1;
+}
+
+.workspace-current-path {
+    -fx-text-fill: #e8fff2;
+    -fx-font-size: 13px;
+    -fx-font-weight: 700;
+}
+
+/* Add File dropdown readability */
+.workspace-inline-add-menu {
+    -fx-background-color: #132720;
+    -fx-text-fill: #ffffff;
+    -fx-border-color: rgba(0, 255, 136, 0.36);
+    -fx-font-weight: 800;
+}
+
+.workspace-inline-add-menu .label {
+    -fx-text-fill: #ffffff;
+}
+
+.context-menu {
+    -fx-background-color: #0b0b0b;
+    -fx-border-color: rgba(0, 255, 136, 0.34);
+    -fx-border-width: 1;
+    -fx-background-insets: 0;
+    -fx-padding: 4;
+}
+
+.context-menu .menu-item {
+    -fx-background-color: #0b0b0b;
+}
+
+.context-menu .menu-item .label {
+    -fx-text-fill: #ffffff;
+    -fx-font-weight: 700;
+}
+
+.context-menu .menu-item:focused,
+.context-menu .menu-item:hover {
+    -fx-background-color: rgba(0, 255, 136, 0.18);
+}
+
+.workspace-right-top-actions {
+    -fx-padding: 2 0 0 0;
+}
+
+.workspace-settings-button {
+    -fx-background-color: #132720;
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 14px;
+    -fx-font-weight: 800;
+    -fx-min-width: 36;
+    -fx-pref-width: 36;
+    -fx-max-width: 36;
+    -fx-min-height: 36;
+    -fx-pref-height: 36;
+    -fx-max-height: 36;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-border-color: rgba(0, 255, 136, 0.36);
+    -fx-border-width: 1;
+}
+
+.workspace-settings-button:hover {
+    -fx-background-color: #1a352b;
+}
+
+.workspace-contributors-card {
+    -fx-background-color: #0b0b0b;
+    -fx-background-radius: 16;
+    -fx-border-radius: 16;
+    -fx-border-color: rgba(0, 255, 136, 0.24);
+    -fx-border-width: 1;
+    -fx-padding: 12;
+}
+
+.workspace-contributors-count {
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 12px;
+    -fx-font-weight: 800;
+    -fx-background-color: rgba(255, 255, 255, 0.10);
+    -fx-background-radius: 10;
+    -fx-padding: 2 8 2 8;
+}
+
+.workspace-contributors-list {
+    -fx-padding: 4 0 0 0;
+}
+
+.workspace-contributor-name {
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 13px;
+    -fx-font-weight: 700;
+}
+
+.workspace-settings-root {
+    -fx-background-color: #080808;
+}
+
+.workspace-settings-content {
+    -fx-padding: 20;
+}
+
+/* Keep two main frames only: left files frame + single right frame */
+.workspace-right-main-card {
+    -fx-background-color: rgba(18, 29, 48, 0.92);
+    -fx-background-radius: 16;
+    -fx-border-radius: 16;
+    -fx-border-color: rgba(85, 125, 196, 0.62);
+    -fx-border-width: 1;
+    -fx-padding: 12;
+}
+
+.workspace-contributors-section,
+.workspace-languages-section {
+    -fx-background-color: transparent;
+    -fx-border-width: 0;
+    -fx-padding: 0;
+}
+

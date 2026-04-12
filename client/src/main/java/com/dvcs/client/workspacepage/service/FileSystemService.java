@@ -20,15 +20,20 @@ public final class FileSystemService {
 
     public Path createFolder(Path workspaceRoot, String folderName) throws IOException {
         Path root = normalizeRoot(workspaceRoot);
-        String normalizedFolderName = normalizeSegment(folderName, "Folder name is required");
+        String normalizedFolderName = normalizeRelativePath(folderName, "Folder name is required");
         Path target = resolveInsideWorkspace(root, normalizedFolderName);
         return Files.createDirectories(target);
     }
 
     public Path createFile(Path workspaceRoot, String fileName) throws IOException {
         Path root = normalizeRoot(workspaceRoot);
-        String normalizedFileName = normalizeSegment(fileName, "File name is required");
+        String normalizedFileName = normalizeRelativePath(fileName, "File name is required");
         Path target = resolveInsideWorkspace(root, normalizedFileName);
+
+        Path parent = target.getParent();
+        if (parent != null && Files.notExists(parent)) {
+            Files.createDirectories(parent);
+        }
 
         if (Files.notExists(target)) {
             Files.createFile(target);
@@ -43,7 +48,7 @@ public final class FileSystemService {
             throw new IllegalArgumentException("Selected file does not exist");
         }
 
-        String targetName = normalizeSegment(sourceFile.getFileName().toString(), "Invalid source file name");
+        String targetName = normalizeRelativePath(sourceFile.getFileName().toString(), "Invalid source file name");
         Path destination = resolveInsideWorkspace(root, targetName);
         return Files.copy(sourceFile, destination, StandardCopyOption.REPLACE_EXISTING);
     }
@@ -79,15 +84,24 @@ public final class FileSystemService {
         return workspaceRoot.toAbsolutePath().normalize();
     }
 
-    private static String normalizeSegment(String value, String errorMessage) {
-        String normalized = value == null ? "" : value.trim();
+    private static String normalizeRelativePath(String value, String errorMessage) {
+        String normalized = value == null ? "" : value.trim().replace('\\', '/');
         if (normalized.isEmpty()) {
             throw new IllegalArgumentException(errorMessage);
         }
-        if (normalized.contains("..") || normalized.contains("/") || normalized.contains("\\")) {
-            throw new IllegalArgumentException("Nested paths are not supported here");
+
+        Path path = Path.of(normalized).normalize();
+        if (path.isAbsolute()) {
+            throw new IllegalArgumentException("Absolute paths are not allowed");
         }
-        return normalized;
+        for (Path part : path) {
+            String segment = part.toString();
+            if (segment.equals("..") || segment.isBlank()) {
+                throw new IllegalArgumentException("Invalid relative path");
+            }
+        }
+
+        return path.toString().replace('\\', '/');
     }
 
     private static Path resolveInsideWorkspace(Path workspaceRoot, String name) {

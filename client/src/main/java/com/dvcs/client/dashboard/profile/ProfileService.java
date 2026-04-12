@@ -61,13 +61,7 @@ public final class ProfileService {
                 days);
     }
 
-    public UpdateResult updateProfile(
-            ObjectId userId,
-            String name,
-            String username,
-            String oldPassword,
-            String newPassword,
-            String confirmPassword) {
+    public UpdateResult updateProfile(ObjectId userId, String name, String username) {
         Objects.requireNonNull(userId, "userId");
 
         String normalizedUsername = safe(username).trim();
@@ -89,33 +83,49 @@ public final class ProfileService {
             return UpdateResult.error("Username already exists");
         }
 
-        String currentPasswordHash = safe(existing.getString("passwordHash"));
-        String passwordHashToStore = null;
-        boolean changingPassword = !safe(newPassword).isBlank() || !safe(confirmPassword).isBlank()
-                || !safe(oldPassword).isBlank();
-
-        if (changingPassword) {
-            if (safe(oldPassword).isBlank()) {
-                return UpdateResult.error("Old password is required");
-            }
-            if (safe(newPassword).isBlank() || safe(confirmPassword).isBlank()) {
-                return UpdateResult.error("New password and confirm password are required");
-            }
-            if (!newPassword.equals(confirmPassword)) {
-                return UpdateResult.error("New password and confirm password must match");
-            }
-            if (currentPasswordHash.isBlank() || !BCrypt.checkpw(oldPassword, currentPasswordHash)) {
-                return UpdateResult.error("Old password is incorrect");
-            }
-            passwordHashToStore = BCrypt.hashpw(newPassword, BCrypt.gensalt(12));
-        }
-
-        boolean updated = userDAO.updateProfile(userId, normalizedName, normalizedUsername, passwordHashToStore);
+        boolean updated = userDAO.updateProfile(userId, normalizedName, normalizedUsername, null);
         if (!updated) {
             return UpdateResult.error("No profile changes were saved");
         }
 
         return UpdateResult.success("Profile updated successfully");
+    }
+
+    public UpdateResult changePassword(ObjectId userId, String oldPassword, String newPassword,
+            String confirmPassword) {
+        Objects.requireNonNull(userId, "userId");
+
+        Document existing = userDAO.findById(userId)
+                .orElse(null);
+        if (existing == null) {
+            return UpdateResult.error("User not found");
+        }
+
+        if (safe(oldPassword).isBlank()) {
+            return UpdateResult.error("Old password is required");
+        }
+        if (safe(newPassword).isBlank() || safe(confirmPassword).isBlank()) {
+            return UpdateResult.error("New password and confirm password are required");
+        }
+        if (!newPassword.equals(confirmPassword)) {
+            return UpdateResult.error("New password and confirm password must match");
+        }
+
+        String currentPasswordHash = safe(existing.getString("passwordHash"));
+        if (currentPasswordHash.isBlank() || !BCrypt.checkpw(oldPassword, currentPasswordHash)) {
+            return UpdateResult.error("Old password is incorrect");
+        }
+
+        String currentName = existing.getString("name");
+        String currentUsername = safe(existing.getString("username"));
+        String passwordHashToStore = BCrypt.hashpw(newPassword, BCrypt.gensalt(12));
+
+        boolean updated = userDAO.updateProfile(userId, currentName, currentUsername, passwordHashToStore);
+        if (!updated) {
+            return UpdateResult.error("Password could not be updated");
+        }
+
+        return UpdateResult.success("Password updated successfully");
     }
 
     public static String initials(String name, String username) {

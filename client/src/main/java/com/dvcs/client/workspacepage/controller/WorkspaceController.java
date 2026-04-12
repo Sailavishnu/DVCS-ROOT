@@ -16,12 +16,15 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicReference;
+import javafx.application.Platform;
+import javafx.embed.swing.SwingNode;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
@@ -32,8 +35,6 @@ import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
-import javafx.scene.control.ListCell;
-import javafx.scene.control.ListView;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
@@ -47,10 +48,19 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.Window;
+import javafx.geometry.Rectangle2D;
+import javax.swing.SwingUtilities;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import org.bson.Document;
 import org.bson.types.ObjectId;
+import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
+import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
+import org.fife.ui.rsyntaxtextarea.Theme;
+import org.fife.ui.rtextarea.RTextScrollPane;
 
 public final class WorkspaceController {
 
@@ -59,9 +69,6 @@ public final class WorkspaceController {
 
     @FXML
     private Label workspaceNameHeader;
-
-    @FXML
-    private HBox actionBar;
 
     @FXML
     private HBox mainContainer;
@@ -76,6 +83,21 @@ public final class WorkspaceController {
     private VBox rightPanel;
 
     @FXML
+    private Label languageProjectTitleLabel;
+
+    @FXML
+    private Label contributorsCountLabel;
+
+    @FXML
+    private VBox contributorsListBox;
+
+    @FXML
+    private HBox languageBarContainer;
+
+    @FXML
+    private VBox languageLegendBox;
+
+    @FXML
     private TableView<WorkspaceFileRow> fileTable;
 
     @FXML
@@ -88,25 +110,13 @@ public final class WorkspaceController {
     private TableColumn<WorkspaceFileRow, String> lastModifiedColumn;
 
     @FXML
-    private Label totalCommitsLabel;
+    private Label currentPathLabel;
 
     @FXML
     private VBox readmeSection;
 
     @FXML
     private TextArea readmeTextArea;
-
-    @FXML
-    private Label overviewNameLabel;
-
-    @FXML
-    private Label overviewCommitLabel;
-
-    @FXML
-    private Label overviewModifiedLabel;
-
-    @FXML
-    private ListView<CommitItem> commitsList;
 
     private final FileSystemService fileSystemService = new FileSystemService();
 
@@ -121,10 +131,10 @@ public final class WorkspaceController {
     private Path workspaceRoot;
     private Path currentBrowsePath;
     private final Map<String, FileItemModel> metadataByRelativePath = new HashMap<>();
+    private final Map<ObjectId, String> usernameById = new HashMap<>();
 
     @FXML
     private void initialize() {
-        HBox.setHgrow(actionBar, Priority.ALWAYS);
         HBox.setHgrow(leftSection, Priority.ALWAYS);
         HBox.setHgrow(rightPanel, Priority.ALWAYS);
         VBox.setVgrow(fileTable, Priority.ALWAYS);
@@ -136,47 +146,6 @@ public final class WorkspaceController {
 
         mainContainer.widthProperty().addListener((obs, oldWidth, newWidth) -> applySplitRatios());
         applySplitRatios();
-
-        commitsList.setCellFactory(list -> new ListCell<CommitItem>() {
-            @Override
-            protected void updateItem(CommitItem commit, boolean empty) {
-                super.updateItem(commit, empty);
-                if (empty || commit == null) {
-                    setGraphic(null);
-                    setText(null);
-                    return;
-                }
-
-                Label message = new Label(commit.message());
-                message.setStyle("-fx-font-weight: bold; -fx-font-size: 11; -fx-text-fill: #e8fff2;");
-
-                Label metadata = new Label("#" + commit.snapshotId() + " • " + commit.formattedTime());
-                metadata.setStyle("-fx-font-size: 9; -fx-text-fill: #99b8a8;");
-
-                Button restoreBtn = new Button("Restore");
-                restoreBtn.setPrefWidth(60);
-                restoreBtn.setStyle(
-                        "-fx-font-size: 9;"
-                                + "-fx-background-color: #152821;"
-                                + "-fx-text-fill: #8de0b6;"
-                                + "-fx-border-color: rgba(0, 255, 136, 0.30);"
-                                + "-fx-border-radius: 8;"
-                                + "-fx-background-radius: 8;");
-                restoreBtn.setOnAction(e -> restoreToVersion(commit));
-
-                VBox content = new VBox(2);
-                content.getChildren().addAll(message, metadata);
-
-                HBox row = new HBox(8);
-                row.setAlignment(Pos.CENTER_LEFT);
-                row.getChildren().addAll(content, new Region(), restoreBtn);
-                HBox.setHgrow(content, Priority.ALWAYS);
-                row.setStyle("-fx-padding: 6; -fx-border-color: rgba(0, 255, 136, 0.20); -fx-border-width: 0 0 1 0;");
-
-                setText(null);
-                setGraphic(row);
-            }
-        });
 
         fileTable.setRowFactory(table -> {
             TableRow<WorkspaceFileRow> row = new TableRow<>();
@@ -192,11 +161,9 @@ public final class WorkspaceController {
 
         fileTable.getSelectionModel().selectedItemProperty()
                 .addListener((obs, oldItem, newItem) -> {
-                    updateOverview(newItem);
-                    loadCommitsForSelectedFile(newItem);
+                    selectedPath = newItem == null ? null : newItem.path();
+                    selectedFile = newItem == null ? null : newItem.file();
                 });
-
-        updateOverview((FileItemModel) null);
     }
 
     public void configure(
@@ -222,7 +189,6 @@ public final class WorkspaceController {
             if (parent != null && parent.startsWith(workspaceRoot)) {
                 currentBrowsePath = parent;
                 populateCurrentDirectoryTable();
-                updateOverview((WorkspaceFileRow) null);
                 return;
             }
         }
@@ -289,8 +255,8 @@ public final class WorkspaceController {
 
         TextInputDialog dialog = new TextInputDialog();
         dialog.setTitle("Create File");
-        dialog.setHeaderText("Create file in workspace root");
-        dialog.setContentText("File name:");
+        dialog.setHeaderText("Create file (nested paths supported)");
+        dialog.setContentText("File path (e.g. src/file.js):");
         Stage owner = resolveOwnerStage();
         if (owner != null) {
             dialog.initOwner(owner);
@@ -351,6 +317,47 @@ public final class WorkspaceController {
     }
 
     @FXML
+    private void onSettingsRequested() {
+        Stage owner = resolveOwnerStage();
+        Stage settingsStage = new Stage();
+        settingsStage.setTitle("Workspace Settings");
+        settingsStage.initModality(Modality.APPLICATION_MODAL);
+        if (owner != null) {
+            settingsStage.initOwner(owner);
+        }
+
+        BorderPane settingsRoot = new BorderPane();
+        settingsRoot.getStyleClass().add("workspace-settings-root");
+
+        Label title = new Label("Settings");
+        title.getStyleClass().add("workspace-section-title");
+        Label subtitle = new Label("Settings panel is ready. Tell me what to add next.");
+        subtitle.getStyleClass().add("workspace-meta-label-dark");
+
+        VBox content = new VBox(10, title, subtitle);
+        content.getStyleClass().add("workspace-settings-content");
+        settingsRoot.setCenter(content);
+
+        Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
+        double width = Math.max(900, bounds.getWidth() * 0.75);
+        double height = Math.max(600, bounds.getHeight() * 0.75);
+
+        Scene scene = new Scene(settingsRoot, width, height);
+        scene.getStylesheets()
+                .add(Objects.requireNonNull(getClass().getResource("/css/dashboard.css")).toExternalForm());
+        settingsStage.setScene(scene);
+
+        settingsStage.setOnShown(event -> {
+            if (owner != null) {
+                settingsStage.setX(owner.getX() + ((owner.getWidth() - settingsStage.getWidth()) / 2.0));
+                settingsStage.setY(owner.getY() + ((owner.getHeight() - settingsStage.getHeight()) / 2.0));
+            }
+        });
+
+        settingsStage.showAndWait();
+    }
+
+    @FXML
     private void onCommitRequested() {
         if (selectedFile == null || selectedPath == null) {
             showError("Select a file before committing");
@@ -404,7 +411,6 @@ public final class WorkspaceController {
     private void reloadWorkspace() {
         currentModel = workspaceService.loadWorkspace(workspaceId);
         workspaceNameHeader.setText(currentModel.workspaceName());
-        totalCommitsLabel.setText(String.valueOf(currentModel.totalCommits()));
 
         workspaceRoot = fileSystemService.normalizeWorkspaceRoot(currentModel.workspaceRootPath());
         buildMetadataIndex();
@@ -413,11 +419,12 @@ public final class WorkspaceController {
         }
         populateCurrentDirectoryTable();
         loadReadmeSection();
+        updateContributorsPanel();
+        updateLanguagePanel();
         if (selectedPath != null && !Files.exists(selectedPath)) {
             selectedPath = null;
             selectedFile = null;
         }
-        updateOverview((WorkspaceFileRow) null);
     }
 
     private void populateCurrentDirectoryTable() {
@@ -425,6 +432,7 @@ public final class WorkspaceController {
         if (currentBrowsePath == null) {
             fileTable.getItems().clear();
             updateBreadcrumbPath();
+            updateCurrentPathLabel();
             return;
         }
 
@@ -463,6 +471,25 @@ public final class WorkspaceController {
         }
         fileTable.getItems().setAll(rows);
         updateBreadcrumbPath();
+        updateCurrentPathLabel();
+    }
+
+    private void updateCurrentPathLabel() {
+        if (currentPathLabel == null || workspaceRoot == null || currentBrowsePath == null) {
+            return;
+        }
+
+        Path normalized = currentBrowsePath.normalize();
+        String value;
+        if (normalized.equals(workspaceRoot)) {
+            value = "/root";
+        } else if (normalized.startsWith(workspaceRoot)) {
+            String relative = workspaceRoot.relativize(normalized).toString().replace('\\', '/');
+            value = "/root/" + relative;
+        } else {
+            value = normalized.toString().replace('\\', '/');
+        }
+        currentPathLabel.setText(value);
     }
 
     private void updateBreadcrumbPath() {
@@ -506,7 +533,6 @@ public final class WorkspaceController {
                     selectedFile = null;
                     selectedPath = null;
                     populateCurrentDirectoryTable();
-                    updateOverview((WorkspaceFileRow) null);
                 });
             }
             breadcrumbBar.getChildren().add(segment);
@@ -571,13 +597,11 @@ public final class WorkspaceController {
             selectedFile = null;
             selectedPath = null;
             populateCurrentDirectoryTable();
-            updateOverview(row);
             return;
         }
 
         selectedPath = row.path();
         selectedFile = row.file();
-        updateOverview(row);
         openEditorWindow(row.path(), row.displayName());
     }
 
@@ -590,10 +614,47 @@ public final class WorkspaceController {
             return;
         }
 
-        TextArea editor = new TextArea(initialContent);
-        editor.setWrapText(false);
+        SwingNode swingNode = new SwingNode();
+        AtomicReference<RSyntaxTextArea> editorRef = new AtomicReference<>();
 
-        Button saveButton = new Button("Save");
+        Button saveButton = new Button("Commit Changes");
+        saveButton.getStyleClass().add("workspace-editor-commit-button");
+        saveButton.setDisable(true);
+
+        SwingUtilities.invokeLater(() -> {
+            RSyntaxTextArea editor = new RSyntaxTextArea(initialContent);
+            editor.setCodeFoldingEnabled(true);
+            editor.setAntiAliasingEnabled(true);
+            editor.setSyntaxEditingStyle(detectSyntaxStyle(displayName));
+            applyEditorTheme(editor, displayName);
+
+            editor.getDocument().addDocumentListener(new DocumentListener() {
+                private void onTextChanged() {
+                    boolean changed = !editor.getText().equals(initialContent);
+                    Platform.runLater(() -> saveButton.setDisable(!changed));
+                }
+
+                @Override
+                public void insertUpdate(DocumentEvent e) {
+                    onTextChanged();
+                }
+
+                @Override
+                public void removeUpdate(DocumentEvent e) {
+                    onTextChanged();
+                }
+
+                @Override
+                public void changedUpdate(DocumentEvent e) {
+                    onTextChanged();
+                }
+            });
+
+            RTextScrollPane scrollPane = new RTextScrollPane(editor);
+            scrollPane.setLineNumbersEnabled(true);
+            editorRef.set(editor);
+            swingNode.setContent(scrollPane);
+        });
 
         Stage stage = new Stage();
         stage.setTitle("Edit " + displayName);
@@ -605,10 +666,55 @@ public final class WorkspaceController {
 
         saveButton.setOnAction(event -> {
             try {
-                fileSystemService.writeFile(filePath, editor.getText());
-                populateCurrentDirectoryTable();
-                showInfo("File saved to workspace");
+                RSyntaxTextArea editor = editorRef.get();
+                if (editor == null) {
+                    showError("Editor is still loading. Please try again.");
+                    return;
+                }
+
+                TextInputDialog commitDialog = new TextInputDialog();
+                commitDialog.setTitle("Commit Changes");
+                commitDialog.setHeaderText("Enter commit message");
+                commitDialog.setContentText("Message:");
+                commitDialog.initOwner(stage);
+                applyDialogTheme(commitDialog);
+
+                String commitMessage = commitDialog.showAndWait()
+                        .map(String::trim)
+                        .filter(text -> !text.isEmpty())
+                        .orElse(null);
+                if (commitMessage == null) {
+                    return;
+                }
+
+                String content = editor.getText();
+                fileSystemService.writeFile(filePath, content);
+
+                Path parent = filePath.getParent();
+                String relativeFolder = (parent == null || parent.equals(workspaceRoot))
+                        ? "root"
+                        : resolveRelativePath(parent);
+                workspaceService.ensureFileMetadata(
+                        workspaceId,
+                        currentUserId,
+                        relativeFolder,
+                        filePath.getFileName().toString());
+
+                String relativeFilePath = resolveRelativePath(filePath);
+                FileItemModel fileMetadata = metadataByRelativePath.get(relativeFilePath);
+                if (fileMetadata == null) {
+                    reloadWorkspace();
+                    fileMetadata = metadataByRelativePath.get(relativeFilePath);
+                }
+                if (fileMetadata == null) {
+                    showError("Unable to locate file metadata for commit");
+                    return;
+                }
+
+                fileService.commit(fileMetadata.fileId(), currentUserId, commitMessage, content);
+                reloadWorkspace();
                 stage.close();
+                populateCurrentDirectoryTable();
             } catch (Exception e) {
                 showError("Save failed: " + e.getMessage());
             }
@@ -616,9 +722,10 @@ public final class WorkspaceController {
 
         BorderPane editorRoot = new BorderPane();
         editorRoot.getStyleClass().add("workspace-editor-root");
-        editorRoot.setCenter(editor);
+        editorRoot.setCenter(swingNode);
 
         HBox footer = new HBox(saveButton);
+        footer.setAlignment(Pos.CENTER_RIGHT);
         footer.getStyleClass().add("workspace-editor-footer");
         editorRoot.setBottom(footer);
 
@@ -628,6 +735,59 @@ public final class WorkspaceController {
         stage.setScene(scene);
         stage.showAndWait();
         populateCurrentDirectoryTable();
+    }
+
+    private static String detectSyntaxStyle(String filename) {
+        if (filename == null || filename.isBlank()) {
+            return SyntaxConstants.SYNTAX_STYLE_NONE;
+        }
+
+        int dot = filename.lastIndexOf('.');
+        if (dot < 0 || dot == filename.length() - 1) {
+            return SyntaxConstants.SYNTAX_STYLE_NONE;
+        }
+
+        String ext = filename.substring(dot + 1).toLowerCase(Locale.ROOT);
+        return switch (ext) {
+            case "java" -> SyntaxConstants.SYNTAX_STYLE_JAVA;
+            case "js" -> SyntaxConstants.SYNTAX_STYLE_JAVASCRIPT;
+            case "ts" -> SyntaxConstants.SYNTAX_STYLE_TYPESCRIPT;
+            case "py" -> SyntaxConstants.SYNTAX_STYLE_PYTHON;
+            case "cpp", "cc", "cxx", "h", "hpp" -> SyntaxConstants.SYNTAX_STYLE_CPLUSPLUS;
+            case "c" -> SyntaxConstants.SYNTAX_STYLE_C;
+            case "cs" -> SyntaxConstants.SYNTAX_STYLE_CSHARP;
+            case "xml" -> SyntaxConstants.SYNTAX_STYLE_XML;
+            case "html", "htm" -> SyntaxConstants.SYNTAX_STYLE_HTML;
+            case "css" -> SyntaxConstants.SYNTAX_STYLE_CSS;
+            case "json" -> SyntaxConstants.SYNTAX_STYLE_JSON;
+            case "md" -> SyntaxConstants.SYNTAX_STYLE_MARKDOWN;
+            case "sql" -> SyntaxConstants.SYNTAX_STYLE_SQL;
+            case "kt" -> SyntaxConstants.SYNTAX_STYLE_KOTLIN;
+            case "go" -> SyntaxConstants.SYNTAX_STYLE_GO;
+            case "php" -> SyntaxConstants.SYNTAX_STYLE_PHP;
+            case "rb" -> SyntaxConstants.SYNTAX_STYLE_RUBY;
+            case "sh", "bash" -> SyntaxConstants.SYNTAX_STYLE_UNIX_SHELL;
+            case "yml", "yaml" -> SyntaxConstants.SYNTAX_STYLE_YAML;
+            case "txt" -> SyntaxConstants.SYNTAX_STYLE_NONE;
+            default -> SyntaxConstants.SYNTAX_STYLE_NONE;
+        };
+    }
+
+    private static void applyEditorTheme(RSyntaxTextArea editor, String filename) {
+        try {
+            Theme theme = Theme.load(WorkspaceController.class
+                    .getResourceAsStream("/org/fife/ui/rsyntaxtextarea/themes/monokai.xml"));
+            theme.apply(editor);
+        } catch (Exception ignored) {
+            editor.setBackground(java.awt.Color.decode("#0b0b0b"));
+            editor.setForeground(java.awt.Color.decode("#ffffff"));
+            editor.setCaretColor(java.awt.Color.decode("#00ff88"));
+        }
+
+        if (filename != null && filename.toLowerCase(Locale.ROOT).endsWith(".txt")) {
+            editor.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_NONE);
+            editor.setForeground(java.awt.Color.decode("#ffffff"));
+        }
     }
 
     private Path resolveFilePath(FileItemModel file) {
@@ -664,38 +824,133 @@ public final class WorkspaceController {
         rightPanel.setPrefWidth(available * 0.30);
     }
 
-    private void updateOverview(FileItemModel file) {
-        if (file == null) {
-            overviewNameLabel.setText("No file selected");
-            overviewCommitLabel.setText("Commit: -");
-            overviewModifiedLabel.setText("Modified: -");
+    private void updateLanguagePanel() {
+        if (languageProjectTitleLabel != null) {
+            languageProjectTitleLabel.setText(currentModel == null ? "Project" : currentModel.workspaceName());
+        }
+        if (languageBarContainer == null || languageLegendBox == null || currentModel == null) {
             return;
         }
 
-        overviewNameLabel.setText(file.filename());
-        String message = file.latestCommitMessage() == null || file.latestCommitMessage().isBlank()
-                ? "No commits yet"
-                : file.latestCommitMessage();
-        overviewCommitLabel.setText("Commit: " + message);
+        Map<String, Integer> counts = new HashMap<>();
+        for (FolderModel folder : currentModel.folders()) {
+            for (FileItemModel file : folder.files()) {
+                String language = detectLanguage(file.filename());
+                counts.put(language, counts.getOrDefault(language, 0) + 1);
+            }
+        }
 
-        Instant modifiedAt = fileSystemService.getLastModified(resolveFilePath(file));
-        String modified = modifiedAt == null ? DateTimeUtils.formatInstant(file.latestCommitAt())
-                : formatRelative(modifiedAt);
-        overviewModifiedLabel.setText("Modified: " + modified);
+        languageBarContainer.getChildren().clear();
+        languageLegendBox.getChildren().clear();
+
+        if (counts.isEmpty()) {
+            Label empty = new Label("No files yet");
+            empty.getStyleClass().add("workspace-meta-label-dark");
+            languageLegendBox.getChildren().add(empty);
+            return;
+        }
+
+        List<Map.Entry<String, Integer>> sorted = counts.entrySet().stream()
+                .sorted((a, b) -> Integer.compare(b.getValue(), a.getValue()))
+                .toList();
+
+        int total = sorted.stream().mapToInt(Map.Entry::getValue).sum();
+        String[] colors = new String[] {
+                "#c58a1b", "#7a43b6", "#2f9bdf", "#39c274", "#f06767", "#4bb4a6", "#d8a837"
+        };
+
+        for (int i = 0; i < sorted.size(); i++) {
+            Map.Entry<String, Integer> entry = sorted.get(i);
+            double percentage = (entry.getValue() * 100.0) / total;
+            String color = colors[i % colors.length];
+
+            Region segment = new Region();
+            segment.getStyleClass().add("workspace-language-segment");
+            segment.setStyle("-fx-background-color: " + color + ";");
+            segment.prefWidthProperty().bind(languageBarContainer.widthProperty().multiply(percentage / 100.0));
+            HBox.setHgrow(segment, Priority.ALWAYS);
+            languageBarContainer.getChildren().add(segment);
+
+            Region dot = new Region();
+            dot.getStyleClass().add("workspace-language-dot");
+            dot.setStyle("-fx-background-color: " + color + ";");
+
+            Label label = new Label(entry.getKey() + " " + String.format(Locale.ROOT, "%.1f%%", percentage));
+            label.getStyleClass().add("workspace-language-legend-label");
+
+            HBox legendRow = new HBox(8, dot, label);
+            legendRow.setAlignment(Pos.CENTER_LEFT);
+            languageLegendBox.getChildren().add(legendRow);
+        }
     }
 
-    private void updateOverview(WorkspaceFileRow row) {
-        if (row == null) {
-            updateOverview((FileItemModel) null);
+    private void updateContributorsPanel() {
+        if (contributorsListBox == null || contributorsCountLabel == null || currentModel == null) {
             return;
         }
-        if (row.isFolder()) {
-            overviewNameLabel.setText(row.displayName());
-            overviewCommitLabel.setText("Type: Folder");
-            overviewModifiedLabel.setText("Modified: " + row.lastModified());
-            return;
+
+        for (UserModel user : currentModel.collaborators()) {
+            if (user.userId() != null && user.username() != null && !user.username().isBlank()) {
+                usernameById.put(user.userId(), user.username());
+            }
         }
-        updateOverview(row.file());
+
+        if (!usernameById.containsKey(currentUserId)) {
+            for (UserModel user : workspaceService.loadAllUsers()) {
+                if (user.userId() != null && user.username() != null && !user.username().isBlank()) {
+                    usernameById.put(user.userId(), user.username());
+                }
+            }
+        }
+
+        LinkedHashSet<String> names = new LinkedHashSet<>();
+        String ownerName = usernameById.getOrDefault(currentUserId, "Owner");
+        names.add(ownerName + " (owner)");
+        for (UserModel collaborator : currentModel.collaborators()) {
+            if (collaborator.userId() != null && collaborator.userId().equals(currentUserId)) {
+                continue;
+            }
+            String name = collaborator.username() == null || collaborator.username().isBlank()
+                    ? "Collaborator"
+                    : collaborator.username();
+            names.add(name);
+        }
+
+        contributorsListBox.getChildren().clear();
+        for (String name : names) {
+            Label label = new Label(name);
+            label.getStyleClass().add("workspace-contributor-name");
+            contributorsListBox.getChildren().add(label);
+        }
+        contributorsCountLabel.setText(String.valueOf(names.size()));
+    }
+
+    private static String detectLanguage(String filename) {
+        if (filename == null || filename.isBlank()) {
+            return "Other";
+        }
+        int index = filename.lastIndexOf('.');
+        if (index < 0 || index == filename.length() - 1) {
+            return "Other";
+        }
+
+        String ext = filename.substring(index + 1).toLowerCase(Locale.ROOT);
+        return switch (ext) {
+            case "txt" -> "TXT";
+            case "py" -> "Python";
+            case "java" -> "Java";
+            case "cpp", "cc", "cxx" -> "C++";
+            case "c" -> "C";
+            case "js" -> "JavaScript";
+            case "ts" -> "TypeScript";
+            case "css" -> "CSS";
+            case "html", "htm" -> "HTML";
+            case "md" -> "Markdown";
+            case "json" -> "JSON";
+            case "xml" -> "XML";
+            case "sql" -> "SQL";
+            default -> ext.toUpperCase(Locale.ROOT);
+        };
     }
 
     private void buildMetadataIndex() {
@@ -777,64 +1032,6 @@ public final class WorkspaceController {
         alert.showAndWait();
     }
 
-    private void loadCommitsForSelectedFile(WorkspaceFileRow row) {
-        commitsList.getItems().clear();
-        if (row == null || row.isFolder() || row.file() == null) {
-            return;
-        }
-
-        try {
-            ObjectId fileId = row.file().fileId();
-            List<Document> commitDocs = fileService.loadFileCommits(fileId);
-            List<CommitItem> commits = new ArrayList<>();
-            for (Document doc : commitDocs) {
-                Integer snapshotId = doc.getInteger("snapshotId");
-                String message = doc.getString("message");
-                Date committedAt = doc.getDate("committedAt");
-                ObjectId commitId = doc.getObjectId("_id");
-                if (snapshotId != null && message != null) {
-                    commits.add(new CommitItem(commitId, snapshotId, message, committedAt));
-                }
-            }
-            commitsList.getItems().setAll(commits);
-        } catch (Exception e) {
-            showError("Failed to load commits: " + e.getMessage());
-        }
-    }
-
-    private void restoreToVersion(CommitItem commit) {
-        if (selectedFile == null || selectedPath == null) {
-            showError("No file selected");
-            return;
-        }
-
-        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
-        confirm.setTitle("Restore Version");
-        confirm.setHeaderText("Restore to this version?");
-        confirm.setContentText("Replace current file with version #" + commit.snapshotId());
-        Stage owner = resolveOwnerStage();
-        if (owner != null) {
-            confirm.initOwner(owner);
-            confirm.initModality(Modality.WINDOW_MODAL);
-        }
-        applyDialogTheme(confirm);
-
-        confirm.showAndWait().ifPresent(response -> {
-            if (response == ButtonType.OK) {
-                try {
-                    String restoredContent = fileService.loadSnapshotContent(selectedFile.fileId(),
-                            commit.snapshotId());
-                    fileService.restoreSnapshot(selectedFile.fileId(), commit.snapshotId(), restoredContent);
-                    fileSystemService.writeFile(selectedPath, restoredContent);
-                    reloadWorkspace();
-                    showInfo("File restored to version #" + commit.snapshotId());
-                } catch (Exception e) {
-                    showError("Restore failed: " + e.getMessage());
-                }
-            }
-        });
-    }
-
     private void applyDialogTheme(Dialog<?> dialog) {
         if (dialog == null || dialog.getDialogPane() == null) {
             return;
@@ -858,16 +1055,4 @@ public final class WorkspaceController {
             boolean isFolder) {
     }
 
-    private record CommitItem(
-            ObjectId id,
-            int snapshotId,
-            String message,
-            Date committedAt) {
-        String formattedTime() {
-            if (committedAt == null) {
-                return "Unknown";
-            }
-            return DateTimeUtils.formatInstant(committedAt.toInstant());
-        }
-    }
 }

@@ -97,13 +97,16 @@ public final class ProfileController {
     private TextField editUsernameField;
 
     @FXML
-    private PasswordField oldPasswordField;
+    private StackPane passwordOverlay;
 
     @FXML
-    private PasswordField newPasswordField;
+    private PasswordField passwordPopupOldField;
 
     @FXML
-    private PasswordField confirmPasswordField;
+    private PasswordField passwordPopupNewField;
+
+    @FXML
+    private PasswordField passwordPopupConfirmField;
 
     @FXML
     private GridPane popularWorkspaceGrid;
@@ -350,9 +353,6 @@ public final class ProfileController {
         }
         editNameField.setText(currentProfile.name() == null ? "" : currentProfile.name());
         editUsernameField.setText(currentProfile.username());
-        oldPasswordField.clear();
-        newPasswordField.clear();
-        confirmPasswordField.clear();
         setEditMode(true);
     }
 
@@ -371,10 +371,7 @@ public final class ProfileController {
         ProfileService.UpdateResult result = profileService.updateProfile(
                 currentUserId,
                 editNameField.getText(),
-                editUsernameField.getText(),
-                oldPasswordField.getText(),
-                newPasswordField.getText(),
-                confirmPasswordField.getText());
+                editUsernameField.getText());
 
         if (!result.success()) {
             showError(result.message());
@@ -386,27 +383,54 @@ public final class ProfileController {
     }
 
     @FXML
+    private void onChangePassword() {
+        if (profileService == null || currentUserId == null) {
+            return;
+        }
+        clearPasswordOverlayFields();
+        setPasswordOverlayVisible(true);
+    }
+
+    @FXML
+    private void onCancelChangePassword() {
+        clearPasswordOverlayFields();
+        setPasswordOverlayVisible(false);
+    }
+
+    @FXML
+    private void onSubmitChangePassword() {
+        if (profileService == null || currentUserId == null) {
+            return;
+        }
+
+        ProfileService.UpdateResult result = profileService.changePassword(
+                currentUserId,
+                passwordPopupOldField == null ? "" : passwordPopupOldField.getText(),
+                passwordPopupNewField == null ? "" : passwordPopupNewField.getText(),
+                passwordPopupConfirmField == null ? "" : passwordPopupConfirmField.getText());
+
+        if (!result.success()) {
+            showError(result.message());
+            return;
+        }
+
+        showInfo(result.message());
+        clearPasswordOverlayFields();
+        setPasswordOverlayVisible(false);
+    }
+
+    @FXML
     private void onLogout() {
         Stage currentStage = (root != null && root.getScene() != null && root.getScene().getWindow() instanceof Stage s)
                 ? s
                 : null;
-        Stage ownerStage = currentStage != null && currentStage.getOwner() instanceof Stage os ? os : null;
-
-        Stage loginStage = ownerStage != null ? ownerStage : currentStage;
-        if (loginStage == null) {
+        if (currentStage == null) {
             showError("Logout failed. Please try again.");
             return;
         }
 
         try {
-            showLoginOnStage(loginStage);
-
-            // If profile was opened in a child stage, close it after restoring login on
-            // owner.
-            if (ownerStage != null && currentStage != null && currentStage != loginStage) {
-                currentStage.setFullScreen(false);
-                currentStage.close();
-            }
+            showLandingPageOnStage(currentStage);
         } catch (Exception e) {
             showError("Logout failed. Please try again.");
         }
@@ -419,15 +443,26 @@ public final class ProfileController {
         if (editUsernameField != null) {
             editUsernameField.clear();
         }
-        if (oldPasswordField != null) {
-            oldPasswordField.clear();
+    }
+
+    private void clearPasswordOverlayFields() {
+        if (passwordPopupOldField != null) {
+            passwordPopupOldField.clear();
         }
-        if (newPasswordField != null) {
-            newPasswordField.clear();
+        if (passwordPopupNewField != null) {
+            passwordPopupNewField.clear();
         }
-        if (confirmPasswordField != null) {
-            confirmPasswordField.clear();
+        if (passwordPopupConfirmField != null) {
+            passwordPopupConfirmField.clear();
         }
+    }
+
+    private void setPasswordOverlayVisible(boolean visible) {
+        if (passwordOverlay == null) {
+            return;
+        }
+        passwordOverlay.setVisible(visible);
+        passwordOverlay.setManaged(visible);
     }
 
     private void setEditMode(boolean editing) {
@@ -566,6 +601,21 @@ public final class ProfileController {
 
         stage.setFullScreen(false);
         stage.setScene(new Scene(loginRoot));
+        stage.setMaximized(true);
+        stage.show();
+    }
+
+    private void showLandingPageOnStage(Stage stage) throws Exception {
+        URL fxmlUrl = MainLayoutController.class.getResource("/fxml/landing.fxml");
+        if (fxmlUrl == null) {
+            throw new IllegalStateException("FXML '/fxml/landing.fxml' not found on classpath");
+        }
+
+        FXMLLoader loader = new FXMLLoader(fxmlUrl);
+        Parent landingRoot = loader.load();
+
+        stage.setFullScreen(false);
+        stage.setScene(new Scene(landingRoot));
         stage.setMaximized(true);
         stage.show();
     }

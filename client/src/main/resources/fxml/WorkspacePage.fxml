@@ -27,23 +27,7 @@
 
             <HBox alignment="CENTER_LEFT" spacing="12" styleClass="workspace-topbar">
                 <Button text="←" onAction="#onBackRequested" styleClass="app-back-button"/>
-                <Label text="Workspace" styleClass="workspace-topbar-title"/>
-                <Region HBox.hgrow="ALWAYS"/>
                 <Label fx:id="workspaceNameHeader" text="Workspace Name" styleClass="workspace-topbar-name"/>
-            </HBox>
-
-            <HBox fx:id="actionBar" alignment="CENTER_LEFT" spacing="10" styleClass="workspace-action-bar">
-                <MenuButton text="Add File" styleClass="workspace-action-button">
-                    <items>
-                        <MenuItem text="Create File" onAction="#onCreateFile"/>
-                        <MenuItem text="Import File" onAction="#onImportFile"/>
-                    </items>
-                </MenuButton>
-                <Button text="Create Folder" onAction="#onCreateFolder" styleClass="workspace-action-button"/>
-                <Button text="Commit" onAction="#onCommitRequested" styleClass="workspace-primary-button"/>
-                <Region HBox.hgrow="ALWAYS"/>
-                <Label text="Total Commits" styleClass="workspace-meta-label-dark"/>
-                <Label fx:id="totalCommitsLabel" text="0" styleClass="workspace-topbar-name"/>
             </HBox>
         </VBox>
     </top>
@@ -60,6 +44,12 @@
                         <Label text="Files" styleClass="workspace-section-title"/>
                         <Label text="/" styleClass="workspace-breadcrumb-separator"/>
                         <HBox fx:id="breadcrumbBar" alignment="CENTER_LEFT" spacing="4" styleClass="workspace-breadcrumb-bar" HBox.hgrow="ALWAYS"/>
+                        <MenuButton text="Add File" styleClass="workspace-action-button workspace-inline-add-menu">
+                            <items>
+                                <MenuItem text="Create File" onAction="#onCreateFile"/>
+                                <MenuItem text="Import File" onAction="#onImportFile"/>
+                            </items>
+                        </MenuButton>
                     </HBox>
                     <TableView fx:id="fileTable" VBox.vgrow="ALWAYS">
                         <columns>
@@ -77,16 +67,27 @@
             </VBox>
 
             <VBox fx:id="rightPanel" spacing="12" styleClass="workspace-right-panel">
-                <VBox spacing="8" styleClass="workspace-overview-card">
-                    <Label text="Overview" styleClass="workspace-section-title"/>
-                    <Label fx:id="overviewNameLabel" text="No file selected" styleClass="workspace-overview-main"/>
-                    <Label fx:id="overviewCommitLabel" text="Commit: -" styleClass="workspace-meta-label-dark"/>
-                    <Label fx:id="overviewModifiedLabel" text="Modified: -" styleClass="workspace-meta-label-dark"/>
-                </VBox>
+                <VBox spacing="12" styleClass="workspace-right-main-card" VBox.vgrow="ALWAYS">
+                    <HBox alignment="CENTER_RIGHT" spacing="8" styleClass="workspace-right-top-actions">
+                        <Button text="⚙" onAction="#onSettingsRequested" styleClass="workspace-settings-button"/>
+                    </HBox>
 
-                <VBox spacing="8" styleClass="workspace-commits-card" VBox.vgrow="ALWAYS">
-                    <Label text="Commit History" styleClass="workspace-section-title"/>
-                    <ListView fx:id="commitsList" VBox.vgrow="ALWAYS"/>
+                    <VBox spacing="10" styleClass="workspace-contributors-section">
+                        <HBox alignment="CENTER_LEFT" spacing="8">
+                            <Label text="Contributors" styleClass="workspace-section-title"/>
+                            <Label fx:id="contributorsCountLabel" text="1" styleClass="workspace-contributors-count"/>
+                        </HBox>
+                        <VBox fx:id="contributorsListBox" spacing="8" styleClass="workspace-contributors-list"/>
+                    </VBox>
+
+                    <Region VBox.vgrow="ALWAYS"/>
+
+                    <VBox spacing="12" styleClass="workspace-languages-section">
+                        <Label text="Languages" styleClass="workspace-section-title"/>
+                        <Label fx:id="languageProjectTitleLabel" text="Project" styleClass="workspace-language-project"/>
+                        <HBox fx:id="languageBarContainer" spacing="0" styleClass="workspace-language-bar"/>
+                        <VBox fx:id="languageLegendBox" spacing="8" styleClass="workspace-language-legend"/>
+                    </VBox>
                 </VBox>
             </VBox>
         </HBox>

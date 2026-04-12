@@ -25,10 +25,11 @@
     </top>
 
     <center>
-        <HBox fx:id="mainContainer" spacing="24" styleClass="profile-main-row" BorderPane.alignment="CENTER_LEFT">
-            <padding>
-                <Insets top="20" right="24" bottom="20" left="24"/>
-            </padding>
+        <StackPane>
+            <HBox fx:id="mainContainer" spacing="24" styleClass="profile-main-row" BorderPane.alignment="CENTER_LEFT">
+                <padding>
+                    <Insets top="20" right="24" bottom="20" left="24"/>
+                </padding>
 
             <VBox fx:id="leftCardColumn" alignment="TOP_CENTER" styleClass="profile-left-section">
                 <StackPane fx:id="profileCard" styleClass="profile-card">
@@ -53,14 +54,7 @@
                             <Label text="Username" styleClass="profile-field-label"/>
                             <TextField fx:id="editUsernameField" promptText="Unique username" styleClass="profile-input"/>
 
-                            <Label text="Old Password" styleClass="profile-field-label"/>
-                            <PasswordField fx:id="oldPasswordField" styleClass="profile-input"/>
-
-                            <Label text="New Password" styleClass="profile-field-label"/>
-                            <PasswordField fx:id="newPasswordField" styleClass="profile-input"/>
-
-                            <Label text="Confirm Password" styleClass="profile-field-label"/>
-                            <PasswordField fx:id="confirmPasswordField" styleClass="profile-input"/>
+                            <Button text="Change Password" styleClass="profile-change-password-button" onAction="#onChangePassword"/>
 
                             <HBox spacing="10" alignment="CENTER_RIGHT">
                                 <Button text="Cancel" styleClass="profile-cancel-button" onAction="#onCancelEdit"/>
@@ -75,9 +69,9 @@
                         </StackPane.margin>
                     </Button>
 
-                    <Button fx:id="logoutButton" text="Logout" styleClass="profile-logout-button" onAction="#onLogout" StackPane.alignment="BOTTOM_CENTER" contentDisplay="RIGHT">
+                    <Button fx:id="logoutButton" text="Logout" styleClass="profile-logout-button" onAction="#onLogout" StackPane.alignment="BOTTOM_RIGHT" contentDisplay="RIGHT">
                         <StackPane.margin>
-                            <Insets top="0" right="0" bottom="12" left="0"/>
+                            <Insets top="0" right="16" bottom="12" left="0"/>
                         </StackPane.margin>
                     </Button>
                 </StackPane>
@@ -142,6 +136,30 @@
                     </VBox>
                 </HBox>
             </VBox>
-        </HBox>
+            </HBox>
+
+            <StackPane fx:id="passwordOverlay" visible="false" managed="false" styleClass="profile-password-overlay">
+                <VBox spacing="12" styleClass="profile-password-modal" minWidth="540" prefWidth="540" maxWidth="540" minHeight="540" prefHeight="540" maxHeight="540">
+                    <Label text="Change Password" styleClass="profile-password-title"/>
+                    <Label text="Update your account password" styleClass="profile-password-subtitle"/>
+
+                    <GridPane fx:id="passwordPopupForm" styleClass="profile-password-form" hgap="10" vgap="10">
+                        <Label text="Old Password" styleClass="profile-password-label" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                        <PasswordField fx:id="passwordPopupOldField" promptText="Old password" styleClass="profile-input" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+                        <Label text="New Password" styleClass="profile-password-label" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                        <PasswordField fx:id="passwordPopupNewField" promptText="New password" styleClass="profile-input" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+                        <Label text="Confirm New Password" styleClass="profile-password-label" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                        <PasswordField fx:id="passwordPopupConfirmField" promptText="Confirm new password" styleClass="profile-input" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+                    </GridPane>
+
+                    <HBox spacing="10" alignment="CENTER_RIGHT">
+                        <Button text="Cancel" onAction="#onCancelChangePassword" styleClass="profile-password-cancel-button"/>
+                        <Button text="Update Password" onAction="#onSubmitChangePassword" styleClass="profile-password-ok-button"/>
+                    </HBox>
+                </VBox>
+            </StackPane>
+        </StackPane>
     </center>
 </BorderPane>

@@ -29,7 +29,6 @@
                 <Label fx:id="heroSubtitle" text="Quick activities" styleClass="hero-subtitle"/>
                 <HBox spacing="15" styleClass="hero-actions">
                     <Button fx:id="newWorkspaceButton" text="New Workspace" styleClass="primary-button"/>
-                    <Button fx:id="importFilesButton" text="Import Files" styleClass="secondary-button"/>
                 </HBox>
             </VBox>
 

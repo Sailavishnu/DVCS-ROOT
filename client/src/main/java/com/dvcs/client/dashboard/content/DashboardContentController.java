@@ -61,9 +61,6 @@ public class DashboardContentController {
     @FXML
     private Button newWorkspaceButton;
 
-    @FXML
-    private Button importFilesButton;
-
     private GridPane myGrid;
     private VBox collabList;
 
@@ -94,10 +91,8 @@ public class DashboardContentController {
         overlayRoot.heightProperty().addListener((obs, oldV, newV) -> layoutCard());
 
         if (newWorkspaceButton != null) {
+            newWorkspaceButton.setFocusTraversable(false);
             newWorkspaceButton.setOnAction(e -> onNewWorkspace());
-        }
-        if (importFilesButton != null) {
-            importFilesButton.setOnAction(e -> onImportFiles());
         }
 
         layoutCard();
@@ -488,7 +483,7 @@ public class DashboardContentController {
             String title = summary == null ? "Workspace" : summary.displayName();
             openWorkspacePage(workspaceId, title, selectedFolder, selectedFile);
         } catch (Exception e) {
-            showError("Failed to open workspace: " + e.getMessage());
+            showError("Failed to open workspace: " + summarizeException(e));
         }
     }
 
@@ -524,8 +519,25 @@ public class DashboardContentController {
             stage.setFullScreen(true);
             stage.show();
         } catch (Exception e) {
-            showError("Failed to open workspace: " + e.getMessage());
+            showError("Failed to open workspace: " + summarizeException(e));
         }
+    }
+
+    private static String summarizeException(Throwable error) {
+        if (error == null) {
+            return "Unknown error";
+        }
+
+        Throwable root = error;
+        while (root.getCause() != null && root.getCause() != root) {
+            root = root.getCause();
+        }
+
+        String message = root.getMessage();
+        if (message == null || message.isBlank()) {
+            return root.getClass().getSimpleName();
+        }
+        return root.getClass().getSimpleName() + ": " + message;
     }
 
     private void ensureWorkspacePageServices() {
