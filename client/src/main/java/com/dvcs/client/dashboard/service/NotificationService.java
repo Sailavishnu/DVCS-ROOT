@@ -12,6 +12,7 @@ import org.bson.Document;
 import org.bson.types.ObjectId;
 
 import com.dvcs.client.auth.repo.UserRepository;
+import com.dvcs.client.core.model.ColabRequest;
 import com.dvcs.client.dashboard.data.PendingRequestView;
 import com.dvcs.client.dashboard.data.dao.CollaborationRequestDao;
 import com.dvcs.client.dashboard.data.dao.FileDao;
@@ -43,13 +44,13 @@ public final class NotificationService {
     public List<NotificationRequestItem> loadNotificationRequests(ObjectId currentUserId) {
         Objects.requireNonNull(currentUserId, "currentUserId");
 
-        List<Document> pending = collaborationRequestDao.findPendingForUser(currentUserId);
+        List<ColabRequest> pending = collaborationRequestDao.findPendingForUser(currentUserId);
         if (pending.isEmpty()) {
             return List.of();
         }
 
         Set<ObjectId> fileIds = pending.stream()
-                .map(request -> request.getObjectId("fileId"))
+                .map(ColabRequest::fileId)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
 
@@ -79,11 +80,11 @@ public final class NotificationService {
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
 
-        for (Document request : pending) {
-            ObjectId workspaceId = request.getObjectId("workspaceId");
-            if (workspaceId != null) {
-                workspaceIds.add(workspaceId);
-            }
+        for (ColabRequest request : pending) {
+            // Check if there's any workspace hint directly in the request (though usually it's derived)
+            // For now, keeping the logic as is but using model getters if they existed.
+            // Since ColabRequest doesn't have workspaceId in our new schema (it's per file), 
+            // we will derive it from the fileId in the next loop.
         }
 
         Map<ObjectId, Document> workspaceById = new LinkedHashMap<>();
@@ -95,12 +96,12 @@ public final class NotificationService {
         }
 
         List<NotificationRequestItem> items = new ArrayList<>(pending.size());
-        for (Document request : pending) {
-            ObjectId requestId = request.getObjectId("_id");
-            ObjectId fileId = request.getObjectId("fileId");
-            ObjectId requestedBy = request.getObjectId("requestedBy");
+        for (ColabRequest request : pending) {
+            ObjectId requestId = request.id();
+            ObjectId fileId = request.fileId();
+            ObjectId requestedBy = request.requestedBy();
 
-            ObjectId workspaceId = request.getObjectId("workspaceId");
+            ObjectId workspaceId = null; // In new schema, workspace is derived from fileId
             if (workspaceId == null && fileId != null) {
                 Document file = fileById.get(fileId);
                 if (file != null) {
@@ -140,12 +141,12 @@ public final class NotificationService {
     public List<PendingRequestView> loadPendingRequests(ObjectId currentUserId) {
         Objects.requireNonNull(currentUserId, "currentUserId");
 
-        List<Document> pending = collaborationRequestDao.findPendingForUser(currentUserId);
+        List<ColabRequest> pending = collaborationRequestDao.findPendingForUser(currentUserId);
         List<PendingRequestView> views = new ArrayList<>(pending.size());
-        for (Document request : pending) {
-            ObjectId requestId = request.getObjectId("_id");
-            ObjectId fileId = request.getObjectId("fileId");
-            ObjectId requestedBy = request.getObjectId("requestedBy");
+        for (ColabRequest request : pending) {
+            ObjectId requestId = request.id();
+            ObjectId fileId = request.fileId();
+            ObjectId requestedBy = request.requestedBy();
 
             String fileName = fileDao.findById(fileId)
                     .map(doc -> doc.getString("filename"))

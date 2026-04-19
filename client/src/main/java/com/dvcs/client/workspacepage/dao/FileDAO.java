@@ -102,8 +102,9 @@ public final class FileDAO {
         files.updateOne(eq("_id", fileId), Updates.combine(
                 Updates.set("latestCommit", latestCommit),
                 Updates.set("currentSnapshotId", snapshotId),
-                Updates.set("isLocked", false),
-                Updates.set("lockedBy", null)));
+                Updates.set("lockStatus.isLocked", false),
+                Updates.set("lockStatus.lockedBy", null),
+                Updates.set("lockStatus.lockedAt", null)));
     }
 
     public int countWorkspaceCommits(ObjectId workspaceId) {

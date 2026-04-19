@@ -24,6 +24,7 @@ import org.bson.types.ObjectId;
 
 import com.dvcs.client.auth.model.User;
 import com.dvcs.client.auth.repo.UserRepository;
+import com.dvcs.client.core.model.ColabRequest;
 import com.dvcs.client.dashboard.data.WorkspaceDetails;
 import com.dvcs.client.dashboard.data.WorkspaceSummary;
 import com.dvcs.client.dashboard.data.dao.CollaborationRequestDao;
@@ -88,9 +89,8 @@ public final class WorkspaceService {
 
         Document workspace = new Document("_id", new ObjectId())
                 .append("workspaceName", normalizedName)
-                .append("storagePath", new Document("drive", drive)
-                        .append("directory", directory)
-                        .append("folderName", folderName)
+                .append("path", new Document("disk", drive)
+                        .append("folder", directory + "\\" + folderName)
                         .append("absolutePath", workspaceDirectory.toString()))
                 .append("createdBy", currentUserId)
                 .append("createdAt", new Date())
@@ -125,9 +125,9 @@ public final class WorkspaceService {
         Document workspace = workspaceDao.findById(workspaceId)
                 .orElseThrow(() -> new IllegalArgumentException("Workspace not found"));
 
-        Document path = workspace.get("storagePath", Document.class);
+        Document path = workspace.get("path", Document.class);
         if (path == null) {
-            throw new IllegalStateException("Workspace storagePath metadata is missing");
+            throw new IllegalStateException("Workspace path metadata is missing");
         }
 
         String absoluteWorkspacePath = path.getString("absolutePath");
@@ -168,13 +168,14 @@ public final class WorkspaceService {
                     .append("folderId", folderId)
                     .append("filename", filename)
                     .append("extension", extension)
-                    .append("path", new Document("relativePath", relativePath)
+                    .append("path", new Document("disk", "D:")
+                            .append("folder", relativePath)
                             .append("versionRoot", ".versions/" + filename))
                     .append("createdBy", currentUserId)
                     .append("createdAt", new Date())
-                    .append("isLocked", false)
-                    .append("lockedBy", null)
-                    .append("lockedAt", null)
+                    .append("lockStatus", new Document("isLocked", false)
+                            .append("lockedBy", null)
+                            .append("lockedAt", null))
                     .append("tags", List.of())
                     .append("snapshots", List.of());
 
@@ -241,13 +242,13 @@ public final class WorkspaceService {
 
     public List<WorkspaceSummary> loadCollaborativeWorkspaces(ObjectId currentUserId) {
         Objects.requireNonNull(currentUserId, "currentUserId");
-        List<Document> acceptedForUser = collaborationRequestDao.findByRequestedToAndStatus(currentUserId, "accepted");
+        List<ColabRequest> acceptedForUser = collaborationRequestDao.findByRequestedToAndStatus(currentUserId, "accepted");
         if (acceptedForUser.isEmpty()) {
             return List.of();
         }
 
         List<ObjectId> fileIds = acceptedForUser.stream()
-                .map(request -> request.getObjectId("fileId"))
+                .map(ColabRequest::fileId)
                 .filter(Objects::nonNull)
                 .distinct()
                 .toList();
@@ -306,11 +307,11 @@ public final class WorkspaceService {
                 .toList();
 
         List<ObjectId> fileIds = files.stream().map(file -> file.getObjectId("_id")).toList();
-        List<Document> acceptedRequests = collaborationRequestDao.findByFileIdsAndStatus(fileIds, "accepted");
+        List<ColabRequest> acceptedRequests = collaborationRequestDao.findByFileIdsAndStatus(fileIds, "accepted");
         Set<ObjectId> collaboratorIds = new HashSet<>();
-        for (Document request : acceptedRequests) {
-            ObjectId requestedBy = request.getObjectId("requestedBy");
-            ObjectId requestedTo = request.getObjectId("requestedTo");
+        for (ColabRequest request : acceptedRequests) {
+            ObjectId requestedBy = request.requestedBy();
+            ObjectId requestedTo = request.requestedTo();
             if (requestedBy != null) {
                 collaboratorIds.add(requestedBy);
             }
@@ -367,9 +368,9 @@ public final class WorkspaceService {
         ObjectId workspaceId = workspaceDoc.getObjectId("_id");
         String workspaceName = workspaceDoc.getString("workspaceName");
 
-        Document storagePath = workspaceDoc.get("storagePath", Document.class);
-        String drive = storagePath == null ? "" : storagePath.getString("drive");
-        String directory = storagePath == null ? "" : storagePath.getString("directory");
+        Document storagePath = workspaceDoc.get("path", Document.class);
+        String drive = storagePath == null ? "" : storagePath.getString("disk");
+        String directory = storagePath == null ? "" : storagePath.getString("folder");
         String folderName = storagePath == null ? "" : storagePath.getString("folderName");
         String absolutePath = storagePath == null ? "" : storagePath.getString("absolutePath");
 
@@ -380,8 +381,8 @@ public final class WorkspaceService {
     }
 
     private static String reconstructWorkspaceRoot(Document storagePath) {
-        String drive = safe(storagePath.getString("drive"));
-        String directory = safe(storagePath.getString("directory"));
+        String drive = safe(storagePath.getString("disk"));
+        String directory = safe(storagePath.getString("folder"));
         String folderName = safe(storagePath.getString("folderName"));
 
         Path dirPart = directory.isBlank() ? Path.of(folderName) : Path.of(directory, folderName);

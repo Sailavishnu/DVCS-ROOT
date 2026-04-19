@@ -15,13 +15,15 @@ import static com.mongodb.client.model.Filters.eq;
 import com.mongodb.client.model.Indexes;
 import com.mongodb.client.model.Updates;
 
+import com.dvcs.client.core.model.ColabRequest;
+
 public final class CollaborationRequestDao {
 
     private final MongoCollection<Document> collaborationRequests;
 
     public CollaborationRequestDao(MongoDatabase database) {
         Objects.requireNonNull(database, "database");
-        this.collaborationRequests = database.getCollection("collaboration_requests");
+        this.collaborationRequests = database.getCollection("colab_requests");
         ensureIndexes();
     }
 
@@ -30,28 +32,34 @@ public final class CollaborationRequestDao {
         collaborationRequests.createIndex(Indexes.ascending("fileId"));
     }
 
-    public List<Document> findPendingForUser(ObjectId requestedTo) {
+    public List<ColabRequest> findPendingForUser(ObjectId requestedTo) {
         Objects.requireNonNull(requestedTo, "requestedTo");
-        return collaborationRequests
-                .find(and(eq("requestedTo", requestedTo), eq("status", "pending")))
-                .into(new ArrayList<>());
+        List<ColabRequest> result = new ArrayList<>();
+        for (Document doc : collaborationRequests.find(and(eq("requestedTo", requestedTo), eq("status", "pending")))) {
+            result.add(ColabRequest.fromDocument(doc));
+        }
+        return result;
     }
 
-    public List<Document> findByRequestedToAndStatus(ObjectId requestedTo, String status) {
+    public List<ColabRequest> findByRequestedToAndStatus(ObjectId requestedTo, String status) {
         Objects.requireNonNull(requestedTo, "requestedTo");
         Objects.requireNonNull(status, "status");
-        return collaborationRequests
-                .find(and(eq("requestedTo", requestedTo), eq("status", status)))
-                .into(new ArrayList<>());
+        List<ColabRequest> result = new ArrayList<>();
+        for (Document doc : collaborationRequests.find(and(eq("requestedTo", requestedTo), eq("status", status)))) {
+            result.add(ColabRequest.fromDocument(doc));
+        }
+        return result;
     }
 
-    public List<Document> findByFileIdsAndStatus(List<ObjectId> fileIds, String status) {
+    public List<ColabRequest> findByFileIdsAndStatus(List<ObjectId> fileIds, String status) {
         if (fileIds == null || fileIds.isEmpty()) {
             return List.of();
         }
-        return collaborationRequests
-                .find(and(new Document("fileId", new Document("$in", fileIds)), eq("status", status)))
-                .into(new ArrayList<>());
+        List<ColabRequest> result = new ArrayList<>();
+        for (Document doc : collaborationRequests.find(and(new Document("fileId", new Document("$in", fileIds)), eq("status", status)))) {
+            result.add(ColabRequest.fromDocument(doc));
+        }
+        return result;
     }
 
     public boolean updateStatus(ObjectId requestId, String status) {

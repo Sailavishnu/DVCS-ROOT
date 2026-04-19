@@ -62,8 +62,13 @@ public final class WorkspaceService {
             }
 
             int snapshotId = fileDoc.getInteger("currentSnapshotId", 0);
-            boolean isLocked = Boolean.TRUE.equals(fileDoc.getBoolean("isLocked", false));
-            ObjectId lockedBy = fileDoc.getObjectId("lockedBy");
+            Document lockStatus = fileDoc.get("lockStatus", Document.class);
+            boolean isLocked = lockStatus != null && Boolean.TRUE.equals(lockStatus.getBoolean("isLocked", false));
+            ObjectId lockedBy = lockStatus != null ? lockStatus.getObjectId("lockedBy") : null;
+            Instant lockedAt = null;
+            if (lockStatus != null && lockStatus.getDate("lockedAt") != null) {
+                lockedAt = lockStatus.getDate("lockedAt").toInstant();
+            }
 
             FileItemModel fileItem = new FileItemModel(
                     fileId,
@@ -74,7 +79,8 @@ public final class WorkspaceService {
                     latestAt,
                     snapshotId,
                     isLocked,
-                    lockedBy);
+                    lockedBy,
+                    lockedAt);
             filesByFolder.computeIfAbsent(folderId, ignored -> new ArrayList<>()).add(fileItem);
         }
 
@@ -95,7 +101,8 @@ public final class WorkspaceService {
                             file.latestCommitAt(),
                             file.currentSnapshotId(),
                             file.locked(),
-                            file.lockedBy()))
+                            file.lockedBy(),
+                            file.lockedAt()))
                     .toList();
 
             folders.add(new FolderModel(folderId, folderName, withFolderName));
@@ -184,13 +191,16 @@ public final class WorkspaceService {
                 .append("folderId", folderId)
                 .append("filename", normalizedFilename)
                 .append("extension", extractExtension(normalizedFilename))
-                .append("path", new Document("relativePath", relativePath)
+                .append("path", new Document("disk", "D:")
+                        .append("folder", relativePath)
                         .append("versionRoot", ".versions/" + normalizedFilename))
                 .append("createdBy", createdBy)
                 .append("createdAt", new Date())
                 .append("currentSnapshotId", 0)
-                .append("isLocked", false)
-                .append("lockedBy", null));
+                .append("lockStatus", new Document("isLocked", false)
+                        .append("lockedBy", null)
+                        .append("lockedAt", null))
+                .append("tags", new ArrayList<>()));
     }
 
     public Optional<FileItemModel> findFileByName(ObjectId workspaceId, String folderName, String filename) {
@@ -278,9 +288,9 @@ public final class WorkspaceService {
     }
 
     private static String resolveWorkspaceRoot(Document workspace) {
-        Document storagePath = workspace.get("storagePath", Document.class);
+        Document storagePath = workspace.get("path", Document.class);
         if (storagePath == null) {
-            throw new IllegalStateException("Workspace storage path metadata is missing");
+            throw new IllegalStateException("Workspace path metadata is missing");
         }
 
         String absolutePath = safe(storagePath.getString("absolutePath"));
@@ -288,8 +298,8 @@ public final class WorkspaceService {
             return Path.of(absolutePath).toAbsolutePath().normalize().toString();
         }
 
-        String drive = safe(storagePath.getString("drive"));
-        String directory = safe(storagePath.getString("directory"));
+        String drive = safe(storagePath.getString("disk"));
+        String directory = safe(storagePath.getString("folder"));
         String folderName = safe(storagePath.getString("folderName"));
         Path pathPart = directory.isBlank() ? Path.of(folderName) : Path.of(directory, folderName);
         return Path.of(drive + pathPart).toAbsolutePath().normalize().toString();
