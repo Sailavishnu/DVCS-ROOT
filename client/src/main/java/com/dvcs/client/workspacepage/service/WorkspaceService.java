@@ -12,6 +12,11 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
+import com.dvcs.client.core.dao.AuditLogDao;
+import com.dvcs.client.core.model.AuditLog;
+import com.dvcs.client.core.model.Branch;
+import com.dvcs.client.core.model.Tag;
+
 import org.bson.Document;
 import org.bson.types.ObjectId;
 
@@ -26,12 +31,14 @@ public final class WorkspaceService {
 
     private final WorkspaceDAO workspaceDAO;
     private final FileDAO fileDAO;
+    private final AuditLogDao auditLogDao;
     private final CommitService commitService;
 
-    public WorkspaceService(WorkspaceDAO workspaceDAO, FileDAO fileDAO, CommitService commitService) {
+    public WorkspaceService(WorkspaceDAO workspaceDAO, FileDAO fileDAO, CommitService commitService, AuditLogDao auditLogDao) {
         this.workspaceDAO = Objects.requireNonNull(workspaceDAO, "workspaceDAO");
         this.fileDAO = Objects.requireNonNull(fileDAO, "fileDAO");
         this.commitService = Objects.requireNonNull(commitService, "commitService");
+        this.auditLogDao = Objects.requireNonNull(auditLogDao, "auditLogDao");
     }
 
     public WorkspacePageModel loadWorkspace(ObjectId workspaceId) {
@@ -131,6 +138,16 @@ public final class WorkspaceService {
 
         int totalCommits = commitService.countWorkspaceCommits(workspaceId);
 
+        List<Branch> branches = workspaceDAO.findBranchesByWorkspaceId(workspaceId).stream()
+                .map(Branch::fromDocument)
+                .sorted(Comparator.comparing(Branch::branchName))
+                .toList();
+        
+        List<Tag> tags = workspaceDAO.findTagsByWorkspaceId(workspaceId).stream()
+                .map(Tag::fromDocument)
+                .sorted(Comparator.comparing(Tag::tagName))
+                .toList();
+
         return new WorkspacePageModel(
                 workspaceId,
                 workspaceName,
@@ -138,7 +155,9 @@ public final class WorkspaceService {
                 folders,
                 collaborators,
                 totalCommits,
-                readmeContent);
+                readmeContent,
+                branches,
+                tags);
     }
 
     public String resolveWorkspaceRootPath(ObjectId workspaceId) {
@@ -161,6 +180,9 @@ public final class WorkspaceService {
                 .append("folderName", normalizedFolderName)
                 .append("createdBy", createdBy)
                 .append("createdAt", new Date()));
+
+        auditLogDao.insert(new AuditLog(new ObjectId(), createdBy, "CREATE_FOLDER", "Folder",
+                normalizedFolderName, null, Instant.now()));
     }
 
     public void ensureFileMetadata(ObjectId workspaceId, ObjectId createdBy, String folderName, String filename) {
@@ -201,6 +223,9 @@ public final class WorkspaceService {
                         .append("lockedBy", null)
                         .append("lockedAt", null))
                 .append("tags", new ArrayList<>()));
+
+        auditLogDao.insert(new AuditLog(new ObjectId(), createdBy, "CREATE_FILE", "File",
+                normalizedFilename, null, Instant.now()));
     }
 
     public Optional<FileItemModel> findFileByName(ObjectId workspaceId, String folderName, String filename) {
@@ -261,6 +286,9 @@ public final class WorkspaceService {
                 ? normalizedFilename
                 : normalizedFolderName + "/" + normalizedFilename;
         fileDAO.renameFile(file.fileId(), normalizedFilename, extractExtension(normalizedFilename), relativePath);
+
+        auditLogDao.insert(new AuditLog(new ObjectId(), file.lockedBy(), "RENAME", "File",
+                normalizedFilename, null, Instant.now()));
     }
 
     public void deleteFileMetadata(FileItemModel file) {
@@ -268,6 +296,9 @@ public final class WorkspaceService {
             return;
         }
         fileDAO.deleteFile(file.fileId());
+        
+        auditLogDao.insert(new AuditLog(new ObjectId(), file.lockedBy(), "DELETE", "File",
+                file.filename(), null, Instant.now()));
     }
 
     private static List<ObjectId> toObjectIdList(Object rawValue) {

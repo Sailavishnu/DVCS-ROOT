@@ -58,8 +58,12 @@ public class DashboardContentController {
     @FXML
     private Button newWorkspaceButton;
 
-    private GridPane myGrid;
     private VBox collabList;
+    private GridPane myGrid;
+    private VBox rightPanel;
+    private Label storageLabel;
+    private javafx.scene.control.ProgressBar storageProgressBar;
+    private VBox activityList;
 
     private WorkspaceService workspaceService;
     private ObjectId currentUserId;
@@ -74,7 +78,7 @@ public class DashboardContentController {
 
     @FXML
     private void initialize() {
-        mainCard.getChildren().setAll(buildWorkspaceSection(), createEmptyRightSpace());
+        mainCard.getChildren().setAll(buildWorkspaceSection(), buildRightPanel());
         if (!mainCard.getChildren().isEmpty()) {
             HBox.setHgrow(mainCard.getChildren().getFirst(), Priority.ALWAYS);
             if (mainCard.getChildren().size() > 1) {
@@ -95,13 +99,50 @@ public class DashboardContentController {
         layoutCard();
     }
 
-    private Node createEmptyRightSpace() {
-        javafx.scene.layout.Region empty = new javafx.scene.layout.Region();
-        empty.setMinWidth(RIGHT_PANEL_MIN_WIDTH);
-        empty.setPrefWidth(RIGHT_PANEL_MIN_WIDTH);
-        empty.setMaxWidth(RIGHT_PANEL_MIN_WIDTH);
-        empty.getStyleClass().add("dashboard-empty-right");
-        return empty;
+    private Node buildRightPanel() {
+        VBox panel = new VBox(24);
+        panel.setMinWidth(RIGHT_PANEL_MIN_WIDTH);
+        panel.setPrefWidth(RIGHT_PANEL_MIN_WIDTH);
+        panel.setMaxWidth(RIGHT_PANEL_MIN_WIDTH);
+        panel.getStyleClass().add("dashboard-right-panel");
+        panel.setPadding(new javafx.geometry.Insets(0, 0, 0, 10));
+
+        // 1. Profile & Storage Card
+        VBox profileCard = new VBox(20);
+        profileCard.getStyleClass().addAll("glass", "stats-card");
+        profileCard.setPadding(new javafx.geometry.Insets(20));
+
+        Label profileTitle = new Label("Account Insights");
+        profileTitle.getStyleClass().add("stats-title");
+        
+        VBox storageBox = new VBox(10);
+        Label sLabel = new Label("Storage Quota");
+        sLabel.getStyleClass().add("stats-label");
+        
+        this.storageProgressBar = new javafx.scene.control.ProgressBar(0);
+        storageProgressBar.setMaxWidth(Double.MAX_VALUE);
+        storageProgressBar.getStyleClass().add("storage-progress");
+        
+        this.storageLabel = new Label("0 / 5 GB used");
+        storageLabel.getStyleClass().add("stats-sublabel");
+        
+        storageBox.getChildren().addAll(sLabel, storageProgressBar, storageLabel);
+        profileCard.getChildren().addAll(profileTitle, storageBox);
+
+        // 2. Recent Activity Section
+        VBox activityBox = new VBox(14);
+        VBox.setVgrow(activityBox, Priority.ALWAYS);
+        Label activityTitle = new Label("Recent Activity");
+        activityTitle.getStyleClass().add("section-title");
+        
+        this.activityList = new VBox(12);
+        activityList.getStyleClass().add("activity-list");
+        
+        activityBox.getChildren().addAll(activityTitle, activityList);
+
+        panel.getChildren().addAll(profileCard, activityBox);
+        this.rightPanel = panel;
+        return panel;
     }
 
     public void configure(WorkspaceService workspaceService, ObjectId currentUserId, String currentUsername) {
@@ -355,6 +396,52 @@ public class DashboardContentController {
         ownedWorkspaces.addAll(workspaceService.loadOwnedWorkspaces(currentUserId));
         highlightedWorkspaceIds = Set.of();
         renderWorkspaceCards();
+        updateDashboardStats();
+    }
+
+    private void updateDashboardStats() {
+        if (workspaceService == null || currentUserId == null) return;
+
+        // Update Stats & Progress
+        org.bson.Document stats = workspaceService.loadDashboardStats(currentUserId);
+        long used = stats.getLong("usedStorage");
+        long quota = stats.getLong("storageQuota");
+        double progress = (double) used / quota;
+        
+        storageProgressBar.setProgress(progress);
+        storageLabel.setText(String.format("%.1f MB / %.1f GB", used / (1024 * 1024.0), quota / (1024 * 1024 * 1024.0)));
+
+        // Update Activity
+        activityList.getChildren().clear();
+        List<com.dvcs.client.core.model.AuditLog> logs = workspaceService.loadRecentActivity(currentUserId, 5);
+        if (logs.isEmpty()) {
+            Label empty = new Label("No recent activities.");
+            empty.getStyleClass().add("activity-empty-text");
+            activityList.getChildren().add(empty);
+        } else {
+            for (com.dvcs.client.core.model.AuditLog log : logs) {
+                activityList.getChildren().add(createActivityItem(log));
+            }
+        }
+    }
+
+    private Node createActivityItem(com.dvcs.client.core.model.AuditLog log) {
+        HBox item = new HBox(12);
+        item.getStyleClass().add("activity-item");
+        item.setAlignment(Pos.CENTER_LEFT);
+        item.setPadding(new javafx.geometry.Insets(10, 14, 10, 14));
+
+        VBox content = new VBox(4);
+        Label actionLabel = new Label(log.action().toUpperCase());
+        actionLabel.getStyleClass().add("activity-action");
+        
+        Label resourceLabel = new Label(log.entityAffected() + ": " + log.entityId());
+        resourceLabel.getStyleClass().add("activity-resource");
+        
+        content.getChildren().addAll(actionLabel, resourceLabel);
+        item.getChildren().add(content);
+        
+        return item;
     }
 
     private void renderWorkspaceCards() {
@@ -554,11 +641,15 @@ public class DashboardContentController {
 
         com.dvcs.client.workspacepage.service.CommitService commitService = new com.dvcs.client.workspacepage.service.CommitService(
                 fileDAO);
-        this.workspaceFileService = new com.dvcs.client.workspacepage.service.FileService(fileDAO, commitService);
+        
+        com.dvcs.client.core.dao.AuditLogDao auditLogDao = new com.dvcs.client.core.dao.AuditLogDao(database);
+
+        this.workspaceFileService = new com.dvcs.client.workspacepage.service.FileService(fileDAO, commitService, auditLogDao);
         this.workspacePageService = new com.dvcs.client.workspacepage.service.WorkspaceService(
                 workspaceDAO,
                 fileDAO,
-                commitService);
+                commitService,
+                auditLogDao);
     }
 
     private Node createCollaborativeRow(String title) {

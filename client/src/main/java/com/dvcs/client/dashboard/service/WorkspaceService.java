@@ -21,7 +21,8 @@ import java.util.stream.Collectors;
 
 import org.bson.Document;
 import org.bson.types.ObjectId;
-
+import com.dvcs.client.core.dao.AuditLogDao;
+import com.dvcs.client.core.model.AuditLog;
 import com.dvcs.client.auth.model.User;
 import com.dvcs.client.auth.repo.UserRepository;
 import com.dvcs.client.core.model.ColabRequest;
@@ -40,6 +41,7 @@ public final class WorkspaceService {
     private final FolderDao folderDao;
     private final FileDao fileDao;
     private final CollaborationRequestDao collaborationRequestDao;
+    private final AuditLogDao auditLogDao;
     private final UserRepository userRepository;
 
     public WorkspaceService(
@@ -47,12 +49,14 @@ public final class WorkspaceService {
             FolderDao folderDao,
             FileDao fileDao,
             CollaborationRequestDao collaborationRequestDao,
-            UserRepository userRepository) {
+            UserRepository userRepository,
+            AuditLogDao auditLogDao) {
         this.workspaceDao = Objects.requireNonNull(workspaceDao, "workspaceDao");
         this.folderDao = Objects.requireNonNull(folderDao, "folderDao");
         this.fileDao = Objects.requireNonNull(fileDao, "fileDao");
         this.collaborationRequestDao = Objects.requireNonNull(collaborationRequestDao, "collaborationRequestDao");
         this.userRepository = Objects.requireNonNull(userRepository, "userRepository");
+        this.auditLogDao = Objects.requireNonNull(auditLogDao, "auditLogDao");
     }
 
     public Optional<ObjectId> findUserIdByUsername(String username) {
@@ -93,7 +97,6 @@ public final class WorkspaceService {
                         .append("folder", directory + "\\" + folderName)
                         .append("absolutePath", workspaceDirectory.toString()))
                 .append("createdBy", currentUserId)
-                .append("createdAt", new Date())
                 .append("machines", List.of());
 
         ObjectId workspaceId = workspaceDao.insert(workspace);
@@ -191,7 +194,7 @@ public final class WorkspaceService {
         List<Document> documents = workspaceDao.findByCreator(currentUserId);
         return documents.stream()
                 .map(this::toWorkspaceSummary)
-                .sorted(Comparator.comparing(WorkspaceSummary::createdAt,
+                .sorted(Comparator.comparing((WorkspaceSummary w) -> w.createdAt(),
                         Comparator.nullsLast(Comparator.reverseOrder())))
                 .toList();
     }
@@ -417,5 +420,35 @@ public final class WorkspaceService {
         List<Object> allWorkspaces = new ArrayList<>(ownedWorkspaces);
         allWorkspaces.addAll(collaborativeWorkspaces);
         return allWorkspaces;
+    }
+
+    public List<AuditLog> loadRecentActivity(ObjectId userId, int limit) {
+        return auditLogDao.findByUserId(userId).stream().limit(limit).toList();
+    }
+
+    public Document loadDashboardStats(ObjectId userId) {
+        List<WorkspaceSummary> owned = loadOwnedWorkspaces(userId);
+        List<ObjectId> workspaceIds = owned.stream().map(WorkspaceSummary::workspaceId).toList();
+        
+        List<Document> folders = folderDao.findByWorkspaceIds(workspaceIds);
+        List<ObjectId> folderIds = folders.stream().map(f -> f.getObjectId("_id")).toList();
+        
+        long totalFiles = fileDao.countByFolderIds(folderIds);
+        long totalFolders = folderDao.countByWorkspaceIds(workspaceIds);
+        
+        // Storage Calculation (Simplified for UI)
+        long usedStorageBytes = totalFiles * 1024 * 1024L; // 1MB per file avg
+        
+        User user = userRepository.findById(userId).orElse(null);
+        long quota = (user != null && user.getStorageQuota() != null) ? user.getStorageQuota() : 5368709120L; // 5GB default
+        int fileLimit = (user != null && user.getFilesLimit() != null) ? user.getFilesLimit() : 100;
+        int usedFiles = (int) totalFiles;
+
+        return new Document("totalWorkspaces", owned.size())
+                .append("totalFiles", (int)totalFiles)
+                .append("totalFolders", (int)totalFolders)
+                .append("usedStorage", usedStorageBytes)
+                .append("storageQuota", quota)
+                .append("fileLimit", fileLimit);
     }
 }

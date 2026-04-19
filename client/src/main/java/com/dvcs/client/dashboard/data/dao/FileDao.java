@@ -42,6 +42,13 @@ public final class FileDao {
         return files.find(new Document("folderId", new Document("$in", folderIds))).into(new ArrayList<>());
     }
 
+    public long countByFolderIds(List<ObjectId> folderIds) {
+        if (folderIds == null || folderIds.isEmpty()) {
+            return 0;
+        }
+        return files.countDocuments(new Document("folderId", new Document("$in", folderIds)));
+    }
+
     public List<Document> findByIds(List<ObjectId> fileIds) {
         if (fileIds == null || fileIds.isEmpty()) {
             return List.of();

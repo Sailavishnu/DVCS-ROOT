@@ -46,6 +46,13 @@ public final class FolderDao {
         return folders.find(new Document("workspaceId", new Document("$in", workspaceIds))).into(new ArrayList<>());
     }
 
+    public long countByWorkspaceIds(List<ObjectId> workspaceIds) {
+        if (workspaceIds == null || workspaceIds.isEmpty()) {
+            return 0;
+        }
+        return folders.countDocuments(new Document("workspaceId", new Document("$in", workspaceIds)));
+    }
+
     public List<Document> searchByFolderName(String query) {
         Objects.requireNonNull(query, "query");
         Pattern pattern = Pattern.compile(Pattern.quote(query), Pattern.CASE_INSENSITIVE);

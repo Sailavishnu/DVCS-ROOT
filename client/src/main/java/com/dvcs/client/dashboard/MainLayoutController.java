@@ -18,6 +18,7 @@ import com.dvcs.client.dashboard.search.SearchController;
 import com.dvcs.client.dashboard.search.SearchResultItem;
 import com.dvcs.client.dashboard.search.SearchService;
 import com.dvcs.client.dashboard.service.NotificationService;
+import com.dvcs.client.core.dao.AuditLogDao;
 import com.dvcs.client.dashboard.service.WorkspaceService;
 import com.mongodb.client.MongoDatabase;
 import javafx.fxml.FXML;
@@ -90,8 +91,10 @@ public class MainLayoutController {
         FileDao fileDao = new FileDao(database);
         CollaborationRequestDao collaborationRequestDao = new CollaborationRequestDao(database);
 
+        AuditLogDao auditLogDao = new AuditLogDao(database);
+
         this.workspaceService = new WorkspaceService(workspaceDao, folderDao, fileDao, collaborationRequestDao,
-                userRepository);
+                userRepository, auditLogDao);
         this.searchService = new SearchService(workspaceDao, folderDao, fileDao);
         this.notificationService = new NotificationService(
                 collaborationRequestDao,

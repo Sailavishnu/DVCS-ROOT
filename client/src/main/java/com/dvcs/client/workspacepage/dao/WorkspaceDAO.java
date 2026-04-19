@@ -24,6 +24,8 @@ public final class WorkspaceDAO {
     private final MongoCollection<Document> folders;
     private final MongoCollection<Document> files;
     private final MongoCollection<Document> users;
+    private final MongoCollection<Document> branches;
+    private final MongoCollection<Document> tags;
 
     public WorkspaceDAO(MongoDatabase database) {
         Objects.requireNonNull(database, "database");
@@ -31,6 +33,16 @@ public final class WorkspaceDAO {
         this.folders = database.getCollection("folders");
         this.files = database.getCollection("files");
         this.users = database.getCollection("users");
+        this.branches = database.getCollection("branches");
+        this.tags = database.getCollection("tags");
+    }
+
+    public List<Document> findBranchesByWorkspaceId(ObjectId workspaceId) {
+        return branches.find(eq("workspaceId", workspaceId)).into(new ArrayList<>());
+    }
+
+    public List<Document> findTagsByWorkspaceId(ObjectId workspaceId) {
+        return tags.find(eq("workspaceId", workspaceId)).into(new ArrayList<>());
     }
 
     public Optional<Document> findWorkspaceById(ObjectId workspaceId) {

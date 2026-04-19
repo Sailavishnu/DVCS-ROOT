@@ -338,7 +338,7 @@
 .panel-title {
     -fx-font-size: 14px;
     -fx-font-weight: 800;
-    -fx-text-fill: #111827;
+    -fx-text-fill: #ffffff;
 }
 
 .panel-tagline {
@@ -397,7 +397,7 @@
 }
 
 .stat-value {
-    -fx-text-fill: #111827;
+    -fx-text-fill: #ffffff;
     -fx-font-size: 18px;
     -fx-font-weight: 900;
 }
@@ -409,7 +409,7 @@
 .workspace-details-title {
     -fx-font-size: 22px;
     -fx-font-weight: 800;
-    -fx-text-fill: #0f172a;
+    -fx-text-fill: #ffffff;
 }
 
 .workspace-details-heading {
@@ -428,7 +428,7 @@
 }
 
 .search-page-root {
-    -fx-background-color: #f3f4f6;
+    -fx-background-color: #0a0a0a;
 }
 
 .search-content {
@@ -438,7 +438,7 @@
 .search-match-count {
     -fx-font-size: 22px;
     -fx-font-weight: 800;
-    -fx-text-fill: #0f172a;
+    -fx-text-fill: #ffffff;
 }
 
 .search-empty-message {
@@ -487,7 +487,7 @@
 .search-file-name {
     -fx-font-size: 16px;
     -fx-font-weight: 800;
-    -fx-text-fill: #111827;
+    -fx-text-fill: #ffffff;
 }
 
 .search-file-path {
@@ -497,7 +497,7 @@
 }
 
 .notification-page-root {
-    -fx-background-color: #f3f6fd;
+    -fx-background-color: #0a0a0a;
 }
 
 .notification-main-row {
@@ -515,7 +515,7 @@
 .notification-count-label {
     -fx-font-size: 26px;
     -fx-font-weight: 800;
-    -fx-text-fill: #0f2f8f;
+    -fx-text-fill: #ffffff;
 }
 
 .notification-empty-message {
@@ -624,7 +624,7 @@
 }
 
 .profile-page-root {
-    -fx-background-color: #f5f8ff;
+    -fx-background-color: #0a0a0a;
 }
 
 .profile-main-row {
@@ -2928,5 +2928,279 @@
 
 .diff-added {
     -fx-fill: rgba(80, 255, 120, 0.3);
+}
+
+/* --- Dashboard Analytics & Activity Styles --- */
+.dashboard-right-panel {
+    -fx-background-color: transparent;
+}
+
+.stats-card {
+    -fx-background-radius: 16;
+    -fx-border-radius: 16;
+    -fx-border-color: rgba(0, 255, 136, 0.15); /* Subtle emerald border */
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.4), 15, 0, 0, 10);
+}
+
+.stats-title {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 16px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #ffffff;
+    -fx-padding: 0 0 5 0;
+}
+
+.stats-label {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+    -fx-text-fill: rgba(255, 255, 255, 0.6);
+}
+
+.stats-sublabel {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 12px;
+    -fx-font-weight: 400;
+    -fx-text-fill: #00ff88;
+}
+
+.storage-progress {
+    -fx-indeterminate-bar-length: 60;
+    -fx-pref-height: 8px;
+}
+
+.storage-progress .track {
+    -fx-background-color: rgba(255, 255, 255, 0.05);
+    -fx-background-radius: 4;
+}
+
+.storage-progress .bar {
+    -fx-background-color: linear-gradient(to right, #00ff88, #00cc6a);
+    -fx-background-radius: 4;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 255, 136, 0.3), 5, 0, 0, 0);
+}
+
+.activity-list {
+    -fx-padding: 5 0 0 0;
+}
+
+.activity-item {
+    -fx-background-color: rgba(255, 255, 255, 0.03);
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+    -fx-border-color: rgba(255, 255, 255, 0.05);
+    -fx-border-width: 1;
+    -fx-cursor: hand;
+    -fx-transition: all 0.2s ease;
+}
+
+.activity-item:hover {
+    -fx-background-color: rgba(0, 255, 136, 0.08); /* Mint tint on hover */
+    -fx-border-color: rgba(0, 255, 136, 0.3);
+    -fx-scale-x: 1.02;
+    -fx-scale-y: 1.02;
+}
+
+.activity-action {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 11px;
+    -fx-font-weight: 800;
+    -fx-text-fill: #00ff88;
+    -fx-letter-spacing: 1px;
+}
+
+.activity-resource {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 13px;
+    -fx-text-fill: #ffffff;
+}
+
+.activity-empty-text {
+    -fx-font-size: 13px;
+    -fx-text-fill: rgba(255, 255, 255, 0.4);
+    -fx-font-style: italic;
+    -fx-padding: 20 0 0 0;
+    -fx-alignment: center;
+}
+
+/* Profile Redesign & Modal */
+.profile-main-section {
+    -fx-padding: 30 60 40 60;
+}
+
+.profile-hero-section {
+    -fx-padding: 20 0 40 0;
+}
+
+.profile-hero-name {
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 32px;
+    -fx-font-weight: 900;
+}
+
+.profile-hero-username {
+    -fx-text-fill: #00ff88;
+    -fx-font-size: 18px;
+    -fx-font-weight: 700;
+}
+
+.profile-modal-overlay {
+    -fx-background-color: rgba(0, 0, 0, 0.85);
+}
+
+.profile-modal-container {
+    -fx-background-color: rgba(14, 25, 21, 0.98);
+    -fx-background-radius: 24;
+    -fx-border-radius: 24;
+    -fx-border-color: rgba(0, 255, 136, 0.35);
+    -fx-padding: 30;
+    -fx-effect: dropshadow(gaussian, rgba(0, 255, 136, 0.25), 40, 0.2, 0, 0);
+}
+
+.profile-modal-title {
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 24px;
+    -fx-font-weight: 900;
+}
+
+.profile-modal-label {
+    -fx-text-fill: rgba(231, 255, 241, 0.75);
+    -fx-font-size: 13px;
+    -fx-font-weight: 700;
+}
+
+.profile-modal-secondary-button {
+    -fx-background-color: transparent;
+    -fx-border-color: #00ff88;
+    -fx-border-radius: 12;
+    -fx-text-fill: #00ff88;
+    -fx-padding: 8 16;
+    -fx-font-weight: 700;
+}
+
+.profile-modal-secondary-button:hover {
+    -fx-background-color: rgba(0, 255, 136, 0.1);
+}
+
+.profile-modal-save-button {
+    -fx-background-color: #00ff88;
+    -fx-background-radius: 12;
+    -fx-text-fill: #051d13;
+    -fx-padding: 10 24;
+    -fx-font-weight: 800;
+}
+
+.profile-modal-cancel-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #ffffff;
+    -fx-font-weight: 700;
+}
+
+.profile-activity-cell {
+    -fx-background-radius: 5;
+    -fx-cursor: hand;
+}
+
+
+/* Activity Intensity Glows */
+.activity-glow-none {
+    -fx-background-color: #1a1a1a;
+    -fx-border-color: rgba(255, 255, 255, 0.05);
+}
+
+.activity-glow-low {
+    -fx-background-color: #004d2e;
+    -fx-effect: dropshadow(gaussian, rgba(0, 255, 136, 0.15), 8, 0.1, 0, 0);
+}
+
+.activity-glow-med {
+    -fx-background-color: #008f55;
+    -fx-effect: dropshadow(gaussian, rgba(0, 255, 136, 0.35), 12, 0.2, 0, 0);
+}
+
+.activity-glow-high {
+    -fx-background-color: #00ff88;
+    -fx-effect: dropshadow(gaussian, rgba(0, 255, 136, 0.65), 18, 0.3, 0, 0);
+}
+
+
+/* Workspace Branch Selector */
+.workspace-branch-label {
+    -fx-text-fill: rgba(255, 255, 255, 0.6);
+    -fx-font-size: 13px;
+    -fx-font-weight: 700;
+}
+
+.workspace-branch-selector {
+    -fx-background-color: rgba(60, 100, 240, 0.1);
+    -fx-border-color: rgba(60, 100, 240, 0.4);
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-text-fill: #60a5fa;
+    -fx-font-weight: bold;
+    -fx-padding: 2 6;
+}
+
+.workspace-branch-selector .list-cell {
+    -fx-text-fill: #ffffff;
+    -fx-background-color: #0f172a;
+}
+
+.workspace-branch-selector .list-cell:hover {
+    -fx-background-color: #3b82f6;
+}
+
+/* Tag Badges */
+.workspace-tags-container {
+    -fx-padding: 4 0;
+}
+
+.tag-badge {
+    -fx-background-color: rgba(0, 255, 136, 0.1);
+    -fx-border-color: rgba(0, 255, 136, 0.4);
+    -fx-border-radius: 14;
+    -fx-background-radius: 14;
+    -fx-padding: 4 10;
+    -fx-cursor: hand;
+}
+
+.tag-badge-text {
+    -fx-text-fill: #00ff88;
+    -fx-font-size: 12px;
+    -fx-font-weight: 800;
+}
+
+.tag-badge:hover {
+    -fx-background-color: rgba(0, 255, 136, 0.2);
+    -fx-border-color: #00ff88;
+}
+
+/* Lock HUD */
+.workspace-lock-hud {
+    -fx-padding: 10 0;
+}
+
+.workspace-lock-hud-content {
+    -fx-padding: 4 0;
+}
+
+.lock-hud-card {
+    -fx-background-color: rgba(255, 70, 70, 0.1);
+    -fx-border-color: rgba(255, 70, 70, 0.3);
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 8 12;
+}
+
+.lock-hud-filename {
+    -fx-text-fill: #ff6b6b;
+    -fx-font-weight: bold;
+    -fx-font-size: 13px;
+}
+
+.lock-hud-info {
+    -fx-text-fill: rgba(255, 107, 107, 0.7);
+    -fx-font-size: 11px;
 }
 

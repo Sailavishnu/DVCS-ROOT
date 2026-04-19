@@ -8,15 +8,20 @@ import org.bson.Document;
 import org.bson.types.ObjectId;
 
 import com.dvcs.client.workspacepage.dao.FileDAO;
+import com.dvcs.client.core.dao.AuditLogDao;
+import com.dvcs.client.core.model.AuditLog;
+import java.time.Instant;
 
 public final class FileService {
 
     private final FileDAO fileDAO;
     private final CommitService commitService;
+    private final AuditLogDao auditLogDao;
 
-    public FileService(FileDAO fileDAO, CommitService commitService) {
+    public FileService(FileDAO fileDAO, CommitService commitService, AuditLogDao auditLogDao) {
         this.fileDAO = Objects.requireNonNull(fileDAO, "fileDAO");
         this.commitService = Objects.requireNonNull(commitService, "commitService");
+        this.auditLogDao = Objects.requireNonNull(auditLogDao, "auditLogDao");
     }
 
     public String loadContent(ObjectId fileId) {
@@ -51,6 +56,9 @@ public final class FileService {
         fileDAO.createSnapshot(fileId, nextSnapshotId, content == null ? "" : content, now);
         commitService.createCommit(fileId, nextSnapshotId, normalizedMessage, committedBy, now);
         fileDAO.updateFileHead(fileId, nextSnapshotId, normalizedMessage, committedBy, now);
+
+        auditLogDao.insert(new AuditLog(new ObjectId(), committedBy, "COMMIT", "File",
+                file.getString("filename"), null, Instant.now()));
     }
 
     public List<Document> loadFileCommits(ObjectId fileId) {
@@ -74,5 +82,8 @@ public final class FileService {
 
         fileDAO.createSnapshot(fileId, nextSnapshotId, content, now);
         fileDAO.updateFileHead(fileId, nextSnapshotId, "Restored from snapshot #" + snapshotId, null, now);
+        
+        auditLogDao.insert(new AuditLog(new ObjectId(), null, "RESTORE", "File",
+                file.getString("filename"), null, Instant.now()));
     }
 }

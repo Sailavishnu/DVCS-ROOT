@@ -5,6 +5,8 @@ import com.dvcs.client.workspacepage.model.FileItemModel;
 import com.dvcs.client.workspacepage.model.FolderModel;
 import com.dvcs.client.workspacepage.model.UserModel;
 import com.dvcs.client.workspacepage.model.WorkspacePageModel;
+import com.dvcs.client.core.model.Branch;
+import com.dvcs.client.core.model.Tag;
 import com.dvcs.client.ui.PopupDialogs;
 import com.dvcs.client.workspacepage.service.FileService;
 import com.dvcs.client.workspacepage.service.FileSystemService;
@@ -130,6 +132,15 @@ public final class WorkspaceController {
 
     @FXML
     private TextArea readmeTextArea;
+
+    @FXML
+    private ComboBox<String> branchSelector;
+
+    @FXML
+    private HBox tagsContainer;
+
+    @FXML
+    private VBox lockHudContent;
 
     private final FileSystemService fileSystemService = new FileSystemService();
 
@@ -1466,6 +1477,10 @@ public final class WorkspaceController {
         loadReadmeSection();
         updateContributorsPanel();
         updateLanguagePanel();
+        updateBranchSelector();
+        updateTagsPanel();
+        updateLockHUD();
+        
         if (selectedPath != null && !Files.exists(selectedPath)) {
             selectedPath = null;
             selectedFile = null;
@@ -2136,6 +2151,86 @@ public final class WorkspaceController {
                 .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
     }
 
+    private void updateBranchSelector() {
+        if (branchSelector == null || currentModel == null) return;
+        
+        ObservableList<String> branchNames = FXCollections.observableArrayList();
+        String defaultBranch = null;
+        
+        for (Branch b : currentModel.branches()) {
+            branchNames.add(b.branchName());
+            if (b.isDefault()) {
+                defaultBranch = b.branchName();
+            }
+        }
+        
+        branchSelector.setItems(branchNames);
+        if (defaultBranch != null) {
+            branchSelector.setValue(defaultBranch);
+        } else if (!branchNames.isEmpty()) {
+            branchSelector.setValue(branchNames.get(0));
+        }
+    }
+
+    private void updateTagsPanel() {
+        if (tagsContainer == null || currentModel == null) return;
+        tagsContainer.getChildren().clear();
+        
+        if (currentModel.tags().isEmpty()) {
+            Label noTags = new Label("No tags yet");
+            noTags.setStyle("-fx-text-fill: rgba(255,255,255,0.4); -fx-font-style: italic; -fx-font-size: 11px;");
+            tagsContainer.getChildren().add(noTags);
+            return;
+        }
+        
+        for (Tag t : currentModel.tags()) {
+            VBox badge = new VBox();
+            badge.getStyleClass().add("tag-badge");
+            
+            Label tagLabel = new Label(t.tagName());
+            tagLabel.getStyleClass().add("tag-badge-text");
+            
+            badge.getChildren().add(tagLabel);
+            tagsContainer.getChildren().add(badge);
+        }
+    }
+
+    private void updateLockHUD() {
+        if (lockHudContent == null || currentModel == null) return;
+        lockHudContent.getChildren().clear();
+        
+        List<FileItemModel> myLocks = new ArrayList<>();
+        for (FolderModel folder : currentModel.folders()) {
+            for (FileItemModel file : folder.files()) {
+                if (file.locked() && Objects.equals(file.lockedBy(), currentUserId)) {
+                    myLocks.add(file);
+                }
+            }
+        }
+        
+        if (myLocks.isEmpty()) {
+            Label emptyLabel = new Label("No active locks");
+            emptyLabel.setPadding(new Insets(5, 0, 0, 0));
+            emptyLabel.setStyle("-fx-text-fill: rgba(255,255,255,0.4); -fx-font-style: italic; -fx-font-size: 11px;");
+            lockHudContent.getChildren().add(emptyLabel);
+            return;
+        }
+        
+        for (FileItemModel lock : myLocks) {
+            VBox card = new VBox(2);
+            card.getStyleClass().add("lock-hud-card");
+            
+            Label fileName = new Label(lock.filename());
+            fileName.getStyleClass().add("lock-hud-filename");
+            
+            Label info = new Label("Locked since: " + (lock.lockedAt() != null ? lock.lockedAt().toString() : "Unknown"));
+            info.getStyleClass().add("lock-hud-info");
+            
+            card.getChildren().addAll(fileName, info);
+            lockHudContent.getChildren().add(card);
+        }
+    }
+
     private FileDAO createWorkspaceFileDao() {
         String dbName = System.getenv("MONGODB_DB");
         if (dbName == null || dbName.isBlank()) {
@@ -2143,5 +2238,4 @@ public final class WorkspaceController {
         }
         return new FileDAO(MongoConnection.getDatabase(dbName));
     }
-
 }

@@ -55,19 +55,7 @@ public final class ProfileController {
     private StackPane headerContainer;
 
     @FXML
-    private HBox mainContainer;
-
-    @FXML
-    private VBox leftCardColumn;
-
-    @FXML
-    private StackPane profileCard;
-
-    @FXML
-    private VBox profileCardContent;
-
-    @FXML
-    private VBox rightContentSection;
+    private VBox mainContentColumn;
 
     @FXML
     private Label avatarInitialsLabel;
@@ -85,19 +73,19 @@ public final class ProfileController {
     private Button logoutButton;
 
     @FXML
-    private VBox readOnlyBox;
+    private StackPane editProfileModal;
 
     @FXML
-    private VBox editFieldsBox;
+    private VBox passwordFieldsBox;
+
+    @FXML
+    private Button togglePasswordButton;
 
     @FXML
     private TextField editNameField;
 
     @FXML
     private TextField editUsernameField;
-
-    @FXML
-    private StackPane passwordOverlay;
 
     @FXML
     private PasswordField passwordPopupOldField;
@@ -166,18 +154,8 @@ public final class ProfileController {
 
         if (logoutButton != null) {
             configureLogoutButtonGraphic();
-            logoutButton.setContentDisplay(ContentDisplay.RIGHT);
-        }
-
-        if (profileCard != null) {
-            profileCard.setPrefWidth(360);
-            profileCard.setMinWidth(360);
-            profileCard.setMaxWidth(360);
-            profileCard.setPrefHeight(560);
-            profileCard.setMinHeight(560);
-        }
-        if (leftCardColumn != null && profileCard != null) {
-            VBox.setMargin(profileCard, new Insets(40, 0, 0, 20));
+            logoutButton.setContentDisplay(ContentDisplay.LEFT);
+            logoutButton.setGraphicTextGap(8);
         }
 
         if (popularWorkspaceGrid != null) {
@@ -188,23 +166,6 @@ public final class ProfileController {
 
         if (popularWorkspaceEmptyImage != null) {
             popularWorkspaceEmptyImage.setImage(new Image(ICON_USER_PROFILE_URL, true));
-        }
-        if (activityBox != null) {
-            activityBox.setPrefHeight(200);
-            activityBox.setMinHeight(200);
-            activityBox.setMaxHeight(200);
-        }
-        if (statsRow != null) {
-            for (Node node : statsRow.getChildren()) {
-                if (node instanceof VBox card) {
-                    card.setPrefWidth(180);
-                    card.setMinWidth(180);
-                    card.setMaxWidth(180);
-                    card.setPrefHeight(80);
-                    card.setMinHeight(80);
-                    card.setMaxHeight(80);
-                }
-            }
         }
 
         setEditMode(false);
@@ -236,7 +197,6 @@ public final class ProfileController {
 
         currentProfile = profileService.loadProfile(currentUserId);
         renderProfile(currentProfile);
-        clearEditFields();
         setEditMode(false);
     }
 
@@ -309,6 +269,13 @@ public final class ProfileController {
         }
     }
 
+    private static String colorClassForCommit(int commitCount) {
+        if (commitCount <= 0) return "activity-glow-none";
+        if (commitCount < 3) return "activity-glow-low";
+        if (commitCount < 7) return "activity-glow-med";
+        return "activity-glow-high";
+    }
+
     private void renderActivity(List<ProfileService.DayCommit> days) {
         activityGrid.getChildren().clear();
 
@@ -320,12 +287,9 @@ public final class ProfileController {
             int column = index % columns;
 
             Region cell = new Region();
-            cell.getStyleClass().add("profile-activity-cell");
-            cell.setPrefSize(18, 18);
-            cell.setMinSize(18, 18);
-            cell.setMaxSize(18, 18);
-            cell.setBackground(new Background(
-                    new BackgroundFill(colorForCommit(day.commitCount()), new CornerRadii(5), Insets.EMPTY)));
+            cell.getStyleClass().addAll("profile-activity-cell", colorClassForCommit(day.commitCount()));
+            cell.setPrefSize(20, 20);
+            cell.setMinSize(20, 20);
             cell.setAccessibleText(formatter.format(day.date()) + ": " + day.commitCount() + " commits");
 
             activityGrid.add(cell, column, row);
@@ -333,90 +297,77 @@ public final class ProfileController {
         }
     }
 
-    private static Color colorForCommit(int commitCount) {
-        if (commitCount <= 0) {
-            return Color.web("#ffffff");
-        }
-        if (commitCount == 1) {
-            return Color.web("#dbe8ff");
-        }
-        if (commitCount == 2) {
-            return Color.web("#8fb2ff");
-        }
-        return Color.web("#2d5fd3");
-    }
-
     @FXML
     private void onEditProfile() {
-        if (currentProfile == null) {
-            return;
-        }
+        if (currentProfile == null) return;
         editNameField.setText(currentProfile.name() == null ? "" : currentProfile.name());
         editUsernameField.setText(currentProfile.username());
+        
+        // Reset password fields state
+        passwordFieldsBox.setVisible(false);
+        passwordFieldsBox.setManaged(false);
+        togglePasswordButton.setText("Change Password");
+        clearPasswordFields();
+        
         setEditMode(true);
     }
 
     @FXML
     private void onCancelEdit() {
-        clearEditFields();
         setEditMode(false);
     }
 
     @FXML
     private void onSaveProfile() {
-        if (profileService == null || currentUserId == null) {
+        if (profileService == null || currentUserId == null) return;
+
+        // 1. Update basic info
+        ProfileService.UpdateResult basicResult = profileService.updateProfile(
+                currentUserId, editNameField.getText(), editUsernameField.getText());
+
+        if (!basicResult.success()) {
+            showError(basicResult.message());
             return;
         }
 
-        ProfileService.UpdateResult result = profileService.updateProfile(
-                currentUserId,
-                editNameField.getText(),
-                editUsernameField.getText());
-
-        if (!result.success()) {
-            showError(result.message());
-            return;
+        // 2. Update password if fields are visible
+        if (passwordFieldsBox.isVisible()) {
+            ProfileService.UpdateResult passResult = profileService.changePassword(
+                    currentUserId,
+                    passwordPopupOldField.getText(),
+                    passwordPopupNewField.getText(),
+                    passwordPopupConfirmField.getText());
+            
+            if (!passResult.success()) {
+                showError(passResult.message());
+                return;
+            }
         }
 
-        showInfo(result.message());
+        showInfo("Profile updated successfully");
         reloadProfile();
     }
 
     @FXML
-    private void onChangePassword() {
-        if (profileService == null || currentUserId == null) {
-            return;
-        }
-        clearPasswordOverlayFields();
-        setPasswordOverlayVisible(true);
+    private void onTogglePasswordFields() {
+        boolean isVisible = passwordFieldsBox.isVisible();
+        passwordFieldsBox.setVisible(!isVisible);
+        passwordFieldsBox.setManaged(!isVisible);
+        togglePasswordButton.setText(isVisible ? "Change Password" : "Hide Password Section");
+        if (isVisible) clearPasswordFields();
     }
 
-    @FXML
-    private void onCancelChangePassword() {
-        clearPasswordOverlayFields();
-        setPasswordOverlayVisible(false);
+    private void clearPasswordFields() {
+        passwordPopupOldField.clear();
+        passwordPopupNewField.clear();
+        passwordPopupConfirmField.clear();
     }
 
-    @FXML
-    private void onSubmitChangePassword() {
-        if (profileService == null || currentUserId == null) {
-            return;
+    private void setEditMode(boolean editing) {
+        if (editProfileModal != null) {
+            editProfileModal.setVisible(editing);
+            editProfileModal.setManaged(editing);
         }
-
-        ProfileService.UpdateResult result = profileService.changePassword(
-                currentUserId,
-                passwordPopupOldField == null ? "" : passwordPopupOldField.getText(),
-                passwordPopupNewField == null ? "" : passwordPopupNewField.getText(),
-                passwordPopupConfirmField == null ? "" : passwordPopupConfirmField.getText());
-
-        if (!result.success()) {
-            showError(result.message());
-            return;
-        }
-
-        showInfo(result.message());
-        clearPasswordOverlayFields();
-        setPasswordOverlayVisible(false);
     }
 
     @FXML
@@ -436,41 +387,6 @@ public final class ProfileController {
         }
     }
 
-    private void clearEditFields() {
-        if (editNameField != null) {
-            editNameField.clear();
-        }
-        if (editUsernameField != null) {
-            editUsernameField.clear();
-        }
-    }
-
-    private void clearPasswordOverlayFields() {
-        if (passwordPopupOldField != null) {
-            passwordPopupOldField.clear();
-        }
-        if (passwordPopupNewField != null) {
-            passwordPopupNewField.clear();
-        }
-        if (passwordPopupConfirmField != null) {
-            passwordPopupConfirmField.clear();
-        }
-    }
-
-    private void setPasswordOverlayVisible(boolean visible) {
-        if (passwordOverlay == null) {
-            return;
-        }
-        passwordOverlay.setVisible(visible);
-        passwordOverlay.setManaged(visible);
-    }
-
-    private void setEditMode(boolean editing) {
-        readOnlyBox.setVisible(!editing);
-        readOnlyBox.setManaged(!editing);
-        editFieldsBox.setVisible(editing);
-        editFieldsBox.setManaged(editing);
-    }
 
     private void handleSearch(String query) {
         if (onSearchSubmitted != null) {
