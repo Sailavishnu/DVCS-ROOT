@@ -77,13 +77,14 @@ public final class FileService {
         Document file = fileDAO.findFileById(fileId)
                 .orElseThrow(() -> new IllegalArgumentException("File not found"));
 
-        int nextSnapshotId = file.getInteger("currentSnapshotId", 0) + 1;
-        Date now = new Date();
+        // Only update the file content to the restored snapshot, do not create a new
+        // commit or snapshot
+        int snapshotIdToRestore = snapshotId;
+        String filename = file.getString("filename");
+        // Optionally, update the file head to point to the restored snapshot
+        fileDAO.updateFileHead(fileId, snapshotIdToRestore, "Restored from snapshot #" + snapshotId, null, new Date());
 
-        fileDAO.createSnapshot(fileId, nextSnapshotId, content, now);
-        fileDAO.updateFileHead(fileId, nextSnapshotId, "Restored from snapshot #" + snapshotId, null, now);
-        
         auditLogDao.insert(new AuditLog(new ObjectId(), null, "RESTORE", "File",
-                file.getString("filename"), null, Instant.now()));
+                filename, null, Instant.now()));
     }
 }
