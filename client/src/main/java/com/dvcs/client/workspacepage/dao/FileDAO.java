@@ -84,9 +84,10 @@ public final class FileDAO {
                 .append("createdAt", createdAt));
     }
 
-    public void createCommit(ObjectId fileId, int snapshotId, String message, ObjectId committedBy, Date committedAt) {
+    public void createCommit(ObjectId fileId, int snapshotId, String message, ObjectId committedBy, Date committedAt, ObjectId workspaceId) {
         commits.insertOne(new Document("_id", new ObjectId())
                 .append("fileId", fileId)
+                .append("workspaceId", workspaceId)
                 .append("snapshotId", snapshotId)
                 .append("message", message)
                 .append("committedBy", committedBy)

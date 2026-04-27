@@ -19,7 +19,7 @@ public final class CommitService {
         return fileDAO.countWorkspaceCommits(workspaceId);
     }
 
-    public void createCommit(ObjectId fileId, int snapshotId, String message, ObjectId committedBy, Date committedAt) {
-        fileDAO.createCommit(fileId, snapshotId, message, committedBy, committedAt);
+    public void createCommit(ObjectId fileId, int snapshotId, String message, ObjectId committedBy, Date committedAt, ObjectId workspaceId) {
+        fileDAO.createCommit(fileId, snapshotId, message, committedBy, committedAt, workspaceId);
     }
 }

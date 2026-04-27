@@ -37,7 +37,7 @@ public final class FileService {
         return fileDAO.loadLatestContent(fileId);
     }
 
-    public void commit(ObjectId fileId, ObjectId committedBy, String message, String content) {
+    public void commit(ObjectId fileId, ObjectId committedBy, String message, String content, ObjectId workspaceId) {
         Objects.requireNonNull(fileId, "fileId");
         Objects.requireNonNull(committedBy, "committedBy");
 
@@ -54,7 +54,7 @@ public final class FileService {
         Date now = new Date();
 
         fileDAO.createSnapshot(fileId, nextSnapshotId, content == null ? "" : content, now);
-        commitService.createCommit(fileId, nextSnapshotId, normalizedMessage, committedBy, now);
+        commitService.createCommit(fileId, nextSnapshotId, normalizedMessage, committedBy, now, workspaceId);
         fileDAO.updateFileHead(fileId, nextSnapshotId, normalizedMessage, committedBy, now);
 
         auditLogDao.insert(new AuditLog(new ObjectId(), committedBy, "COMMIT", "File",

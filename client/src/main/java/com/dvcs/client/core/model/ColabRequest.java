@@ -7,6 +7,7 @@ import org.bson.types.ObjectId;
 public record ColabRequest(
         ObjectId id,
         ObjectId fileId,
+        ObjectId workspaceId,
         ObjectId requestedBy,
         ObjectId requestedTo,
         Instant requestedAt,
@@ -17,6 +18,7 @@ public record ColabRequest(
         return new Document()
                 .append("_id", id)
                 .append("fileId", fileId)
+                .append("workspaceId", workspaceId)
                 .append("requestedBy", requestedBy)
                 .append("requestedTo", requestedTo)
                 .append("requestedAt", requestedAt != null ? java.util.Date.from(requestedAt) : null)
@@ -29,6 +31,7 @@ public record ColabRequest(
         return new ColabRequest(
                 doc.getObjectId("_id"),
                 doc.getObjectId("fileId"),
+                doc.getObjectId("workspaceId"),
                 doc.getObjectId("requestedBy"),
                 doc.getObjectId("requestedTo"),
                 doc.getDate("requestedAt") != null ? doc.getDate("requestedAt").toInstant() : null,

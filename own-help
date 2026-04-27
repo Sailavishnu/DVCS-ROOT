@@ -11,4 +11,12 @@ javac --module-path "$javafxLib" --add-modules javafx.controls,javafx.fxml,javaf
 java --enable-native-access=javafx.graphics --module-path "$javafxLib" --add-modules javafx.controls,javafx.fxml,javafx.swing -cp "$DVCS_ROOT\client\out;$DVCS_ROOT\client\src\main\resources;$DVCS_ROOT\client\lib\*" com.dvcs.client.MainApp
 
 
+to run database seeder file 
 
+compile 
+
+javac -cp ".;client/lib/*" DatabaseSeeder.java
+
+run
+
+java -cp ".;client/lib/*" DatabaseSeeder

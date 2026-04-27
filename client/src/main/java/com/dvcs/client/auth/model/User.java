@@ -32,6 +32,7 @@ public final class User {
     private final String username;
     private final String passwordHash;
     private final Name name;
+    private final String displayName;
     private final String role;
     
     // Derived schema fields
@@ -42,15 +43,16 @@ public final class User {
     private final Integer totalFilesShared;
     private final Instant createdAt;
 
-    public User(ObjectId id, String username, String passwordHash, Name name, String role, 
-                Long storageQuota, Integer filesLimit, Instant lastActiveAt, 
-                String collabStatus, Integer totalFilesShared, Instant createdAt) {
+    public User(ObjectId id, String username, String passwordHash, Name name, String role,
+                Long storageQuota, Integer filesLimit, Instant lastActiveAt,
+                String collabStatus, Integer totalFilesShared, Instant createdAt, String displayName) {
         this.id = id;
         this.username = Objects.requireNonNull(username, "username");
         this.passwordHash = Objects.requireNonNull(passwordHash, "passwordHash");
         this.name = name;
+        this.displayName = displayName;
         this.role = role == null ? ROLE_USER : role;
-        
+
         this.storageQuota = storageQuota;
         this.filesLimit = filesLimit;
         this.lastActiveAt = lastActiveAt;
@@ -61,13 +63,14 @@ public final class User {
 
     // Convenience constructor for existing code
     public User(ObjectId id, String username, String passwordHash, Name name, String role, Instant createdAt) {
-        this(id, username, passwordHash, name, role, null, null, null, null, null, createdAt);
+        this(id, username, passwordHash, name, role, null, null, null, null, null, createdAt, null);
     }
 
     public ObjectId getId() { return id; }
     public String getUsername() { return username; }
     public String getPasswordHash() { return passwordHash; }
     public Name getName() { return name; }
+    public String getDisplayName() { return displayName; }
     public String getRole() { return role; }
     public Long getStorageQuota() { return storageQuota; }
     public Integer getFilesLimit() { return filesLimit; }
@@ -91,6 +94,7 @@ public final class User {
             document.put("name", null);
         }
         
+        document.put("displayName", displayName);
         document.put("role", role);
         document.put("storageQuota", storageQuota);
         document.put("filesLimit", filesLimit);
@@ -136,6 +140,8 @@ public final class User {
 
         Date createdAt = document.getDate("createdAt");
 
+        String displayName = document.getString("displayName");
+
         return new User(
                 id,
                 username,
@@ -147,6 +153,7 @@ public final class User {
                 lastActiveAt,
                 collabStatus,
                 totalFilesShared,
-                createdAt == null ? null : createdAt.toInstant());
+                createdAt == null ? null : createdAt.toInstant(),
+                displayName);
     }
 }

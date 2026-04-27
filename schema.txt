@@ -1,0 +1,327 @@
+================================================================================
+  DVCS — MongoDB Schema Reference (20 Collections)
+================================================================================
+
+────────────────────────────────────────────────────────────────────────────────
+1. users
+   Stores registered user accounts.
+────────────────────────────────────────────────────────────────────────────────
+  Attribute           | Type          | Description
+  ─────────────────── | ───────────── | ─────────────────────────────────────────
+  _id                 | ObjectId (PK) | Unique user identifier
+  username            | String        | Unique login username
+  displayName         | String        | Flat full name for display (NEW)
+  name                | Document      | Compound: { firstName, lastName }
+  passwordHash        | String        | BCrypt password hash
+  role                | String        | 'user' or 'collaborator'
+  storageQuota        | Long          | Max allowed storage in bytes
+  filesLimit          | Integer       | Max number of files allowed
+  lastActiveAt        | Date          | Timestamp of last activity
+  collabStatus        | String        | 'active' or 'inactive'
+  totalFilesShared    | Integer       | Derived: count of files shared
+  createdAt           | Date          | Account creation timestamp
+
+────────────────────────────────────────────────────────────────────────────────
+2. workspaces
+   Top-level project containers.
+────────────────────────────────────────────────────────────────────────────────
+  Attribute           | Type          | Description
+  ─────────────────── | ───────────── | ─────────────────────────────────────────
+  _id                 | ObjectId (PK) | Unique workspace identifier
+  workspaceName       | String        | Workspace display name
+  path                | Document      | Compound: { disk, folder, folderName, absolutePath }
+  createdBy           | ObjectId (FK) | References users._id
+  collaborators       | ObjectId[]    | Multi-valued: list of collaborator user IDs (NEW)
+  createdAt           | Date          | Creation timestamp
+  updatedAt           | Date          | Last modification timestamp
+
+────────────────────────────────────────────────────────────────────────────────
+3. folders
+   Directories inside a workspace.
+────────────────────────────────────────────────────────────────────────────────
+  Attribute           | Type          | Description
+  ─────────────────── | ───────────── | ─────────────────────────────────────────
+  _id                 | ObjectId (PK) | Unique folder identifier
+  workspaceId         | ObjectId (FK) | References workspaces._id
+  folderName          | String        | Folder name ('root' for top-level)
+  path                | Document      | Compound: { disk, folder }
+  createdBy           | ObjectId (FK) | References users._id
+  createdAt           | Date          | Creation timestamp
+
+────────────────────────────────────────────────────────────────────────────────
+4. files
+   File metadata records (content stored in file_snapshots).
+────────────────────────────────────────────────────────────────────────────────
+  Attribute           | Type          | Description
+  ─────────────────── | ───────────── | ─────────────────────────────────────────
+  _id                 | ObjectId (PK) | Unique file identifier
+  folderId            | ObjectId (FK) | References folders._id
+  filename            | String        | File name with extension
+  extension           | String        | Extension without dot (e.g., 'java')
+  path                | Document      | Compound: { disk, folder, versionRoot }
+  currentSnapshotId   | Integer       | Active snapshot number (0 = no commits)
+  latestCommit        | Document      | Compound: { message, committedBy, committedAt }
+  lockStatus          | Document      | Compound: { isLocked, lockedBy, lockedAt }
+  tags                | String[]      | Multi-valued: user-defined file tags
+  createdBy           | ObjectId (FK) | References users._id
+  createdAt           | Date          | Creation timestamp
+
+────────────────────────────────────────────────────────────────────────────────
+5. file_snapshots
+   Immutable content snapshots for each file version.
+────────────────────────────────────────────────────────────────────────────────
+  Attribute           | Type          | Description
+  ─────────────────── | ───────────── | ─────────────────────────────────────────
+  _id                 | ObjectId (PK) | Unique snapshot identifier
+  fileId              | ObjectId (FK) | References files._id
+  snapshotId          | Integer       | Sequential version number (1, 2, 3 …)
+  content             | String        | Full file content at this snapshot
+  derivedStats        | Document      | Compound: { lineCount, wordCount, charCount }
+  createdAt           | Date          | Snapshot creation timestamp
+
+────────────────────────────────────────────────────────────────────────────────
+6. commits
+   Commit records linking users, files, and snapshots.
+────────────────────────────────────────────────────────────────────────────────
+  Attribute           | Type          | Description
+  ─────────────────── | ───────────── | ─────────────────────────────────────────
+  _id                 | ObjectId (PK) | Unique commit identifier
+  fileId              | ObjectId (FK) | References files._id
+  workspaceId         | ObjectId (FK) | References workspaces._id (NEW)
+  snapshotId          | Integer       | Associated snapshot number
+  message             | String        | Commit message
+  committedBy         | ObjectId (FK) | References users._id
+  committedAt         | Date          | Commit timestamp
+
+────────────────────────────────────────────────────────────────────────────────
+7. branches
+   Named branches within a workspace.
+────────────────────────────────────────────────────────────────────────────────
+  Attribute           | Type          | Description
+  ─────────────────── | ───────────── | ─────────────────────────────────────────
+  _id                 | ObjectId (PK) | Unique branch identifier
+  workspaceId         | ObjectId (FK) | References workspaces._id
+  branchName          | String        | Branch name (e.g., 'main', 'develop')
+  description         | String        | Optional branch description
+  createdBy           | ObjectId (FK) | References users._id
+  isDefault           | Boolean       | True if this is the default branch
+  isProtected         | Boolean       | True if direct pushes are blocked
+  status              | String        | 'active' or 'archived'
+  createdAt           | Date          | Creation timestamp
+  updatedAt           | Date          | Last update timestamp
+
+────────────────────────────────────────────────────────────────────────────────
+8. tags
+   Version tags attached to specific commits.
+────────────────────────────────────────────────────────────────────────────────
+  Attribute           | Type          | Description
+  ─────────────────── | ───────────── | ─────────────────────────────────────────
+  _id                 | ObjectId (PK) | Unique tag identifier
+  workspaceId         | ObjectId (FK) | References workspaces._id
+  tagName             | String        | Tag name (e.g., 'v1.0.0')
+  description         | String        | Short tag description
+  commitId            | ObjectId (FK) | References commits._id
+  targetBranch        | String        | Branch this tag points to
+  createdBy           | ObjectId (FK) | References users._id
+  releaseNotes        | String        | Optional release notes text
+  createdAt           | Date          | Creation timestamp
+
+────────────────────────────────────────────────────────────────────────────────
+9. merge_requests
+   Requests to merge changes from one branch into another.
+────────────────────────────────────────────────────────────────────────────────
+  Attribute           | Type          | Description
+  ─────────────────── | ───────────── | ─────────────────────────────────────────
+  _id                 | ObjectId (PK) | Unique merge request identifier
+  workspaceId         | ObjectId (FK) | References workspaces._id
+  title               | String        | Short merge request title
+  description         | String        | Detailed description of changes
+  sourceBranch        | String        | Branch being merged from
+  targetBranch        | String        | Branch being merged into
+  createdBy           | ObjectId (FK) | References users._id
+  reviewers           | ObjectId[]    | Multi-valued: assigned reviewer user IDs
+  status              | String        | 'open', 'merged', or 'closed'
+  labels              | String[]      | Multi-valued: classification labels
+  createdAt           | Date          | Creation timestamp
+  updatedAt           | Date          | Last status update timestamp
+
+────────────────────────────────────────────────────────────────────────────────
+10. colab_requests
+    File collaboration access requests between users.
+────────────────────────────────────────────────────────────────────────────────
+  Attribute           | Type          | Description
+  ─────────────────── | ───────────── | ─────────────────────────────────────────
+  _id                 | ObjectId (PK) | Unique request identifier
+  fileId              | ObjectId (FK) | References files._id
+  workspaceId         | ObjectId (FK) | References workspaces._id (NEW)
+  requestedBy         | ObjectId (FK) | User who sent the request
+  requestedTo         | ObjectId (FK) | User who must approve
+  requestedAt         | Date          | Request creation timestamp
+  status              | String        | 'pending', 'accepted', or 'rejected'
+  respondedAt         | Date          | Response timestamp (null if pending)
+
+────────────────────────────────────────────────────────────────────────────────
+11. folder_permissions
+    Per-user access control entries for folders.
+────────────────────────────────────────────────────────────────────────────────
+  Attribute           | Type          | Description
+  ─────────────────── | ───────────── | ─────────────────────────────────────────
+  _id                 | ObjectId (PK) | Unique permission entry identifier
+  folderId            | ObjectId (FK) | References folders._id
+  userId              | ObjectId (FK) | User being granted permission
+  permissionType      | String        | 'read', 'read-write', or 'admin'
+  grantedBy           | ObjectId (FK) | User who granted this permission
+  grantedAt           | Date          | Grant timestamp
+  expiresAt           | Date          | Expiry timestamp (null = no expiry)
+  isActive            | Boolean       | Whether this permission is currently valid
+
+────────────────────────────────────────────────────────────────────────────────
+12. audit_logs
+    Immutable log of all significant system actions.
+────────────────────────────────────────────────────────────────────────────────
+  Attribute           | Type          | Description
+  ─────────────────── | ───────────── | ─────────────────────────────────────────
+  _id                 | ObjectId (PK) | Unique log entry identifier
+  userId              | ObjectId (FK) | User who performed the action
+  action              | String        | Action type: COMMIT, CREATE_FILE, LOCK, RENAME, DELETE, RESTORE
+  entityType          | String        | 'File', 'Folder', or 'Workspace'
+  entityName          | String        | Name of the affected entity
+  entityId            | String        | String-form ID of affected entity
+  metadata            | Document      | Compound: additional context details
+  loggedAt            | Date          | Timestamp when action was logged
+
+────────────────────────────────────────────────────────────────────────────────
+13. notifications
+    In-app notification messages for users.
+────────────────────────────────────────────────────────────────────────────────
+  Attribute           | Type          | Description
+  ─────────────────── | ───────────── | ─────────────────────────────────────────
+  _id                 | ObjectId (PK) | Unique notification identifier
+  userId              | ObjectId (FK) | Recipient user
+  type                | String        | 'collaboration_request', 'merge_approved', 'merge_rejected', etc.
+  title               | String        | Short notification title
+  message             | String        | Full notification body text
+  isRead              | Boolean       | Whether the user has read this notification
+  relatedEntityId     | ObjectId      | ID of the related entity (request, merge, etc.)
+  relatedEntityType   | String        | Type of related entity (NEW)
+  createdAt           | Date          | Notification creation timestamp
+
+────────────────────────────────────────────────────────────────────────────────
+14. workspace_machines
+    Machines registered to access a workspace.
+────────────────────────────────────────────────────────────────────────────────
+  Attribute           | Type          | Description
+  ─────────────────── | ───────────── | ─────────────────────────────────────────
+  _id                 | ObjectId (PK) | Unique machine record identifier
+  workspaceId         | ObjectId (FK) | References workspaces._id
+  machineName         | String        | Machine hostname or user-given label
+  ipAddress           | String        | Machine IP address
+  osType              | String        | Operating system (e.g., 'Windows 11')
+  registeredAt        | Date          | First registration timestamp
+  lastAccessedAt      | Date          | Most recent access timestamp
+  isActive            | Boolean       | Whether machine is currently authorized
+
+────────────────────────────────────────────────────────────────────────────────
+15. workspace_activity  [NEW]
+    Daily activity aggregates for charts and heatmaps.
+────────────────────────────────────────────────────────────────────────────────
+  Attribute           | Type          | Description
+  ─────────────────── | ───────────── | ─────────────────────────────────────────
+  _id                 | ObjectId (PK) | Unique activity record identifier
+  workspaceId         | ObjectId (FK) | References workspaces._id
+  userId              | ObjectId (FK) | References users._id
+  activityType        | String        | 'commit', 'review', 'merge', 'lock'
+  activityDate        | Date          | Date of activity (truncated to midnight)
+  count               | Integer       | Number of activities on that day
+  dayOfWeek           | String        | Short day label: 'Mon', 'Tue', etc.
+  weekNumber          | Integer       | ISO week number (1–52)
+  createdAt           | Date          | Record creation timestamp
+
+────────────────────────────────────────────────────────────────────────────────
+16. file_reviews  [NEW]
+    Structured code reviews attached to specific file snapshots.
+────────────────────────────────────────────────────────────────────────────────
+  Attribute           | Type          | Description
+  ─────────────────── | ───────────── | ─────────────────────────────────────────
+  _id                 | ObjectId (PK) | Unique review identifier
+  fileId              | ObjectId (FK) | References files._id
+  workspaceId         | ObjectId (FK) | References workspaces._id
+  reviewerId          | ObjectId (FK) | References users._id
+  snapshotId          | Integer       | Snapshot version being reviewed
+  reviewType          | String        | 'code_review' or 'quality_check'
+  status              | String        | 'pending', 'approved', or 'changes_requested'
+  comments            | Integer       | Number of review comments posted
+  score               | Integer       | Review score 1–10 (null if pending)
+  createdAt           | Date          | Review creation timestamp
+  updatedAt           | Date          | Last update timestamp
+
+────────────────────────────────────────────────────────────────────────────────
+17. user_sessions  [NEW]
+    Active login sessions for authentication tracking.
+────────────────────────────────────────────────────────────────────────────────
+  Attribute           | Type          | Description
+  ─────────────────── | ───────────── | ─────────────────────────────────────────
+  _id                 | ObjectId (PK) | Unique session identifier
+  userId              | ObjectId (FK) | References users._id
+  sessionToken        | String        | Unique random session token
+  ipAddress           | String        | Client IP address at login
+  userAgent           | String        | Client browser/app user-agent string
+  loginAt             | Date          | Session start timestamp
+  expiresAt           | Date          | Session expiration timestamp
+  lastPingAt          | Date          | Most recent activity ping timestamp
+  isActive            | Boolean       | Whether session is currently valid
+
+────────────────────────────────────────────────────────────────────────────────
+18. starred_workspaces  [NEW]
+    User-bookmarked workspaces shown on the profile page.
+────────────────────────────────────────────────────────────────────────────────
+  Attribute           | Type          | Description
+  ─────────────────── | ───────────── | ─────────────────────────────────────────
+  _id                 | ObjectId (PK) | Unique star record identifier
+  userId              | ObjectId (FK) | User who starred the workspace
+  workspaceId         | ObjectId (FK) | References workspaces._id
+  workspaceName       | String        | Denormalized workspace name for fast display
+  workspaceOwner      | ObjectId (FK) | References workspaces.createdBy
+  starredAt           | Date          | Timestamp when workspace was starred
+  note                | String        | Optional personal note about workspace
+  isPublic            | Boolean       | Whether this star is visible to others
+
+────────────────────────────────────────────────────────────────────────────────
+19. workspace_settings  [NEW]
+    Per-workspace configuration and policy settings.
+────────────────────────────────────────────────────────────────────────────────
+  Attribute           | Type          | Description
+  ─────────────────── | ───────────── | ─────────────────────────────────────────
+  _id                 | ObjectId (PK) | Unique settings record identifier
+  workspaceId         | ObjectId (FK) | References workspaces._id
+  defaultBranch       | String        | Default branch name for the workspace
+  visibility          | String        | 'private', 'team', or 'public'
+  mergeStrategy       | String        | 'merge', 'squash', or 'rebase'
+  requireCodeReview   | Boolean       | Whether code review is required before merge
+  maxCollaborators    | Integer       | Maximum number of allowed collaborators
+  theme               | String        | Editor theme preference: 'dark' or 'light'
+  updatedAt           | Date          | Last settings update timestamp
+
+────────────────────────────────────────────────────────────────────────────────
+20. file_comments  [NEW]
+    Inline comments on file content, with threading support.
+────────────────────────────────────────────────────────────────────────────────
+  Attribute           | Type          | Description
+  ─────────────────── | ───────────── | ─────────────────────────────────────────
+  _id                 | ObjectId (PK) | Unique comment identifier
+  fileId              | ObjectId (FK) | References files._id
+  workspaceId         | ObjectId (FK) | References workspaces._id
+  authorId            | ObjectId (FK) | References users._id
+  snapshotId          | Integer       | Snapshot version being commented on
+  lineNumber          | Integer       | Line number of the comment (null = file-level)
+  content             | String        | Comment text content
+  isResolved          | Boolean       | Whether the comment thread is resolved
+  replyTo             | ObjectId (FK) | Parent comment ID for threaded replies (null = root)
+  createdAt           | Date          | Comment creation timestamp
+  updatedAt           | Date          | Last edit timestamp
+
+================================================================================
+  Summary: 14 original + 6 new = 20 collections total
+  Attributes marked (NEW) are additions to existing collections.
+  Collections marked [NEW] are entirely new.
+================================================================================

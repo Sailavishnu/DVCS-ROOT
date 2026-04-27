@@ -1456,7 +1456,7 @@ public final class WorkspaceController {
     private void commitSelectedFile(String commitMessage) {
         try {
             String content = fileSystemService.readFile(selectedPath);
-            fileService.commit(selectedFile.fileId(), currentUserId, commitMessage, content);
+            fileService.commit(selectedFile.fileId(), currentUserId, commitMessage, content, workspaceId);
             reloadWorkspace();
             showInfo("Commit saved");
         } catch (Exception e) {
@@ -1769,7 +1769,7 @@ public final class WorkspaceController {
                     return;
                 }
 
-                fileService.commit(fileMetadata.fileId(), currentUserId, commitMessage, content);
+                fileService.commit(fileMetadata.fileId(), currentUserId, commitMessage, content, workspaceId);
                 reloadWorkspace();
                 stage.close();
                 populateCurrentDirectoryTable();
