@@ -372,16 +372,23 @@ public final class ProfileController {
 
     @FXML
     private void onLogout() {
-        Stage currentStage = (root != null && root.getScene() != null && root.getScene().getWindow() instanceof Stage s)
+        Stage profileStage = (root != null && root.getScene() != null && root.getScene().getWindow() instanceof Stage s)
                 ? s
                 : null;
-        if (currentStage == null) {
+        if (profileStage == null) {
             showError("Logout failed. Please try again.");
             return;
         }
 
+        Stage targetStage = (profileStage.getOwner() instanceof Stage ownerStage)
+                ? ownerStage
+                : profileStage;
+
         try {
-            showLandingPageOnStage(currentStage);
+            showLandingPageOnStage(targetStage);
+            if (targetStage != profileStage) {
+                profileStage.close();
+            }
         } catch (Exception e) {
             showError("Logout failed. Please try again.");
         }

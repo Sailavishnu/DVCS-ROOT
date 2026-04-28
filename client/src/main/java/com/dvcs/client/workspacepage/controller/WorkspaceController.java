@@ -783,12 +783,23 @@ public final class WorkspaceController {
                         return;
                     }
                     WorkspaceCommitRow row = getTableView().getItems().get(getIndex());
+                    // Resolve relative path on FX thread before entering background task
+                    String relPath = metadataByRelativePath.entrySet().stream()
+                            .filter(e -> e.getValue().fileId().equals(row.fileId()))
+                            .map(Map.Entry::getKey)
+                            .findFirst()
+                            .orElse(null);
                     restoreBtn.setDisable(true);
                     runBackground("workspace-snapshot-restore-worker", () -> {
                         try {
                             String snapshotContent = fileService.loadSnapshotContent(row.fileId(), row.snapshotId());
                             fileService.restoreSnapshot(row.fileId(), row.snapshotId(),
                                     snapshotContent == null ? "" : snapshotContent);
+                            if (relPath != null && workspaceRoot != null) {
+                                fileSystemService.writeFile(
+                                        workspaceRoot.resolve(relPath).normalize(),
+                                        snapshotContent == null ? "" : snapshotContent);
+                            }
                             Platform.runLater(() -> {
                                 restoreBtn.setDisable(false);
                                 reloadWorkspace();
@@ -863,11 +874,13 @@ public final class WorkspaceController {
         oldSnapLabel.setStyle("-fx-text-fill: #a0b5d8;");
         ComboBox<WorkspaceSnapshotSelection> leftSnapshotCombo = new ComboBox<>();
         leftSnapshotCombo.setPrefWidth(300);
+        leftSnapshotCombo.getStyleClass().add("ws-dark-combo");
 
         Label newSnapLabel = new Label("New Version:");
         newSnapLabel.setStyle("-fx-text-fill: #a0b5d8;");
         ComboBox<WorkspaceSnapshotSelection> rightSnapshotCombo = new ComboBox<>();
         rightSnapshotCombo.setPrefWidth(300);
+        rightSnapshotCombo.getStyleClass().add("ws-dark-combo");
 
         snapshotPickerRow.getChildren().addAll(oldSnapLabel, leftSnapshotCombo, newSnapLabel, rightSnapshotCombo);
 

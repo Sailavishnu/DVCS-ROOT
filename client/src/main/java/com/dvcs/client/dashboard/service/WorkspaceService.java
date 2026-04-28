@@ -334,6 +334,21 @@ public final class WorkspaceService {
         return new WorkspaceDetails(workspaceName, folderNames, fileNames, collaborators);
     }
 
+    public String resolveWorkspaceRootPath(ObjectId workspaceId) {
+        return workspaceDao.findById(workspaceId)
+                .map(doc -> {
+                    Document pathDoc = doc.get("path", Document.class);
+                    if (pathDoc == null) return null;
+                    String abs = pathDoc.getString("absolutePath");
+                    if (abs != null && !abs.isBlank()) return abs;
+                    String disk = pathDoc.getString("disk") == null ? "" : pathDoc.getString("disk");
+                    String folder = pathDoc.getString("folder") == null ? "" : pathDoc.getString("folder");
+                    String folderName = pathDoc.getString("folderName") == null ? "" : pathDoc.getString("folderName");
+                    return disk + (folder.isBlank() ? folderName : folder + File.separator + folderName);
+                })
+                .orElse(null);
+    }
+
     public String reconstructFilePath(WorkspaceSummary workspace, String relativePath) {
         Objects.requireNonNull(workspace, "workspace");
         Objects.requireNonNull(relativePath, "relativePath");

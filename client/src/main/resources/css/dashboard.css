@@ -3133,22 +3133,43 @@
 }
 
 .workspace-branch-selector {
-    -fx-background-color: rgba(60, 100, 240, 0.1);
+    -fx-background-color: #0d1620;
     -fx-border-color: rgba(60, 100, 240, 0.4);
     -fx-border-radius: 8;
     -fx-background-radius: 8;
-    -fx-text-fill: #60a5fa;
+    -fx-text-fill: white;
     -fx-font-weight: bold;
     -fx-padding: 2 6;
 }
 
 .workspace-branch-selector .list-cell {
-    -fx-text-fill: #ffffff;
-    -fx-background-color: #0f172a;
+    -fx-text-fill: white;
+    -fx-background-color: #0d1620;
 }
 
 .workspace-branch-selector .list-cell:hover {
     -fx-background-color: #3b82f6;
+    -fx-text-fill: white;
+}
+
+/* Dark combo used in workspace comparison panel */
+.ws-dark-combo {
+    -fx-background-color: #0d1620;
+    -fx-border-color: rgba(100, 160, 240, 0.4);
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-text-fill: white;
+}
+
+.ws-dark-combo .list-cell {
+    -fx-text-fill: white;
+    -fx-background-color: #0d1620;
+}
+
+.ws-dark-combo .list-cell:hover,
+.ws-dark-combo .list-cell:selected {
+    -fx-background-color: #1e3a5f;
+    -fx-text-fill: white;
 }
 
 /* Tag Badges */

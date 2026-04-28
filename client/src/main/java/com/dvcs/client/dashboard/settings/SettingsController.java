@@ -40,6 +40,8 @@ import javax.swing.SwingUtilities;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
@@ -224,10 +226,28 @@ public final class SettingsController {
         try {
             String content = fileService.loadSnapshotContent(row.fileId(), row.snapshotId());
             fileService.restoreSnapshot(row.fileId(), row.snapshotId(), content);
+            restoreFileToDisk(row.workspaceId(), row.fileId(), content);
             loadCommitHistory(row.workspaceId());
             showAlert("Snapshot restored successfully!", Alert.AlertType.INFORMATION);
         } catch (Exception e) {
             showAlert("Failed to restore snapshot: " + e.getMessage(), Alert.AlertType.ERROR);
+        }
+    }
+
+    private void restoreFileToDisk(ObjectId workspaceId, ObjectId fileId, String content) {
+        try {
+            String workspaceRoot = workspaceService.resolveWorkspaceRootPath(workspaceId);
+            if (workspaceRoot == null || workspaceRoot.isBlank()) return;
+            Document fileDoc = fileDAO.findFileById(fileId).orElse(null);
+            if (fileDoc == null) return;
+            Document pathDoc = fileDoc.get("path", Document.class);
+            String relPath = pathDoc != null ? pathDoc.getString("folder") : null;
+            if (relPath == null || relPath.isBlank()) return;
+            Path diskPath = Path.of(workspaceRoot).resolve(relPath).normalize();
+            Files.writeString(diskPath, content == null ? "" : content,
+                    java.nio.charset.StandardCharsets.UTF_8);
+        } catch (Exception ignored) {
+            // disk write is best-effort; DB metadata is already restored
         }
     }
 
