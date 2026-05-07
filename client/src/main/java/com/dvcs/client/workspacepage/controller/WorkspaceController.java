@@ -64,6 +64,8 @@ import javafx.stage.Window;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.ToggleButton;
+import javafx.scene.control.ToggleGroup;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javax.swing.SwingUtilities;
@@ -76,8 +78,10 @@ import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.fife.ui.rsyntaxtextarea.Theme;
 import org.fife.ui.rtextarea.RTextScrollPane;
 import com.dvcs.client.workspacepage.dao.FileDAO;
+import com.dvcs.client.workspacepage.model.FileCommentModel;
 import java.time.format.DateTimeFormatter;
 import java.time.ZoneId;
+import com.dvcs.client.workspacepage.model.WorkspaceCommentModel;
 
 public final class WorkspaceController {
 
@@ -781,6 +785,231 @@ public final class WorkspaceController {
         });
 
         settingsStage.showAndWait();
+    }
+
+    @FXML
+    private void onCommentsRequested() {
+        if (workspaceService == null || workspaceId == null || currentModel == null) {
+            showGlassMorphicError("Comments Unavailable", "Workspace comments are not ready yet.");
+            return;
+        }
+
+        ensureUserDirectoryLoaded();
+
+        Stage owner = resolveOwnerStage();
+        Stage dialog = new Stage();
+        dialog.setTitle("Workspace Comments");
+        dialog.initModality(Modality.APPLICATION_MODAL);
+        if (owner != null) {
+            dialog.initOwner(owner);
+        }
+
+        Label titleLabel = new Label("Comments");
+        titleLabel.getStyleClass().add("workspace-comment-title");
+
+        Label subtitleLabel = new Label("Workspace discussion and file notes for " + currentModel.workspaceName());
+        subtitleLabel.getStyleClass().add("workspace-comment-subtitle");
+        subtitleLabel.setWrapText(true);
+
+        ToggleButton workspaceTab = new ToggleButton("Workspace");
+        ToggleButton fileTab = new ToggleButton("File");
+        workspaceTab.getStyleClass().add("workspace-comment-tab");
+        fileTab.getStyleClass().add("workspace-comment-tab");
+        ToggleGroup toggleGroup = new ToggleGroup();
+        workspaceTab.setToggleGroup(toggleGroup);
+        fileTab.setToggleGroup(toggleGroup);
+        workspaceTab.setSelected(true);
+
+        HBox tabs = new HBox(8, workspaceTab, fileTab);
+        tabs.getStyleClass().add("workspace-comment-tabs");
+
+        Label statusLabel = new Label();
+        statusLabel.getStyleClass().add("workspace-comment-meta");
+        statusLabel.setWrapText(true);
+
+        VBox feedContent = new VBox(14);
+        ScrollPane scrollPane = new ScrollPane(feedContent);
+        scrollPane.getStyleClass().add("workspace-comment-scroll");
+        scrollPane.setFitToWidth(true);
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        VBox.setVgrow(scrollPane, Priority.ALWAYS);
+
+        Map<ObjectId, String> fileDisplayNames = buildFileDisplayNames();
+
+        Runnable renderWorkspaceView = () -> {
+            renderWorkspaceComments(feedContent);
+        };
+
+        Runnable renderFileView = () -> {
+            renderFileComments(feedContent, fileDisplayNames);
+        };
+
+        toggleGroup.selectedToggleProperty().addListener((obs, oldToggle, newToggle) -> {
+            if (newToggle == fileTab) {
+                renderFileView.run();
+            } else {
+                renderWorkspaceView.run();
+            }
+        });
+
+        Button leaveCommentButton = new Button("Leave a Comment");
+        leaveCommentButton.getStyleClass().addAll("neon-popup-button", "neon-popup-button-primary");
+        leaveCommentButton.setOnAction(event -> {
+            boolean posted = showCommentComposerDialog(dialog, fileDisplayNames, fileTab.isSelected());
+            if (posted) {
+                if (fileTab.isSelected()) {
+                    renderFileView.run();
+                } else {
+                    renderWorkspaceView.run();
+                }
+                statusLabel.setText("Comment saved to MongoDB.");
+            }
+        });
+
+        renderWorkspaceView.run();
+
+        Button closeButton = new Button("Close");
+        closeButton.getStyleClass().addAll("neon-popup-button", "neon-popup-button-secondary");
+        closeButton.setOnAction(event -> dialog.close());
+
+        HBox footerActions = new HBox(10, leaveCommentButton, closeButton);
+        footerActions.setAlignment(Pos.CENTER_RIGHT);
+
+        VBox shell = new VBox(14, titleLabel, subtitleLabel, tabs, scrollPane, statusLabel, footerActions);
+        shell.getStyleClass().addAll("workspace-comment-window", "workspace-comment-shell");
+        VBox.setVgrow(scrollPane, Priority.ALWAYS);
+
+        Scene scene = new Scene(shell);
+        scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/css/workspace.css")).toExternalForm());
+        dialog.setScene(scene);
+
+        if (owner != null) {
+            double width = Math.max(660, owner.getWidth() * 0.48);
+            double height = Math.max(540, owner.getHeight() * 0.62);
+            dialog.setWidth(width);
+            dialog.setHeight(height);
+            dialog.setX(owner.getX() + ((owner.getWidth() - width) / 2.0));
+            dialog.setY(owner.getY() + ((owner.getHeight() - height) / 2.0));
+        } else {
+            dialog.setWidth(720);
+            dialog.setHeight(580);
+        }
+
+        dialog.showAndWait();
+    }
+
+    private boolean showCommentComposerDialog(Window owner, Map<ObjectId, String> fileDisplayNames, boolean defaultFileMode) {
+        Stage dialog = new Stage();
+        dialog.setTitle("Leave a Comment");
+        dialog.initModality(Modality.APPLICATION_MODAL);
+        if (owner != null) {
+            dialog.initOwner(owner);
+        }
+
+        Label titleLabel = new Label("Leave a Comment");
+        titleLabel.getStyleClass().add("workspace-comment-title");
+
+        Label subtitleLabel = new Label("Anyone viewing this workspace can post a workspace note or a file note.");
+        subtitleLabel.getStyleClass().add("workspace-comment-subtitle");
+        subtitleLabel.setWrapText(true);
+
+        ToggleButton workspaceTab = new ToggleButton("Workspace");
+        ToggleButton fileTab = new ToggleButton("File");
+        workspaceTab.getStyleClass().add("workspace-comment-tab");
+        fileTab.getStyleClass().add("workspace-comment-tab");
+        ToggleGroup toggleGroup = new ToggleGroup();
+        workspaceTab.setToggleGroup(toggleGroup);
+        fileTab.setToggleGroup(toggleGroup);
+        if (defaultFileMode) {
+            fileTab.setSelected(true);
+        } else {
+            workspaceTab.setSelected(true);
+        }
+
+        HBox tabs = new HBox(8, workspaceTab, fileTab);
+        tabs.getStyleClass().add("workspace-comment-tabs");
+
+        Label composerMeta = new Label();
+        composerMeta.getStyleClass().add("workspace-comment-meta");
+        composerMeta.setWrapText(true);
+
+        ComboBox<FileCommentOption> filePicker = new ComboBox<>();
+        filePicker.getStyleClass().add("workspace-comment-file-picker");
+        filePicker.setPromptText("Choose a file");
+        filePicker.setMaxWidth(Double.MAX_VALUE);
+        ObservableList<FileCommentOption> fileOptions = FXCollections.observableArrayList(buildFileCommentOptions(fileDisplayNames));
+        filePicker.setItems(fileOptions);
+        if (!fileOptions.isEmpty()) {
+            filePicker.getSelectionModel().selectFirst();
+        }
+
+        TextArea commentInput = new TextArea();
+        commentInput.getStyleClass().add("workspace-comment-input");
+        commentInput.setWrapText(true);
+        commentInput.setPrefRowCount(5);
+
+        Label statusLabel = new Label();
+        statusLabel.getStyleClass().add("workspace-comment-meta");
+        statusLabel.setWrapText(true);
+
+        Runnable updateMode = () -> {
+            boolean fileMode = fileTab.isSelected();
+            filePicker.setVisible(fileMode);
+            filePicker.setManaged(fileMode);
+            if (fileMode) {
+                composerMeta.setText("Select the file you want to comment on, then post your note.");
+                commentInput.setPromptText("Write a comment about the selected file...");
+            } else {
+                composerMeta.setText("Post a comment for the whole workspace.");
+                commentInput.setPromptText("Share a workspace update...");
+            }
+        };
+        toggleGroup.selectedToggleProperty().addListener((obs, oldToggle, newToggle) -> updateMode.run());
+        updateMode.run();
+
+        Button postButton = new Button("Post Comment");
+        postButton.getStyleClass().addAll("neon-popup-button", "neon-popup-button-primary");
+
+        AtomicReference<Boolean> posted = new AtomicReference<>(false);
+        postButton.setOnAction(event -> {
+            String message = commentInput.getText() == null ? "" : commentInput.getText().trim();
+            if (message.isEmpty()) {
+                statusLabel.setText("Write a comment before posting.");
+                return;
+            }
+            try {
+                if (fileTab.isSelected()) {
+                    FileCommentOption selected = filePicker.getValue();
+                    if (selected == null || selected.fileId() == null) {
+                        statusLabel.setText("Choose a file first.");
+                        return;
+                    }
+                    workspaceService.addFileComment(workspaceId, selected.fileId(), currentUserId, message);
+                } else {
+                    workspaceService.addWorkspaceComment(workspaceId, currentUserId, message);
+                }
+                posted.set(true);
+                dialog.close();
+            } catch (Exception ex) {
+                statusLabel.setText("Could not save comment: " + ex.getMessage());
+            }
+        });
+
+        Button cancelButton = new Button("Cancel");
+        cancelButton.getStyleClass().addAll("neon-popup-button", "neon-popup-button-secondary");
+        cancelButton.setOnAction(event -> dialog.close());
+
+        HBox footerActions = new HBox(10, postButton, cancelButton);
+        footerActions.setAlignment(Pos.CENTER_RIGHT);
+
+        VBox shell = new VBox(14, titleLabel, subtitleLabel, tabs, composerMeta, filePicker, commentInput, statusLabel, footerActions);
+        shell.getStyleClass().addAll("workspace-comment-window", "workspace-comment-shell", "workspace-comment-composer");
+
+        Scene scene = new Scene(shell, 560, 430);
+        scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/css/workspace.css")).toExternalForm());
+        dialog.setScene(scene);
+        dialog.showAndWait();
+        return Boolean.TRUE.equals(posted.get());
     }
 
     private VBox createCommitHistoryPanel() {
@@ -3074,6 +3303,129 @@ public final class WorkspaceController {
                 .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
     }
 
+    private String formatInstant(Instant instant) {
+        if (instant == null) {
+            return "N/A";
+        }
+        return instant.atZone(ZoneId.systemDefault())
+                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+    }
+
+    private Map<ObjectId, String> buildFileDisplayNames() {
+        Map<ObjectId, String> displayNames = new LinkedHashMap<>();
+        if (currentModel == null) {
+            return displayNames;
+        }
+        for (FolderModel folder : currentModel.folders()) {
+            String folderName = folder.folderName() == null ? "root" : folder.folderName().trim();
+            for (FileItemModel file : folder.files()) {
+                if (file.fileId() == null) {
+                    continue;
+                }
+                String displayName = folderName.isBlank() || "root".equalsIgnoreCase(folderName)
+                        ? file.filename()
+                        : folderName + "/" + file.filename();
+                displayNames.put(file.fileId(), displayName);
+            }
+        }
+        return displayNames;
+    }
+
+    private List<FileCommentOption> buildFileCommentOptions(Map<ObjectId, String> fileDisplayNames) {
+        List<FileCommentOption> options = new ArrayList<>();
+        fileDisplayNames.entrySet().stream()
+                .sorted(Map.Entry.comparingByValue(String.CASE_INSENSITIVE_ORDER))
+                .forEach(entry -> options.add(new FileCommentOption(entry.getKey(), entry.getValue())));
+        return options;
+    }
+
+    private void renderWorkspaceComments(VBox container) {
+        container.getChildren().clear();
+        List<WorkspaceCommentModel> comments = workspaceService.loadWorkspaceComments(workspaceId);
+        if (comments.isEmpty()) {
+            Label empty = new Label("No workspace comments yet.");
+            empty.getStyleClass().add("workspace-comment-empty");
+            container.getChildren().add(empty);
+            return;
+        }
+        for (WorkspaceCommentModel comment : comments) {
+            container.getChildren().add(createCommentCard(
+                    resolveUsername(comment.authorId()),
+                    formatInstant(comment.createdAt()),
+                    comment.message()));
+        }
+    }
+
+    private void renderFileComments(VBox container, Map<ObjectId, String> fileDisplayNames) {
+        container.getChildren().clear();
+        List<FileCommentModel> comments = workspaceService.loadFileComments(workspaceId);
+        if (comments.isEmpty()) {
+            Label empty = new Label("No file comments yet.");
+            empty.getStyleClass().add("workspace-comment-empty");
+            container.getChildren().add(empty);
+            return;
+        }
+
+        Map<ObjectId, List<FileCommentModel>> commentsByFile = new LinkedHashMap<>();
+        for (FileCommentModel comment : comments) {
+            if (comment.fileId() == null) {
+                continue;
+            }
+            commentsByFile.computeIfAbsent(comment.fileId(), ignored -> new ArrayList<>()).add(comment);
+        }
+
+        commentsByFile.entrySet().stream()
+                .sorted((left, right) -> {
+                    Instant leftInstant = left.getValue().isEmpty() || left.getValue().get(0).createdAt() == null
+                            ? Instant.EPOCH : left.getValue().get(0).createdAt();
+                    Instant rightInstant = right.getValue().isEmpty() || right.getValue().get(0).createdAt() == null
+                            ? Instant.EPOCH : right.getValue().get(0).createdAt();
+                    return rightInstant.compareTo(leftInstant);
+                })
+                .forEach(entry -> {
+                    String fileName = fileDisplayNames.getOrDefault(entry.getKey(), "Unknown file");
+                    int count = entry.getValue().size();
+                    Label fileTitle = new Label(fileName + "  •  " + count + " comment" + (count == 1 ? "" : "s"));
+                    fileTitle.getStyleClass().add("workspace-comment-group-title");
+
+                    VBox groupBody = new VBox(10);
+                    List<FileCommentModel> ordered = new ArrayList<>(entry.getValue());
+                    ordered.sort(Comparator.comparing(FileCommentModel::createdAt,
+                            Comparator.nullsLast(Comparator.naturalOrder())));
+                    for (FileCommentModel comment : ordered) {
+                        groupBody.getChildren().add(createCommentCard(
+                                resolveUsername(comment.authorId()),
+                                formatInstant(comment.createdAt()),
+                                comment.message()));
+                    }
+
+                    VBox group = new VBox(12, fileTitle, groupBody);
+                    group.getStyleClass().add("workspace-comment-group");
+                    container.getChildren().add(group);
+                });
+    }
+
+    private VBox createCommentCard(String author, String createdAt, String message) {
+        Label authorLabel = new Label(author == null || author.isBlank() ? "Unknown" : author);
+        authorLabel.getStyleClass().add("workspace-comment-author");
+
+        Label timeLabel = new Label(createdAt);
+        timeLabel.getStyleClass().add("workspace-comment-time");
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+        HBox header = new HBox(10, authorLabel, spacer, timeLabel);
+        header.setAlignment(Pos.CENTER_LEFT);
+
+        Label bodyLabel = new Label(message == null ? "" : message);
+        bodyLabel.getStyleClass().add("workspace-comment-body");
+        bodyLabel.setWrapText(true);
+
+        VBox card = new VBox(10, header, bodyLabel);
+        card.getStyleClass().add("workspace-comment-card");
+        return card;
+    }
+
     private void updateBranchSelector() {
         if (branchSelector == null || currentModel == null) return;
 
@@ -3185,5 +3537,14 @@ public final class WorkspaceController {
             dbName = "DVCS";
         }
         return new FileDAO(MongoConnection.getDatabase(dbName));
+    }
+
+    private record FileCommentOption(
+            ObjectId fileId,
+            String label) {
+        @Override
+        public String toString() {
+            return label;
+        }
     }
 }

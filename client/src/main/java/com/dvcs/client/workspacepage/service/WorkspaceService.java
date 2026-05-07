@@ -20,23 +20,28 @@ import com.dvcs.client.core.model.Tag;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 
+import com.dvcs.client.workspacepage.dao.CommentDAO;
 import com.dvcs.client.workspacepage.dao.FileDAO;
 import com.dvcs.client.workspacepage.dao.WorkspaceDAO;
+import com.dvcs.client.workspacepage.model.FileCommentModel;
 import com.dvcs.client.workspacepage.model.FileItemModel;
 import com.dvcs.client.workspacepage.model.FolderModel;
 import com.dvcs.client.workspacepage.model.UserModel;
+import com.dvcs.client.workspacepage.model.WorkspaceCommentModel;
 import com.dvcs.client.workspacepage.model.WorkspacePageModel;
 
 public final class WorkspaceService {
 
     private final WorkspaceDAO workspaceDAO;
     private final FileDAO fileDAO;
+    private final CommentDAO commentDAO;
     private final AuditLogDao auditLogDao;
     private final CommitService commitService;
 
-    public WorkspaceService(WorkspaceDAO workspaceDAO, FileDAO fileDAO, CommitService commitService, AuditLogDao auditLogDao) {
+    public WorkspaceService(WorkspaceDAO workspaceDAO, FileDAO fileDAO, CommentDAO commentDAO, CommitService commitService, AuditLogDao auditLogDao) {
         this.workspaceDAO = Objects.requireNonNull(workspaceDAO, "workspaceDAO");
         this.fileDAO = Objects.requireNonNull(fileDAO, "fileDAO");
+        this.commentDAO = Objects.requireNonNull(commentDAO, "commentDAO");
         this.commitService = Objects.requireNonNull(commitService, "commitService");
         this.auditLogDao = Objects.requireNonNull(auditLogDao, "auditLogDao");
     }
@@ -298,6 +303,8 @@ public final class WorkspaceService {
                 .toList();
 
         fileDAO.deleteWorkspaceRecords(fileIds);
+        commentDAO.deleteWorkspaceComments(workspaceId);
+        commentDAO.deleteFileComments(fileIds);
         workspaceDAO.deleteWorkspaceCascade(workspaceId, folderIds, fileIds);
     }
 
@@ -318,6 +325,7 @@ public final class WorkspaceService {
         if (file == null || file.fileId() == null) {
             return;
         }
+        commentDAO.deleteFileComments(file.fileId());
         fileDAO.deleteFile(file.fileId());
 
         auditLogDao.insert(new AuditLog(new ObjectId(), performedBy, "DELETE", "File",
@@ -381,6 +389,42 @@ public final class WorkspaceService {
         return fileDAO.findCommitsByBranch(workspaceId, branchId, isDefaultBranch);
     }
 
+    public List<WorkspaceCommentModel> loadWorkspaceComments(ObjectId workspaceId) {
+        return commentDAO.findWorkspaceComments(workspaceId).stream()
+                .map(doc -> new WorkspaceCommentModel(
+                        doc.getObjectId("_id"),
+                        doc.getObjectId("workspaceId"),
+                        doc.getObjectId("authorId"),
+                        safe(doc.getString("content")),
+                        doc.getDate("createdAt") == null ? null : doc.getDate("createdAt").toInstant()))
+                .toList();
+    }
+
+    public List<FileCommentModel> loadFileComments(ObjectId workspaceId) {
+        return commentDAO.findFileComments(workspaceId).stream()
+                .map(doc -> new FileCommentModel(
+                        doc.getObjectId("_id"),
+                        doc.getObjectId("workspaceId"),
+                        doc.getObjectId("fileId"),
+                        doc.getObjectId("authorId"),
+                        safe(doc.getString("content")),
+                        doc.getDate("createdAt") == null ? null : doc.getDate("createdAt").toInstant()))
+                .toList();
+    }
+
+    public void addWorkspaceComment(ObjectId workspaceId, ObjectId authorId, String message) {
+        Objects.requireNonNull(workspaceId, "workspaceId");
+        Objects.requireNonNull(authorId, "authorId");
+        commentDAO.insertWorkspaceComment(workspaceId, authorId, normalizeComment(message), new Date());
+    }
+
+    public void addFileComment(ObjectId workspaceId, ObjectId fileId, ObjectId authorId, String message) {
+        Objects.requireNonNull(workspaceId, "workspaceId");
+        Objects.requireNonNull(fileId, "fileId");
+        Objects.requireNonNull(authorId, "authorId");
+        commentDAO.insertFileComment(workspaceId, fileId, authorId, normalizeComment(message), new Date());
+    }
+
     private static List<ObjectId> toObjectIdList(Object rawValue) {
         if (!(rawValue instanceof List<?> rawList)) {
             return List.of();
@@ -425,6 +469,14 @@ public final class WorkspaceService {
         String normalized = filename == null ? "" : filename.trim();
         if (normalized.isEmpty()) {
             throw new IllegalArgumentException("File name is required");
+        }
+        return normalized;
+    }
+
+    private static String normalizeComment(String message) {
+        String normalized = message == null ? "" : message.trim();
+        if (normalized.isEmpty()) {
+            throw new IllegalArgumentException("Comment cannot be empty");
         }
         return normalized;
     }

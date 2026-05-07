@@ -519,22 +519,36 @@
 .workspace-settings-button {
     -fx-background-color: #132720;
     -fx-text-fill: #ffffff;
-    -fx-font-size: 14px;
+    -fx-font-size: 12px;
     -fx-font-weight: 800;
     -fx-min-width: 36;
-    -fx-pref-width: 36;
-    -fx-max-width: 36;
     -fx-min-height: 36;
     -fx-pref-height: 36;
-    -fx-max-height: 36;
     -fx-background-radius: 10;
     -fx-border-radius: 10;
     -fx-border-color: rgba(0, 255, 136, 0.36);
     -fx-border-width: 1;
+    -fx-padding: 9 14 9 14;
 }
 
 .workspace-settings-button:hover {
     -fx-background-color: #1a352b;
+}
+
+.workspace-comments-button {
+    -fx-background-color: linear-gradient(to bottom, rgba(18, 58, 43, 0.96), rgba(10, 32, 24, 0.96));
+    -fx-text-fill: #dffff0;
+    -fx-font-size: 12px;
+    -fx-font-weight: 800;
+    -fx-padding: 9 16 9 16;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-border-color: rgba(0, 255, 136, 0.34);
+    -fx-border-width: 1;
+}
+
+.workspace-comments-button:hover {
+    -fx-background-color: linear-gradient(to bottom, rgba(27, 72, 54, 0.98), rgba(13, 43, 32, 0.98));
 }
 
 .workspace-settings-root {
@@ -1007,6 +1021,181 @@
 
 .workspace-page-root .combo-box .arrow {
     -fx-background-color: #ffffff;
+}
+
+.workspace-comment-window {
+    -fx-background-color: linear-gradient(to bottom, #09110e, #050706);
+}
+
+.workspace-comment-shell {
+    -fx-background-color: linear-gradient(to bottom, rgba(10, 18, 15, 0.97), rgba(6, 8, 7, 0.97));
+    -fx-border-color: rgba(0, 255, 136, 0.22);
+    -fx-border-width: 1;
+    -fx-padding: 18;
+}
+
+.workspace-comment-title {
+    -fx-text-fill: #ecfff4;
+    -fx-font-size: 21px;
+    -fx-font-weight: 800;
+}
+
+.workspace-comment-subtitle {
+    -fx-text-fill: rgba(191, 220, 204, 0.82);
+    -fx-font-size: 11px;
+    -fx-font-weight: 700;
+}
+
+.workspace-comment-tabs {
+    -fx-background-color: rgba(10, 22, 18, 0.92);
+    -fx-background-radius: 14;
+    -fx-border-radius: 14;
+    -fx-border-color: rgba(0, 255, 136, 0.16);
+    -fx-padding: 6;
+}
+
+.workspace-comment-tab {
+    -fx-background-color: transparent;
+    -fx-text-fill: rgba(207, 235, 221, 0.78);
+    -fx-font-size: 11px;
+    -fx-font-weight: 800;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-padding: 7 16 7 16;
+}
+
+.workspace-comment-tab:selected {
+    -fx-background-color: linear-gradient(to bottom, #19f19a, #02cf73);
+    -fx-text-fill: #032114;
+}
+
+.workspace-comment-composer,
+.workspace-comment-group {
+    -fx-background-color: linear-gradient(to bottom, rgba(11, 20, 17, 0.96), rgba(7, 12, 10, 0.96));
+    -fx-background-radius: 18;
+    -fx-border-radius: 18;
+    -fx-border-color: rgba(0, 255, 136, 0.14);
+    -fx-border-width: 1;
+    -fx-padding: 14;
+}
+
+.workspace-comment-section-title,
+.workspace-comment-group-title,
+.workspace-comment-author {
+    -fx-text-fill: #effff5;
+    -fx-font-weight: 800;
+}
+
+.workspace-comment-section-title {
+    -fx-font-size: 13px;
+}
+
+.workspace-comment-group-title {
+    -fx-font-size: 14px;
+}
+
+.workspace-comment-meta,
+.workspace-comment-empty {
+    -fx-text-fill: rgba(178, 207, 192, 0.72);
+    -fx-font-size: 11px;
+    -fx-font-weight: 700;
+}
+
+.workspace-comment-input,
+.workspace-comment-file-picker {
+    -fx-background-color: #000000;
+    -fx-border-color: rgba(0, 255, 136, 0.20);
+    -fx-border-radius: 12;
+    -fx-background-radius: 12;
+    -fx-text-fill: #ffffff;
+    -fx-prompt-text-fill: #ffffff;
+    -fx-padding: 10 12 10 12;
+}
+
+.workspace-comment-input .content {
+    -fx-background-color: #000000;
+    -fx-background-radius: 10;
+}
+
+.workspace-comment-input {
+    -fx-highlight-fill: rgba(0, 255, 136, 0.35);
+    -fx-highlight-text-fill: #ffffff;
+    -fx-text-fill: #ffffff;
+    -fx-display-caret: true;
+}
+
+.workspace-comment-file-picker .list-cell {
+    -fx-background-color: #000000;
+    -fx-text-fill: #ffffff;
+}
+
+.workspace-comment-file-picker .arrow-button {
+    -fx-background-color: #000000;
+}
+
+.workspace-comment-file-picker .arrow {
+    -fx-background-color: #ffffff;
+}
+
+.workspace-comment-file-picker .text-input {
+    -fx-background-color: #000000;
+    -fx-text-fill: #ffffff;
+}
+
+.workspace-comment-file-picker .text-field {
+    -fx-background-color: #000000;
+    -fx-text-fill: #ffffff;
+}
+
+.workspace-comment-file-picker .cell {
+    -fx-text-fill: #ffffff;
+}
+
+.workspace-comment-file-picker .combo-box-popup .list-view {
+    -fx-background-color: #000000;
+    -fx-border-color: rgba(0, 255, 136, 0.20);
+}
+
+.workspace-comment-file-picker .combo-box-popup .list-cell {
+    -fx-background-color: #000000;
+    -fx-text-fill: #ffffff;
+}
+
+.workspace-comment-file-picker .combo-box-popup .list-cell:hover,
+.workspace-comment-file-picker .combo-box-popup .list-cell:selected {
+    -fx-background-color: #121212;
+    -fx-text-fill: #ffffff;
+}
+
+.workspace-comment-scroll,
+.workspace-comment-scroll .viewport {
+    -fx-background-color: transparent;
+}
+
+.workspace-comment-scroll {
+    -fx-background: transparent;
+    -fx-border-color: transparent;
+}
+
+.workspace-comment-card {
+    -fx-background-color: linear-gradient(to bottom, rgba(14, 29, 23, 0.96), rgba(8, 14, 11, 0.96));
+    -fx-background-radius: 16;
+    -fx-border-radius: 16;
+    -fx-border-color: rgba(0, 255, 136, 0.14);
+    -fx-border-width: 1;
+    -fx-padding: 12;
+}
+
+.workspace-comment-time {
+    -fx-text-fill: rgba(143, 182, 163, 0.76);
+    -fx-font-size: 10px;
+    -fx-font-weight: 700;
+}
+
+.workspace-comment-body {
+    -fx-text-fill: #e6fff0;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
 }
 
 /* Tag badges */

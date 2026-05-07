@@ -640,6 +640,7 @@ public class DashboardContentController {
         com.dvcs.client.workspacepage.dao.WorkspaceDAO workspaceDAO = new com.dvcs.client.workspacepage.dao.WorkspaceDAO(
                 database);
         com.dvcs.client.workspacepage.dao.FileDAO fileDAO = new com.dvcs.client.workspacepage.dao.FileDAO(database);
+        com.dvcs.client.workspacepage.dao.CommentDAO commentDAO = new com.dvcs.client.workspacepage.dao.CommentDAO(database);
 
         com.dvcs.client.workspacepage.service.CommitService commitService = new com.dvcs.client.workspacepage.service.CommitService(
                 fileDAO);
@@ -650,6 +651,7 @@ public class DashboardContentController {
         this.workspacePageService = new com.dvcs.client.workspacepage.service.WorkspaceService(
                 workspaceDAO,
                 fileDAO,
+                commentDAO,
                 commitService,
                 auditLogDao);
     }

@@ -238,8 +238,8 @@
   createdAt           | Date          | Record creation timestamp
 
 ────────────────────────────────────────────────────────────────────────────────
-16. file_reviews  [NEW]
-    Structured code reviews attached to specific file snapshots.
+16. workspace_comments  [NEW]
+    Workspace-level discussion feed visible inside a workspace.
 ────────────────────────────────────────────────────────────────────────────────
   Attribute           | Type          | Description
   ─────────────────── | ───────────── | ─────────────────────────────────────────
@@ -304,7 +304,7 @@
 
 ────────────────────────────────────────────────────────────────────────────────
 20. file_comments  [NEW]
-    Inline comments on file content, with threading support.
+    File-level comments grouped by file inside a workspace.
 ────────────────────────────────────────────────────────────────────────────────
   Attribute           | Type          | Description
   ─────────────────── | ───────────── | ─────────────────────────────────────────
