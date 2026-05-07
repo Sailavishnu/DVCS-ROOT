@@ -34,6 +34,7 @@ import javafx.scene.chart.BarChart;
 import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
+import javafx.scene.chart.PieChart;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
@@ -272,7 +273,7 @@ public final class ProfileController {
     }
 
     private HBox buildNavItem(String icon, String label, boolean isActive, boolean isDisabled) {
-        Label iconLabel = new Label(icon);
+        Label iconLabel = new Label(navGlyphFor(label));
         iconLabel.getStyleClass().add("prof-nav-item-icon");
 
         Label textLabel = new Label(label);
@@ -287,6 +288,18 @@ public final class ProfileController {
         if (isActive)   item.getStyleClass().add("prof-nav-active");
         if (isDisabled) item.getStyleClass().add("prof-nav-disabled");
         return item;
+    }
+
+    private String navGlyphFor(String label) {
+        return switch (label) {
+            case "Home" -> "HOME";
+            case "Workspaces" -> "GRID";
+            case "Notifications" -> "BELL";
+            case "Collaborators" -> "TEAM";
+            case "Settings" -> "SET";
+            case "Analytics" -> "DATA";
+            default -> label == null ? "" : label.substring(0, Math.min(4, label.length())).toUpperCase();
+        };
     }
 
     private void onNavItemClicked(int index) {
@@ -911,28 +924,46 @@ public final class ProfileController {
     }
 
     private HBox buildRedesignedAnalyticsHeader() {
-        VBox text = new VBox(6);
-        Label eyebrow = new Label("PROFILE ANALYTICS");
-        eyebrow.getStyleClass().add("analytics-eyebrow");
+        VBox titleBlock = new VBox(10);
         Label title = new Label("Analytics Dashboard");
         title.getStyleClass().add("analytics-title");
-        Label subtitle = new Label(
-                "A DB-backed command center for commits, storage, activity, and workspace momentum.");
-        subtitle.getStyleClass().add("analytics-subtitle");
-        subtitle.setWrapText(true);
-        text.getChildren().addAll(eyebrow, title, subtitle);
+
+        HBox tabs = new HBox(22);
+        tabs.getStyleClass().add("analytics-header-tabs");
+        tabs.getChildren().addAll(
+                buildHeaderTab("Overview", true),
+                buildHeaderTab("Logs", false),
+                buildHeaderTab("Reports", false));
+        titleBlock.getChildren().addAll(title, tabs);
+
+        Button refreshButton = new Button("Refresh");
+        refreshButton.getStyleClass().add("analytics-secondary-button");
+        refreshButton.setOnAction(e -> reloadProfile());
 
         Button downloadButton = new Button("Export PDF");
         downloadButton.getStyleClass().add("analytics-primary-button");
         downloadButton.setOnAction(e -> onDownloadAnalyticsPdf());
 
+        HBox actions = new HBox(10, refreshButton, downloadButton);
+        actions.getStyleClass().add("analytics-header-actions");
+        actions.setAlignment(Pos.CENTER_RIGHT);
+
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        HBox header = new HBox(16, text, spacer, downloadButton);
+        HBox header = new HBox(16, titleBlock, spacer, actions);
         header.getStyleClass().add("analytics-header");
         header.setAlignment(Pos.CENTER_LEFT);
         return header;
+    }
+
+    private Label buildHeaderTab(String text, boolean active) {
+        Label tab = new Label(text);
+        tab.getStyleClass().add("analytics-header-tab");
+        if (active) {
+            tab.getStyleClass().add("analytics-header-tab-active");
+        }
+        return tab;
     }
 
     private GridPane buildRedesignedSummaryGrid() {
@@ -956,19 +987,27 @@ public final class ProfileController {
                         .mapToInt(ProfileService.DayCommit::commitCount)
                         .average()
                         .orElse(0.0);
+        long quotaBytes = currentProfile.storageQuota() != null
+                ? currentProfile.storageQuota()
+                : DEFAULT_STORAGE_QUOTA_BYTES;
+        double rawStorageUsage = quotaBytes <= 0
+                ? 0.0
+                : currentProfile.storageUsedBytes() / (double) quotaBytes;
+        double storageUsage = Math.min(rawStorageUsage, 1.0);
 
         List<VBox> cards = List.of(
                 buildRedesignedMetricCard("Total Commits", String.valueOf(currentProfile.totalCommits()),
-                        "Last 30 days included"),
-                buildRedesignedMetricCard("Files", String.valueOf(currentProfile.totalFiles()), "Live file inventory"),
+                        "Last 30 days included", "#39ff14", clampRatio(avgCommits / 10.0)),
+                buildRedesignedMetricCard("Files", String.valueOf(currentProfile.totalFiles()),
+                        "Live file inventory", "#66dd8b", clampRatio(currentProfile.totalFiles() / 100.0)),
                 buildRedesignedMetricCard("Folders", String.valueOf(currentProfile.totalFolders()),
-                        "Workspace structure"),
+                        "Workspace structure", "#8b5cf6", clampRatio(currentProfile.totalFolders() / 40.0)),
                 buildRedesignedMetricCard("Workspaces", String.valueOf(currentProfile.totalWorkspaces()),
-                        "Owned by this profile"),
+                        "Owned by this profile", "#f59e0b", clampRatio(currentProfile.totalWorkspaces() / 20.0)),
                 buildRedesignedMetricCard("Active Days", String.valueOf(activeDays),
-                        "Days with at least one commit"),
+                        "Days with at least one commit", "#3b82f6", clampRatio(activeDays / 30.0)),
                 buildRedesignedMetricCard("Avg / Day", String.format("%.1f", avgCommits),
-                        "Mean daily commit output"));
+                        "Mean daily commit output", rawStorageUsage > 1.0 ? "#ef4444" : "#94a3b8", storageUsage));
 
         for (int index = 0; index < cards.size(); index++) {
             VBox card = cards.get(index);
@@ -978,7 +1017,7 @@ public final class ProfileController {
         return grid;
     }
 
-    private VBox buildRedesignedMetricCard(String label, String value, String hint) {
+    private VBox buildRedesignedMetricCard(String label, String value, String hint, String accent, double fillRatio) {
         Label labelNode = new Label(label.toUpperCase());
         labelNode.getStyleClass().add("analytics-metric-label");
         Label valueNode = new Label(value);
@@ -986,7 +1025,20 @@ public final class ProfileController {
         Label hintNode = new Label(hint);
         hintNode.getStyleClass().add("analytics-metric-hint");
 
-        VBox card = new VBox(8, labelNode, valueNode, hintNode);
+        Region track = new Region();
+        track.getStyleClass().add("analytics-metric-track");
+        Region fill = new Region();
+        fill.getStyleClass().add("analytics-metric-fill");
+        fill.setStyle("-fx-background-color: " + accent + ";");
+
+        StackPane bar = new StackPane(track, fill);
+        StackPane.setAlignment(fill, Pos.CENTER_LEFT);
+        bar.setPrefHeight(8);
+        bar.setMaxWidth(Double.MAX_VALUE);
+        bar.widthProperty().addListener((obs, oldV, newV) ->
+                fill.setPrefWidth(Math.max(16, newV.doubleValue() * clampRatio(fillRatio))));
+
+        VBox card = new VBox(10, labelNode, valueNode, hintNode, bar);
         card.getStyleClass().add("analytics-metric-card");
         return card;
     }
@@ -1019,6 +1071,8 @@ public final class ProfileController {
         usageBar.setPrefHeight(14);
         usageBar.setMaxWidth(Double.MAX_VALUE);
 
+        StackPane pieChart = createStoragePieChart(usedBytes, freeBytes, overLimit);
+
         HBox detailRow = new HBox(14,
                 buildRedesignedStorageStat("Used", formatBytes(usedBytes)),
                 buildRedesignedStorageStat("Remaining", formatBytes(freeBytes)),
@@ -1031,7 +1085,11 @@ public final class ProfileController {
         note.getStyleClass().add("analytics-panel-note");
         note.setWrapText(true);
 
-        section.getChildren().addAll(headline, usageBar, detailRow, note);
+        HBox overview = new HBox(24, pieChart, detailRow);
+        overview.setAlignment(Pos.CENTER_LEFT);
+        HBox.setHgrow(detailRow, Priority.ALWAYS);
+
+        section.getChildren().addAll(headline, usageBar, overview, note);
         return section;
     }
 
@@ -1045,11 +1103,48 @@ public final class ProfileController {
         return box;
     }
 
+    private StackPane createStoragePieChart(long usedBytes, long freeBytes, boolean overLimit) {
+        PieChart chart = new PieChart();
+        chart.setLegendVisible(false);
+        chart.setLabelsVisible(false);
+        chart.setClockwise(true);
+        chart.setStartAngle(90);
+        chart.setPrefSize(170, 170);
+        chart.setMinSize(170, 170);
+        chart.setMaxSize(170, 170);
+        chart.getData().addAll(
+                new PieChart.Data("Used", Math.max(usedBytes, 1L)),
+                new PieChart.Data(overLimit ? "Overage" : "Free", Math.max(freeBytes, 1L)));
+        chart.getStyleClass().add("analytics-storage-pie");
+
+        Label percent = new Label(String.format("%.0f%%", (usedBytes + freeBytes) == 0
+                ? 0.0
+                : (usedBytes * 100.0) / Math.max(usedBytes + freeBytes, 1L)));
+        percent.getStyleClass().add("analytics-storage-pie-value");
+        Label subtitle = new Label(overLimit ? "Quota Exceeded" : "Quota Used");
+        subtitle.getStyleClass().add("analytics-storage-pie-label");
+        VBox center = new VBox(2, percent, subtitle);
+        center.setAlignment(Pos.CENTER);
+
+        Platform.runLater(() -> {
+            if (chart.getData().size() > 0 && chart.getData().get(0).getNode() != null) {
+                chart.getData().get(0).getNode().setStyle("-fx-pie-color: " + (overLimit ? "#ff6b6b" : "#39ff14") + ";");
+            }
+            if (chart.getData().size() > 1 && chart.getData().get(1).getNode() != null) {
+                chart.getData().get(1).getNode().setStyle("-fx-pie-color: " + (overLimit ? "#3a1c20" : "#1f3a2d") + ";");
+            }
+        });
+
+        StackPane wrapper = new StackPane(chart, center);
+        wrapper.getStyleClass().add("analytics-storage-pie-wrapper");
+        return wrapper;
+    }
+
     private VBox buildRedesignedCommitsSection() {
         VBox section = createRedesignedAnalyticsPanel(
                 "Commits Over 30 Days",
                 "Daily commit volume across every workspace connected to this profile.");
-        BarChart<String, Number> chart = createRedesignedCommitChart();
+        AreaChart<String, Number> chart = createRedesignedCommitChart();
 
         long total = currentProfile.commitActivityDays().stream()
                 .mapToLong(ProfileService.DayCommit::commitCount)
@@ -1071,19 +1166,18 @@ public final class ProfileController {
         return section;
     }
 
-    private BarChart<String, Number> createRedesignedCommitChart() {
+    private AreaChart<String, Number> createRedesignedCommitChart() {
         CategoryAxis xAxis = new CategoryAxis();
         NumberAxis yAxis = new NumberAxis();
         yAxis.setMinorTickVisible(false);
         yAxis.setTickUnit(1);
 
-        BarChart<String, Number> chart = new BarChart<>(xAxis, yAxis);
+        AreaChart<String, Number> chart = new AreaChart<>(xAxis, yAxis);
         chart.setAnimated(false);
         chart.setLegendVisible(false);
-        chart.setCategoryGap(4);
-        chart.setBarGap(2);
+        chart.setCreateSymbols(true);
         chart.setPrefHeight(280);
-        chart.getStyleClass().add("analytics-bar-chart");
+        chart.getStyleClass().add("analytics-line-chart");
 
         XYChart.Series<String, Number> series = new XYChart.Series<>();
         int index = 0;
@@ -1095,6 +1189,7 @@ public final class ProfileController {
             index++;
         }
         chart.getData().add(series);
+        Platform.runLater(() -> styleCommitChartSeries(chart, series));
         installChartTooltips(series, " commits");
         return chart;
     }
@@ -1107,6 +1202,26 @@ public final class ProfileController {
         VBox chip = new VBox(3, labelNode, valueNode);
         chip.getStyleClass().add("analytics-chip");
         return chip;
+    }
+
+    private void styleCommitChartSeries(AreaChart<String, Number> chart, XYChart.Series<String, Number> series) {
+        Node seriesNode = series.getNode();
+        if (seriesNode != null) {
+            seriesNode.setStyle("-fx-stroke: #39ff14; -fx-stroke-width: 3px;");
+        }
+        Node fillNode = chart.lookup(".chart-series-area-fill");
+        if (fillNode != null) {
+            fillNode.setStyle("-fx-fill: linear-gradient(to bottom, rgba(57,255,20,0.32), rgba(57,255,20,0.05));");
+        }
+        Node lineNode = chart.lookup(".chart-series-area-line");
+        if (lineNode != null) {
+            lineNode.setStyle("-fx-stroke: #39ff14; -fx-stroke-width: 3px;");
+        }
+        for (XYChart.Data<String, Number> point : series.getData()) {
+            if (point.getNode() != null) {
+                point.getNode().setStyle("-fx-background-color: #39ff14, #0b141c; -fx-background-radius: 8;");
+            }
+        }
     }
 
     private VBox buildRedesignedHeatmapSection() {
@@ -1360,6 +1475,13 @@ public final class ProfileController {
         if (bytes >= 1_048_576L)     return String.format("%.1f MB", bytes / 1_048_576.0);
         if (bytes >= 1024)           return String.format("%.1f KB", bytes / 1024.0);
         return bytes + " B";
+    }
+
+    private static double clampRatio(double value) {
+        if (Double.isNaN(value) || Double.isInfinite(value)) {
+            return 0.0;
+        }
+        return Math.max(0.0, Math.min(1.0, value));
     }
 
     // ── Data rendering ────────────────────────────────────────────────────

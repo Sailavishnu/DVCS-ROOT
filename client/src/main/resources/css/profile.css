@@ -8,53 +8,65 @@
 /* ── Sidebar ─────────────────────────────────────────────────────────────── */
 
 .prof-sidebar {
-    -fx-background-color: #0B0F0C;
-    -fx-border-color: rgba(0,255,156,0.1);
+    -fx-background-color: #0b141c;
+    -fx-border-color: #3c4b35;
     -fx-border-width: 0 1 0 0;
     -fx-min-height: 0;
 }
 .prof-logo-area {
-    -fx-padding: 24 20 16 20;
-    -fx-spacing: 2;
+    -fx-padding: 24 20 18 20;
+    -fx-spacing: 4;
 }
 .prof-logo-title {
-    -fx-text-fill: #00FF9C;
-    -fx-font-size: 20px;
+    -fx-text-fill: #39ff14;
+    -fx-font-size: 24px;
     -fx-font-weight: bold;
 }
 .prof-logo-sub {
-    -fx-text-fill: rgba(75,85,99,1);
-    -fx-font-size: 9px;
-    -fx-letter-spacing: 0.1em;
+    -fx-text-fill: #baccb0;
+    -fx-font-size: 10px;
+    -fx-letter-spacing: 0.18em;
 }
 .prof-nav {
-    -fx-padding: 8 0 8 0;
-    -fx-spacing: 2;
+    -fx-padding: 8 8 8 8;
+    -fx-spacing: 6;
 }
 .prof-nav-item {
     -fx-cursor: hand;
     -fx-background-color: transparent;
-    -fx-background-radius: 8;
+    -fx-background-radius: 10;
 }
-.prof-nav-item:hover { -fx-background-color: #1A1F1C; }
+.prof-nav-item:hover { -fx-background-color: #222b33; }
 .prof-nav-item-icon {
-    -fx-text-fill: #4B5563;
-    -fx-font-size: 14px;
-    -fx-min-width: 20;
+    -fx-text-fill: #baccb0;
+    -fx-font-size: 9px;
+    -fx-font-weight: 700;
+    -fx-min-width: 30;
+    -fx-max-width: 30;
+    -fx-alignment: center;
+    -fx-padding: 4 6 4 6;
+    -fx-background-color: rgba(57,255,20,0.10);
+    -fx-background-radius: 999;
 }
 .prof-nav-item-text {
-    -fx-text-fill: #4B5563;
+    -fx-text-fill: #baccb0;
     -fx-font-size: 13px;
     -fx-font-weight: 500;
 }
 .prof-nav-active {
-    -fx-background-color: #1A1F1C;
-    -fx-border-color: transparent transparent transparent #00FF9C;
-    -fx-border-width: 0 0 0 2;
-    -fx-background-radius: 0 8 8 0;
+    -fx-background-color: #222b33;
+    -fx-border-color: rgba(57,255,20,0.30);
+    -fx-border-width: 1;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-effect: dropshadow(gaussian, rgba(57,255,20,0.18), 15, 0, 0, 0);
 }
 .prof-nav-active .prof-nav-item-icon,
-.prof-nav-active .prof-nav-item-text { -fx-text-fill: #00FF9C; }
+.prof-nav-active .prof-nav-item-text { -fx-text-fill: #39ff14; }
+.prof-nav-active .prof-nav-item-icon {
+    -fx-text-fill: #022100;
+    -fx-background-color: #39ff14;
+}
 .prof-nav-disabled { -fx-opacity: 0.35; -fx-cursor: default; }
 
 .prof-user-area {
