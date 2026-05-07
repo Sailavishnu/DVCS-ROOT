@@ -1,5 +1,5 @@
 # Set paths
-$DVCS_ROOT = "D:\project\DVCS-ROOT"
+$DVCS_ROOT = "D:\dvcs-root"
 $javafxLib = "$env:JAVAFX_HOME\lib"
 
 # Clean and recreate output folder to avoid stale .class files
