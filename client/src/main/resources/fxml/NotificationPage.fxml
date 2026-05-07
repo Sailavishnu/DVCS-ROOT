@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<HBox xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.dvcs.client.dashboard.notification.NotificationController"
+      stylesheets="@../css/notification.css" styleClass="notif-root">
+
+    <!-- Left Sidebar -->
+    <VBox styleClass="notif-sidebar">
+        <VBox styleClass="notif-sidebar-logo">
+            <Label text=">_ DVCS" styleClass="notif-logo-title"/>
+            <Label text="LOCAL-FIRST DVCS" styleClass="notif-logo-sub"/>
+        </VBox>
+        <VBox fx:id="sidebarNav" VBox.vgrow="ALWAYS" styleClass="notif-sidebar-nav"/>
+        <HBox styleClass="notif-sidebar-user" spacing="10" alignment="CENTER_LEFT">
+            <StackPane styleClass="notif-user-avatar">
+                <Label fx:id="userInitialsLabel" text="U" styleClass="notif-user-initials"/>
+            </StackPane>
+            <VBox spacing="2">
+                <Label fx:id="userNameLabel" text="" styleClass="notif-user-name"/>
+                <Label text="Verified Node" styleClass="notif-user-role"/>
+            </VBox>
+        </HBox>
+    </VBox>
+
+    <!-- Main Content -->
+    <VBox HBox.hgrow="ALWAYS" styleClass="notif-main">
+
+        <!-- Top Bar -->
+        <HBox styleClass="notif-topbar" alignment="CENTER_LEFT" spacing="16">
+            <TextField fx:id="topSearchField" promptText="Search logs, alerts, or peers..."
+                       styleClass="notif-topbar-search" HBox.hgrow="ALWAYS" maxWidth="520"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label text="🔄" styleClass="notif-topbar-icon"
+                   onMouseClicked="#onRefreshClick"/>
+            <Label text="&#128276;" styleClass="notif-topbar-icon"
+                   onMouseClicked="#onTopNotifClick"/>
+            <Label text="&#128100;" styleClass="notif-topbar-icon"
+                   onMouseClicked="#onTopProfileClick"/>
+
+        </HBox>
+
+        <!-- Content Row: Feed + Right Panel -->
+        <HBox VBox.vgrow="ALWAYS">
+
+            <!-- Feed Section -->
+            <VBox HBox.hgrow="ALWAYS" styleClass="notif-feed-section">
+                <HBox styleClass="notif-feed-header" alignment="CENTER_LEFT" spacing="12">
+                    <VBox HBox.hgrow="ALWAYS" spacing="4">
+                        <Label text="Alerts Feed" styleClass="notif-feed-title"/>
+                        <Label text="Real-time collaboration and system events."
+                               styleClass="notif-feed-subtitle"/>
+                    </VBox>
+                    <Button fx:id="markAllReadBtn" text="Mark All Read"
+                            styleClass="notif-mark-read-btn" onAction="#onMarkAllRead"/>
+                </HBox>
+
+                <StackPane VBox.vgrow="ALWAYS">
+                    <VBox fx:id="emptyFeedBox" alignment="CENTER" spacing="12"
+                          styleClass="notif-empty-state" visible="true" managed="true">
+                        <Label text="&#128276;" styleClass="notif-empty-icon"/>
+                        <Label text="No notifications" styleClass="notif-empty-label"/>
+                        <Label text="You're all caught up!" styleClass="notif-empty-sub"/>
+                    </VBox>
+                    <ScrollPane fx:id="feedScrollPane" fitToWidth="true" hbarPolicy="NEVER"
+                                vbarPolicy="AS_NEEDED" styleClass="notif-feed-scroll"
+                                visible="false" managed="false">
+                        <content>
+                            <VBox fx:id="notifFeed" spacing="12" styleClass="notif-feed-list">
+                                <padding>
+                                    <Insets top="4" right="8" bottom="16" left="8"/>
+                                </padding>
+                            </VBox>
+                        </content>
+                    </ScrollPane>
+                </StackPane>
+            </VBox>
+
+            <!-- Right Panel -->
+            <VBox fx:id="rightPanel" styleClass="notif-right-panel" spacing="14">
+                <padding>
+                    <Insets top="24" right="24" bottom="24" left="24"/>
+                </padding>
+                <Label text="QUICK ACTIONS" styleClass="notif-panel-title"/>
+                <VBox fx:id="quickActionsBox" spacing="10"/>
+                <Region VBox.vgrow="ALWAYS"/>
+                <Label text="LOCAL STATUS" styleClass="notif-panel-title"/>
+                <VBox styleClass="notif-status-card" spacing="10">
+                    <padding>
+                        <Insets top="14" right="14" bottom="14" left="14"/>
+                    </padding>
+                    <HBox>
+                        <Label text="Status" styleClass="notif-status-key"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Label text="Active" styleClass="notif-status-val-green"/>
+                    </HBox>
+                    <HBox>
+                        <Label text="Node Integrity" styleClass="notif-status-key"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Label text="99.4%" styleClass="notif-status-val"/>
+                    </HBox>
+                </VBox>
+            </VBox>
+
+        </HBox>
+    </VBox>
+</HBox>

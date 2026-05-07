@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.TilePane?>
+<?import javafx.scene.layout.VBox?>
+
+<StackPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="com.dvcs.client.dashboard.collaborators.CollaboratorsController"
+           stylesheets="@../css/collaborators.css" styleClass="dvcs-root">
+
+    <HBox>
+        <!-- Sidebar -->
+        <VBox styleClass="collab-sidebar" prefWidth="240" minWidth="240" maxWidth="240">
+            <VBox styleClass="collab-logo-area">
+                <Label text=">_ DVCS" styleClass="collab-logo-title"/>
+                <Label text="LOCAL-FIRST DVCS" styleClass="collab-logo-sub"/>
+            </VBox>
+
+            <VBox fx:id="sidebarNav" VBox.vgrow="ALWAYS" styleClass="collab-nav"/>
+
+            <HBox styleClass="collab-user-area" spacing="10" alignment="CENTER_LEFT">
+                <HBox styleClass="collab-user-avatar" alignment="CENTER">
+                    <Label fx:id="userInitialsLabel" text="U" styleClass="collab-user-initials"/>
+                </HBox>
+                <VBox spacing="2">
+                    <Label fx:id="userNameLabel" text="" styleClass="collab-user-name"/>
+                    <Label text="Verified Node" styleClass="collab-user-role"/>
+                </VBox>
+            </HBox>
+        </VBox>
+
+        <!-- Main -->
+        <VBox HBox.hgrow="ALWAYS">
+            <!-- Topbar -->
+            <HBox styleClass="collab-topbar" alignment="CENTER_LEFT" spacing="12">
+                <padding><Insets left="20" right="20"/></padding>
+                <TextField fx:id="topSearchField" promptText="Search collaborators..." styleClass="collab-search-field"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label fx:id="nodesOnlineLabel" text="0 Nodes Online" styleClass="collab-nodes-badge"/>
+                <Label text="🔄" styleClass="collab-topbar-icon" onMouseClicked="#onRefreshClick"/>
+                <Label text="🔔" styleClass="collab-topbar-icon" onMouseClicked="#onTopNotifClick"/>
+                <Label text="👤" styleClass="collab-topbar-icon" onMouseClicked="#onTopProfileClick"/>
+
+                <Button text="+ Invite" styleClass="collab-invite-top-btn" onAction="#onInviteClick"/>
+            </HBox>
+
+            <!-- Scrollable content -->
+            <ScrollPane VBox.vgrow="ALWAYS" styleClass="collab-scroll" fitToWidth="true">
+                <VBox styleClass="collab-content" spacing="24">
+                    <padding><Insets top="24" right="24" bottom="24" left="24"/></padding>
+
+                    <VBox spacing="4">
+                        <Label text="Active Collaborators" styleClass="collab-page-title"/>
+                        <Label text="Users sharing workspaces with you (both directions)." styleClass="collab-page-sub"/>
+                    </VBox>
+
+                    <TilePane fx:id="cardsGrid" prefColumns="3" hgap="16" vgap="16"
+                              styleClass="collab-cards-grid"/>
+
+                    <!-- Stats bar -->
+                    <HBox styleClass="collab-stats-bar" spacing="0" alignment="CENTER_LEFT">
+                        <VBox styleClass="collab-stat-item" spacing="2">
+                            <Label text="TOTAL COLLABORATORS" styleClass="collab-stat-label"/>
+                            <Label fx:id="totalCollabLabel" text="0" styleClass="collab-stat-value"/>
+                        </VBox>
+                        <Region styleClass="collab-stat-sep" prefWidth="1" minWidth="1"/>
+                        <VBox styleClass="collab-stat-item" spacing="2">
+                            <Label text="ACTIVE / SYNCING" styleClass="collab-stat-label"/>
+                            <Label fx:id="activeCollabLabel" text="0" styleClass="collab-stat-value"/>
+                        </VBox>
+                        <Region styleClass="collab-stat-sep" prefWidth="1" minWidth="1"/>
+                        <VBox styleClass="collab-stat-item" spacing="2">
+                            <Label text="SECURITY STATUS" styleClass="collab-stat-label"/>
+                            <Label text="Encrypted P2P" styleClass="collab-stat-value-sm"/>
+                        </VBox>
+                    </HBox>
+                </VBox>
+            </ScrollPane>
+        </VBox>
+    </HBox>
+
+    <!-- Invite modal overlay -->
+    <StackPane fx:id="inviteModal" visible="false" managed="false" styleClass="collab-modal-overlay">
+        <VBox styleClass="collab-modal-box" spacing="20" minWidth="420" prefWidth="420" maxWidth="420">
+            <Label text="Invite Collaborator" styleClass="collab-modal-title"/>
+            <VBox spacing="12">
+                <VBox spacing="6">
+                    <Label text="Username" styleClass="collab-modal-label"/>
+                    <TextField fx:id="inviteUsernameField" promptText="Enter username" styleClass="collab-input"/>
+                </VBox>
+                <VBox spacing="6">
+                    <Label text="Workspace Name" styleClass="collab-modal-label"/>
+                    <TextField fx:id="inviteWorkspaceField" promptText="Your workspace to share" styleClass="collab-input"/>
+                </VBox>
+            </VBox>
+            <HBox spacing="12" alignment="CENTER_RIGHT">
+                <Button text="Cancel" styleClass="collab-modal-cancel-btn" onAction="#onInviteCancel"/>
+                <Button text="Send Invite" styleClass="collab-modal-submit-btn" onAction="#onInviteSubmit"/>
+            </HBox>
+        </VBox>
+    </StackPane>
+
+</StackPane>

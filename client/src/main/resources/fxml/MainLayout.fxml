@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<StackPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="com.dvcs.client.dashboard.MainLayoutController"
+           stylesheets="@../css/homepage.css" styleClass="dvcs-root">
+
+    <!-- Root layout: navbar on top, content below -->
+    <VBox>
+        <HBox fx:id="topBar"
+              style="-fx-background-color:#141414;-fx-pref-height:60;-fx-min-height:60;-fx-max-height:60;-fx-padding:0 20 0 14;-fx-spacing:16;-fx-border-color:rgba(0,255,136,0.3);-fx-border-width:0 0 1 0;"
+              alignment="CENTER_LEFT">
+            <Button text="☰" onAction="#onHamburgerClick"
+                    style="-fx-background-color:transparent;-fx-text-fill:#e8fff2;-fx-font-size:20;-fx-cursor:hand;-fx-padding:2 8 2 8;"/>
+            <Label text=">_ DVCS" style="-fx-text-fill:#00ff88;-fx-font-size:18;-fx-font-weight:bold;"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <TextField fx:id="searchField" promptText="Search workspaces, commits..."
+                       prefWidth="380" onAction="#onSearchSubmit"
+                       style="-fx-background-color:#1a1a1a;-fx-text-fill:#e8fff2;-fx-prompt-text-fill:rgba(150,200,170,0.6);-fx-border-color:rgba(0,255,136,0.4);-fx-border-radius:6;-fx-background-radius:6;-fx-padding:7 12 7 12;-fx-font-size:13;"/>
+            <Label text="🔄" style="-fx-font-size:17;-fx-cursor:hand;" onMouseClicked="#onRefreshClick"/>
+            <Label text="🔔" style="-fx-font-size:17;-fx-cursor:hand;" onMouseClicked="#onNotificationClick"/>
+
+            <Label fx:id="avatarInitialsLabel" text="U"
+                   style="-fx-background-color:#1f1f1f;-fx-text-fill:#00ff88;-fx-font-weight:bold;-fx-font-size:12;-fx-padding:5 10 5 10;-fx-background-radius:16;-fx-cursor:hand;"
+                   onMouseClicked="#onProfileClick"/>
+        </HBox>
+
+        <Pane fx:id="contentArea" VBox.vgrow="ALWAYS"/>
+    </VBox>
+
+    <!-- Drawer scrim -->
+    <Pane fx:id="drawerOverlay" styleClass="drawer-scrim"
+          visible="false" managed="false" mouseTransparent="true" onMouseClicked="#onDrawerOverlayClicked"/>
+
+    <!-- Navigation drawer -->
+    <VBox fx:id="drawerSidebar" styleClass="drawer-sidebar" maxWidth="260" visible="false" managed="false">
+        <StackPane.alignment>CENTER_LEFT</StackPane.alignment>
+        <VBox styleClass="drawer-logo-area">
+            <Label text=">_ DVCS" styleClass="drawer-logo-title"/>
+            <Label text="LOCAL-FIRST DVCS" styleClass="drawer-logo-sub"/>
+        </VBox>
+        <VBox fx:id="drawerNav" VBox.vgrow="ALWAYS" styleClass="drawer-nav"/>
+        <HBox styleClass="drawer-user-area" spacing="10" alignment="CENTER_LEFT">
+            <HBox styleClass="drawer-user-avatar" alignment="CENTER">
+                <Label fx:id="drawerUserInitials" text="U" styleClass="drawer-user-initials"/>
+            </HBox>
+            <VBox spacing="2">
+                <Label fx:id="drawerUserName" text="" styleClass="drawer-user-name"/>
+                <Label text="Verified Node" styleClass="drawer-user-role"/>
+            </VBox>
+        </HBox>
+    </VBox>
+
+</StackPane>

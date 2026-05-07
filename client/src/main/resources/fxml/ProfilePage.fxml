@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<StackPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="com.dvcs.client.dashboard.profile.ProfileController"
+           stylesheets="@../css/profile.css" styleClass="dvcs-root">
+
+    <HBox>
+        <!-- Sidebar -->
+        <VBox styleClass="prof-sidebar" prefWidth="240" minWidth="240" maxWidth="240">
+            <VBox styleClass="prof-logo-area">
+                <Label text=">_ DVCS" styleClass="prof-logo-title"/>
+                <Label text="LOCAL-FIRST DVCS" styleClass="prof-logo-sub"/>
+            </VBox>
+
+            <VBox fx:id="sidebarNav" VBox.vgrow="ALWAYS" styleClass="prof-nav"/>
+
+            <HBox styleClass="prof-user-area" spacing="10" alignment="CENTER_LEFT">
+                <HBox styleClass="prof-user-avatar" alignment="CENTER">
+                    <Label fx:id="sidebarInitialsLabel" text="U" styleClass="prof-user-initials"/>
+                </HBox>
+                <VBox spacing="2">
+                    <Label fx:id="sidebarUserNameLabel" text="" styleClass="prof-user-name"/>
+                    <Label text="Verified Node" styleClass="prof-user-role"/>
+                </VBox>
+            </HBox>
+        </VBox>
+
+        <!-- Main -->
+        <VBox HBox.hgrow="ALWAYS">
+            <!-- Topbar -->
+            <HBox styleClass="prof-topbar" alignment="CENTER_LEFT" spacing="12">
+                <padding><Insets left="20" right="20"/></padding>
+                <TextField fx:id="topSearchField" promptText="Search objects, commits..." styleClass="prof-search-field"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label text="🔄" styleClass="prof-topbar-icon" onMouseClicked="#onRefreshClick"/>
+                <Label text="🔔" styleClass="prof-topbar-icon" onMouseClicked="#onTopNotifClick"/>
+                <Label text="👤" styleClass="prof-topbar-icon prof-topbar-icon-active" onMouseClicked="#onTopProfileClick"/>
+
+            </HBox>
+
+            <!-- Scrollable content -->
+            <ScrollPane fx:id="profileScrollPane" VBox.vgrow="ALWAYS" styleClass="prof-scroll" fitToWidth="true">
+                <VBox styleClass="prof-content" spacing="24">
+                    <padding><Insets top="24" right="24" bottom="40" left="24"/></padding>
+
+                    <!-- Profile header card -->
+                    <HBox styleClass="prof-header-card" spacing="24" alignment="CENTER_LEFT">
+                        <StackPane styleClass="prof-avatar-box" minWidth="96" maxWidth="96" minHeight="96" maxHeight="96">
+                            <Label fx:id="avatarInitialsLabel" text="U" styleClass="prof-avatar-text"/>
+                        </StackPane>
+
+                        <VBox spacing="8" HBox.hgrow="ALWAYS">
+                            <HBox spacing="12" alignment="CENTER_LEFT">
+                                <Label fx:id="nameValueLabel" text="Not set" styleClass="prof-hero-name"/>
+                                <Label text="Core Architect" styleClass="prof-hero-badge"/>
+                            </HBox>
+                            <Label fx:id="usernameValueLabel" text="@username" styleClass="prof-hero-username"/>
+                            <Label fx:id="bioLabel" text="" styleClass="prof-hero-bio" wrapText="true" maxWidth="520"/>
+                            <HBox spacing="12">
+                                <Button text="Edit Profile" styleClass="prof-edit-btn" onAction="#onEditProfile"/>
+                                <Button text="Logout" styleClass="prof-logout-btn" onAction="#onLogout"/>
+                            </HBox>
+                        </VBox>
+                    </HBox>
+
+                    <!-- Active Workspaces -->
+                    <VBox styleClass="prof-panel" spacing="12">
+                        <Label text="Active Workspaces" styleClass="prof-panel-title"/>
+                        <StackPane styleClass="prof-popular-wrapper">
+                            <GridPane fx:id="popularWorkspaceGrid" hgap="12" vgap="12">
+                                <columnConstraints>
+                                    <ColumnConstraints percentWidth="50"/>
+                                    <ColumnConstraints percentWidth="50"/>
+                                </columnConstraints>
+                                <rowConstraints>
+                                    <RowConstraints/>
+                                    <RowConstraints/>
+                                    <RowConstraints/>
+                                </rowConstraints>
+                            </GridPane>
+                            <VBox fx:id="popularWorkspaceEmptyBox" alignment="CENTER" spacing="8">
+                                <Label fx:id="popularWorkspaceEmptyLabel"
+                                       text="No workspaces yet" styleClass="prof-empty-text"/>
+                            </VBox>
+                        </StackPane>
+                    </VBox>
+
+                    <!-- Recent Activity -->
+                    <VBox styleClass="prof-panel" spacing="0">
+                        <Label text="Recent Activity" styleClass="prof-panel-title">
+                            <VBox.margin><Insets bottom="12"/></VBox.margin>
+                        </Label>
+                        <ScrollPane fx:id="activityFeedScrollPane" styleClass="prof-activity-scroll"
+                                    fitToWidth="true" prefHeight="200" maxHeight="200">
+                            <VBox fx:id="activityFeed" styleClass="prof-activity-feed"/>
+                        </ScrollPane>
+                    </VBox>
+
+                </VBox>
+            </ScrollPane>
+        </VBox>
+    </HBox>
+
+    <!-- Edit Profile modal overlay -->
+    <StackPane fx:id="editProfileModal" visible="false" managed="false" styleClass="prof-modal-overlay">
+        <VBox styleClass="prof-modal-box" spacing="20" minWidth="480" prefWidth="480" maxWidth="480">
+            <Label text="Edit Profile" styleClass="prof-modal-title"/>
+
+            <VBox spacing="14">
+                <VBox spacing="6">
+                    <Label text="Full Name" styleClass="prof-modal-label"/>
+                    <TextField fx:id="editNameField" promptText="Enter full name" styleClass="prof-input"/>
+                </VBox>
+                <VBox spacing="6">
+                    <Label text="Username" styleClass="prof-modal-label"/>
+                    <TextField fx:id="editUsernameField" promptText="Enter unique username" styleClass="prof-input"/>
+                </VBox>
+                <VBox spacing="6">
+                    <Label text="Bio" styleClass="prof-modal-label"/>
+                    <TextArea fx:id="editBioField" promptText="Short bio..." styleClass="prof-input prof-bio-input"
+                              prefRowCount="3" wrapText="true"/>
+                </VBox>
+                <Button fx:id="togglePasswordButton" text="Change Password"
+                        onAction="#onTogglePasswordFields" styleClass="prof-modal-secondary-btn"/>
+                <VBox fx:id="passwordFieldsBox" spacing="10" visible="false" managed="false">
+                    <VBox spacing="6">
+                        <Label text="Old Password" styleClass="prof-modal-label"/>
+                        <PasswordField fx:id="passwordPopupOldField" promptText="Current password" styleClass="prof-input"/>
+                    </VBox>
+                    <VBox spacing="6">
+                        <Label text="New Password" styleClass="prof-modal-label"/>
+                        <PasswordField fx:id="passwordPopupNewField" promptText="New password" styleClass="prof-input"/>
+                    </VBox>
+                    <VBox spacing="6">
+                        <Label text="Confirm New Password" styleClass="prof-modal-label"/>
+                        <PasswordField fx:id="passwordPopupConfirmField" promptText="Confirm new password" styleClass="prof-input"/>
+                    </VBox>
+                </VBox>
+            </VBox>
+
+            <HBox spacing="12" alignment="CENTER_RIGHT">
+                <Button text="Cancel" onAction="#onCancelEdit" styleClass="prof-modal-cancel-btn"/>
+                <Button text="Save Changes" onAction="#onSaveProfile" styleClass="prof-modal-save-btn"/>
+            </HBox>
+        </VBox>
+    </StackPane>
+
+    <!-- FAB -->
+    <Button fx:id="fabButton" text="+" styleClass="prof-fab" onAction="#onFabClick">
+        <StackPane.alignment>BOTTOM_RIGHT</StackPane.alignment>
+        <StackPane.margin><Insets bottom="28" right="28"/></StackPane.margin>
+    </Button>
+
+</StackPane>

@@ -1,0 +1,10 @@
+{
+  "java.configuration.updateBuildConfiguration": "disabled",
+  "java.project.sourcePaths": [
+    "src/main/java"
+  ],
+  "java.project.outputPath": "target/classes",
+  "java.project.referencedLibraries": [
+    "lib/**/*.jar"
+  ]
+}

@@ -1,0 +1,164 @@
+.app-root {
+    -fx-background-color: rgba(6, 10, 9, 0.86);
+    -fx-padding: 34;
+}
+
+.glass-card {
+    -fx-background-color:
+        linear-gradient(to bottom,
+            rgba(12, 24, 20, 0.93) 0%,
+            rgba(10, 20, 18, 0.90) 40%,
+            rgba(8, 15, 13, 0.92) 100%);
+    -fx-background-radius: 24;
+    -fx-border-radius: 24;
+    -fx-border-width: 1;
+    -fx-border-color: rgba(0, 255, 136, 0.30);
+    -fx-effect: dropshadow(gaussian, rgba(0, 255, 136, 0.22), 42, 0.22, 0, 10);
+}
+
+.card-content {
+    -fx-background-color: transparent;
+    -fx-alignment: top-center;
+}
+
+.form-title {
+    -fx-text-fill: #e7fff1;
+    -fx-font-size: 30px;
+    -fx-font-weight: 800;
+}
+
+.form-subtitle {
+    -fx-text-fill: rgba(182, 205, 193, 0.92);
+    -fx-font-size: 13px;
+    -fx-font-weight: 700;
+    -fx-padding: 0 0 8 0;
+}
+
+.form-box {
+    -fx-alignment: top-center;
+    -fx-padding: 10 0 0 0;
+}
+
+.field-hint {
+    -fx-text-fill: rgba(196, 224, 209, 0.90);
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+    -fx-alignment: center-left;
+}
+
+.text-field,
+.password-field {
+    -fx-background-color: rgba(21, 38, 32, 0.88);
+    -fx-background-radius: 14;
+    -fx-border-radius: 14;
+    -fx-border-width: 1;
+    -fx-border-color: rgba(0, 255, 136, 0.26);
+    -fx-text-fill: #e8fff2;
+    -fx-prompt-text-fill: rgba(163, 197, 179, 0.68);
+    -fx-font-size: 14px;
+    -fx-font-weight: 600;
+    -fx-padding: 12 14 12 14;
+    -fx-effect: dropshadow(gaussian, rgba(0, 255, 136, 0.08), 10, 0.18, 0, 3);
+}
+
+.text-field:focused,
+.password-field:focused {
+    -fx-background-color: rgba(24, 45, 38, 0.95);
+    -fx-border-color: rgba(0, 255, 136, 0.75);
+    -fx-effect: dropshadow(gaussian, rgba(0, 255, 136, 0.30), 14, 0.22, 0, 0);
+}
+
+.primary-button {
+    -fx-background-color: linear-gradient(to bottom, #10f59a, #00d977);
+    -fx-background-radius: 999;
+    -fx-border-radius: 999;
+    -fx-border-width: 1;
+    -fx-border-color: rgba(166, 255, 216, 0.45);
+    -fx-text-fill: #052719;
+    -fx-font-size: 14px;
+    -fx-font-weight: 700;
+    -fx-padding: 11 18 11 18;
+}
+
+.primary-button:hover {
+    -fx-background-color: linear-gradient(to bottom, #24ffab, #06e986);
+    -fx-effect: dropshadow(gaussian, rgba(0, 255, 136, 0.45), 18, 0.25, 0, 0);
+}
+
+.primary-button:pressed {
+    -fx-background-color: linear-gradient(to bottom, #00d977, #00bb68);
+}
+
+.switch-link {
+    -fx-text-fill: #6dffba;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+    -fx-underline: true;
+    -fx-cursor: hand;
+}
+
+.switch-link:hover {
+    -fx-text-fill: #9dffd1;
+}
+
+.switch-row {
+    -fx-padding: 8 0 0 0;
+}
+
+.switch-prompt {
+    -fx-text-fill: rgba(183, 211, 196, 0.90);
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+}
+
+.password-overlay-field {
+    -fx-padding: 12 48 12 14;
+}
+
+.eye-inline-button {
+    -fx-min-width: 30;
+    -fx-pref-width: 30;
+    -fx-max-width: 30;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-background-color: rgba(26, 47, 40, 0.88);
+    -fx-background-radius: 999;
+    -fx-border-radius: 999;
+    -fx-border-color: rgba(0, 255, 136, 0.34);
+    -fx-border-width: 1;
+    -fx-font-size: 13px;
+    -fx-text-fill: #b8ffdb;
+    -fx-cursor: hand;
+    -fx-padding: 0;
+    -fx-translate-x: -8;
+}
+
+.eye-inline-button:hover {
+    -fx-background-color: rgba(37, 65, 56, 0.95);
+}
+
+.eye-inline-button:pressed {
+    -fx-background-color: rgba(24, 48, 41, 0.95);
+}
+
+.error-label {
+    -fx-text-fill: #ff9f9f;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+    -fx-padding: 4 0 0 0;
+}
+
+.auth-close-button {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: rgba(186, 214, 200, 0.40);
+    -fx-font-size: 16px;
+    -fx-font-weight: 700;
+    -fx-cursor: hand;
+    -fx-padding: 0 2 0 2;
+}
+
+.auth-close-button:hover {
+    -fx-text-fill: rgba(210, 238, 225, 0.70);
+}

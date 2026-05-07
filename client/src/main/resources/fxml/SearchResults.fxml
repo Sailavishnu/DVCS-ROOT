@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<HBox xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.dvcs.client.dashboard.search.SearchController"
+      stylesheets="@../css/search.css" styleClass="srch-root">
+
+    <!-- Left Sidebar -->
+    <VBox styleClass="srch-sidebar">
+        <VBox styleClass="srch-sidebar-logo">
+            <Label text=">_ DVCS" styleClass="srch-logo-title"/>
+            <Label text="LOCAL-FIRST DVCS" styleClass="srch-logo-sub"/>
+        </VBox>
+        <VBox fx:id="sidebarNav" VBox.vgrow="ALWAYS" styleClass="srch-sidebar-nav"/>
+        <HBox styleClass="srch-sidebar-user" spacing="10" alignment="CENTER_LEFT">
+            <StackPane styleClass="srch-user-avatar">
+                <Label fx:id="userInitialsLabel" text="U" styleClass="srch-user-initials"/>
+            </StackPane>
+            <VBox spacing="2">
+                <Label fx:id="userNameLabel" text="" styleClass="srch-user-name"/>
+                <Label text="Verified Node" styleClass="srch-user-role"/>
+            </VBox>
+        </HBox>
+    </VBox>
+
+    <!-- Main Content -->
+    <VBox HBox.hgrow="ALWAYS" styleClass="srch-main">
+
+        <!-- Top Bar -->
+        <HBox styleClass="srch-topbar" alignment="CENTER_LEFT" spacing="16">
+            <TextField fx:id="topSearchField" promptText="Search files, commits, workspaces..."
+                       styleClass="srch-topbar-search" HBox.hgrow="ALWAYS" maxWidth="580"
+                       onAction="#onTopSearchSubmit"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label text="🔄" styleClass="srch-topbar-icon"
+                   onMouseClicked="#onRefreshClick"/>
+            <Label text="&#128276;" styleClass="srch-topbar-icon"
+                   onMouseClicked="#onTopNotifClick"/>
+            <Label text="&#128100;" styleClass="srch-topbar-icon"
+                   onMouseClicked="#onTopProfileClick"/>
+
+        </HBox>
+
+        <!-- Content: Filter Sidebar + Results -->
+        <HBox VBox.vgrow="ALWAYS">
+
+            <!-- Filter Sidebar -->
+            <VBox styleClass="srch-filter-sidebar" spacing="28">
+                <padding>
+                    <Insets top="24" right="20" bottom="24" left="20"/>
+                </padding>
+
+                <!-- Filter by Type -->
+                <VBox spacing="12">
+                    <Label text="FILTER BY TYPE" styleClass="srch-filter-heading"/>
+                    <VBox spacing="8">
+                        <HBox styleClass="srch-filter-row" alignment="CENTER_LEFT" spacing="8">
+                            <CheckBox fx:id="filesCheckBox" selected="true"
+                                      styleClass="srch-filter-check"
+                                      onAction="#onFilterChanged"/>
+                            <Label text="Files" styleClass="srch-filter-label" HBox.hgrow="ALWAYS"/>
+                            <Label fx:id="filesCountBadge" text="" styleClass="srch-filter-badge"/>
+                        </HBox>
+                        <HBox styleClass="srch-filter-row" alignment="CENTER_LEFT" spacing="8">
+                            <CheckBox fx:id="commitsCheckBox" selected="true"
+                                      styleClass="srch-filter-check"
+                                      onAction="#onFilterChanged"/>
+                            <Label text="Commits" styleClass="srch-filter-label" HBox.hgrow="ALWAYS"/>
+                            <Label fx:id="commitsCountBadge" text="" styleClass="srch-filter-badge"/>
+                        </HBox>
+                        <HBox styleClass="srch-filter-row" alignment="CENTER_LEFT" spacing="8">
+                            <CheckBox fx:id="workspacesCheckBox" selected="true"
+                                      styleClass="srch-filter-check"
+                                      onAction="#onFilterChanged"/>
+                            <Label text="Workspaces" styleClass="srch-filter-label"
+                                   HBox.hgrow="ALWAYS"/>
+                            <Label fx:id="workspacesCountBadge" text="" styleClass="srch-filter-badge"/>
+                        </HBox>
+                    </VBox>
+                </VBox>
+
+                <!-- Date Range (visual placeholder) -->
+                <VBox spacing="10">
+                    <Label text="DATE RANGE" styleClass="srch-filter-heading"/>
+                    <VBox spacing="6">
+                        <Label text="START DATE" styleClass="srch-filter-date-label"/>
+                        <HBox styleClass="srch-date-box" alignment="CENTER_LEFT">
+                            <Label text="All time" styleClass="srch-date-text" HBox.hgrow="ALWAYS"/>
+                            <Label text="&#128197;" styleClass="srch-date-icon"/>
+                        </HBox>
+                    </VBox>
+                    <VBox spacing="6">
+                        <Label text="END DATE" styleClass="srch-filter-date-label"/>
+                        <HBox styleClass="srch-date-box" alignment="CENTER_LEFT">
+                            <Label text="Present" styleClass="srch-date-text" HBox.hgrow="ALWAYS"/>
+                            <Label text="&#128336;" styleClass="srch-date-icon"/>
+                        </HBox>
+                    </VBox>
+                </VBox>
+            </VBox>
+
+            <!-- Results Area -->
+            <VBox HBox.hgrow="ALWAYS" styleClass="srch-results-area">
+                <padding>
+                    <Insets top="24" right="32" bottom="0" left="32"/>
+                </padding>
+
+                <!-- Results Header -->
+                <HBox alignment="CENTER_LEFT" styleClass="srch-results-header" spacing="12">
+                    <Label fx:id="resultsCountLabel" text="Search for something"
+                           styleClass="srch-results-title" HBox.hgrow="ALWAYS" wrapText="true"/>
+                </HBox>
+
+                <!-- Results: scroll or empty -->
+                <StackPane VBox.vgrow="ALWAYS">
+                    <VBox fx:id="emptyStateBox" alignment="CENTER" spacing="10"
+                          styleClass="srch-empty-state" visible="true" managed="true">
+                        <Label text="&#128269;" styleClass="srch-empty-icon"/>
+                        <Label text="No matches found" styleClass="srch-empty-label"/>
+                        <Label text="Try a different search term or adjust filters."
+                               styleClass="srch-empty-sub"/>
+                    </VBox>
+                    <ScrollPane fx:id="resultsScrollPane" fitToWidth="true" hbarPolicy="NEVER"
+                                vbarPolicy="AS_NEEDED" styleClass="srch-results-scroll"
+                                visible="false" managed="false">
+                        <content>
+                            <VBox fx:id="resultsList" spacing="14" styleClass="srch-results-list">
+                                <padding>
+                                    <Insets top="4" right="0" bottom="20" left="0"/>
+                                </padding>
+                            </VBox>
+                        </content>
+                    </ScrollPane>
+                </StackPane>
+            </VBox>
+
+        </HBox>
+    </VBox>
+</HBox>

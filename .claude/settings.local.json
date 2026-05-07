@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"d:\\\\dvcs-root\" -Directory)",
+      "Bash(Select-Object Name)",
+      "Bash(ls -la d:\\\\\\\\dvcs-root)",
+      "Bash(find d:\\\\\\\\dvcs-root\\\\\\\\server -type f -name \"*.java\")",
+      "Bash(git -C \"d:/dvcs-root\" diff --name-only --diff-filter=U)",
+      "Bash(Get-ChildItem -Path \"d:\\\\dvcs-root\\\\client\\\\lib\" -Filter \"*.jar\" -File)",
+      "Bash(Select-Object -ExpandProperty Name)"
+    ]
+  }
+}

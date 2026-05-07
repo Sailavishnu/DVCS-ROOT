@@ -1,0 +1,16 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "java",
+      "name": "Run MainApp (JavaFX)",
+      "request": "launch",
+      "mainClass": "com.dvcs.client.MainApp",
+      "cwd": "${workspaceFolder}/client",
+      "vmArgs": "--module-path \"${env:PATH_TO_FX}\" --add-modules javafx.controls,javafx.fxml",
+      "env": {
+        "MONGODB_DB": "DVCS"
+      }
+    }
+  ]
+}

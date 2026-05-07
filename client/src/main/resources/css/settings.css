@@ -1,0 +1,240 @@
+/* Navbar */
+.navbar {
+    -fx-background-color: linear-gradient(to right, #0d1713, #12211c);
+    -fx-background-radius: 22;
+    -fx-border-radius: 22;
+    -fx-border-width: 1;
+    -fx-border-color: rgba(0, 255, 136, 0.28);
+    -fx-effect: dropshadow(gaussian, rgba(0, 255, 136, 0.18), 26, 0.18, 0, 8);
+}
+
+.navbar-title {
+    -fx-text-fill: #e8fff2;
+    -fx-font-size: 21px;
+    -fx-font-weight: 800;
+}
+
+.navbar-search {
+    -fx-background-radius: 22;
+    -fx-background-color: rgba(16, 30, 25, 0.92);
+    -fx-text-fill: #e8fff2;
+    -fx-prompt-text-fill: rgba(165, 202, 183, 0.78);
+    -fx-font-size: 14px;
+    -fx-font-weight: 700;
+    -fx-padding: 11 18 11 18;
+    -fx-min-width: 420;
+    -fx-pref-width: 460;
+    -fx-border-radius: 22;
+    -fx-border-width: 1;
+    -fx-border-color: rgba(0, 255, 136, 0.30);
+}
+
+.navbar-icon {
+    -fx-text-fill: #e8fff2;
+    -fx-font-size: 19px;
+}
+
+.navbar-icon:hover {
+    -fx-text-fill: #00ff88;
+}
+
+.navbar-avatar {
+    -fx-fill: rgba(23, 45, 37, 0.92);
+    -fx-stroke: rgba(0, 255, 136, 0.42);
+    -fx-stroke-width: 1.2;
+}
+
+.navbar-avatar-container {
+    -fx-padding: 0;
+}
+
+.navbar-avatar-text {
+    -fx-text-fill: white;
+    -fx-font-size: 10px;
+    -fx-font-weight: 800;
+}
+
+.navbar-back-inline {
+    -fx-background-color: #111d18;
+    -fx-text-fill: #8dffca;
+    -fx-border-color: rgba(0, 255, 136, 0.34);
+    -fx-background-radius: 999;
+    -fx-border-radius: 999;
+    -fx-border-width: 1;
+    -fx-min-width: 34;
+    -fx-pref-width: 34;
+    -fx-max-width: 34;
+    -fx-min-height: 34;
+    -fx-pref-height: 34;
+    -fx-max-height: 34;
+    -fx-padding: 0;
+}
+
+.navbar-back-inline:hover {
+    -fx-background-color: #172a23;
+}
+
+/* Settings Page */
+.settings-page-root {
+    -fx-background-color: #0a0a0a;
+}
+
+.settings-header {
+    -fx-background-color: rgba(26, 31, 27, 0.85);
+    -fx-padding: 16;
+}
+
+.settings-title {
+    -fx-font-size: 24px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #00ff88;
+}
+
+.settings-tab-pane {
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+    -fx-padding: 0;
+}
+
+.settings-tab-pane .tab {
+    -fx-background-color: rgba(26, 31, 27, 0.5);
+    -fx-border-color: rgba(100, 236, 179, 0.3);
+    -fx-padding: 8 16 8 16;
+}
+
+.settings-tab-pane .tab:selected {
+    -fx-background-color: rgba(36, 100, 60, 0.6);
+    -fx-border-color: #5cf2b1;
+    -fx-text-fill: #00ff88;
+}
+
+.settings-tab-pane .tab-label {
+    -fx-text-fill: #a0a0a0;
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+}
+
+.settings-tab-content {
+    -fx-background-color: #0a0a0a;
+}
+
+.settings-label {
+    -fx-text-fill: #00ff88;
+    -fx-font-weight: 600;
+    -fx-font-size: 12px;
+}
+
+.settings-sublabel {
+    -fx-text-fill: #a0a0a0;
+    -fx-font-weight: 600;
+    -fx-font-size: 11px;
+}
+
+.settings-combo-box {
+    -fx-background-color: rgba(26, 31, 27, 0.8);
+    -fx-border-color: rgba(100, 236, 179, 0.4);
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+    -fx-text-fill: #ffffff;
+    -fx-padding: 6 8 6 8;
+}
+
+.settings-combo-box:hover {
+    -fx-border-color: rgba(100, 236, 179, 0.7);
+}
+
+.settings-combo-box:focused {
+    -fx-border-color: #5cf2b1;
+    -fx-effect: dropshadow(gaussian, rgba(0, 255, 136, 0.3), 8, 0.5, 0, 0);
+}
+
+.settings-action-button {
+    -fx-background-color: linear-gradient(to bottom, #5cf2b1, #1c7865);
+    -fx-text-fill: #0a0a0a;
+    -fx-font-weight: 600;
+    -fx-padding: 6 12 6 12;
+    -fx-background-radius: 4;
+    -fx-border-radius: 4;
+}
+
+.settings-action-button:hover {
+    -fx-background-color: linear-gradient(to bottom, #00ff88, #00cc6e);
+    -fx-effect: dropshadow(gaussian, rgba(0, 255, 136, 0.4), 10, 0.5, 0, 0);
+}
+
+.settings-action-button:pressed {
+    -fx-background-color: #1c7865;
+}
+
+.settings-table {
+    -fx-background-color: rgba(26, 31, 27, 0.6);
+    -fx-border-color: rgba(100, 236, 179, 0.3);
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+}
+
+.settings-table .table-view {
+    -fx-background-color: rgba(26, 31, 27, 0.3);
+}
+
+.settings-table .table-row-cell {
+    -fx-background-color: rgba(26, 31, 27, 0.4);
+    -fx-text-fill: #ffffff;
+    -fx-padding: 6;
+}
+
+.settings-table .table-row-cell:hover {
+    -fx-background-color: rgba(100, 236, 179, 0.15);
+}
+
+.settings-table .table-row-cell:selected {
+    -fx-background-color: rgba(100, 236, 179, 0.25);
+}
+
+.settings-table .column-header {
+    -fx-background-color: rgba(36, 100, 60, 0.4);
+    -fx-text-fill: #00ff88;
+    -fx-font-weight: 600;
+    -fx-border-color: rgba(100, 236, 179, 0.3);
+}
+
+.comparison-editor-container {
+    -fx-border-color: rgba(100, 236, 179, 0.3);
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+    -fx-background-color: rgba(26, 31, 27, 0.6);
+}
+
+.comparison-divider {
+    -fx-border-color: rgba(100, 236, 179, 0.2);
+    -fx-border-width: 0 1 0 0;
+    -fx-padding: 0 8 0 8;
+}
+
+.diff-removed {
+    -fx-fill: rgba(255, 80, 80, 0.3);
+}
+
+.diff-added {
+    -fx-fill: rgba(80, 255, 120, 0.3);
+}
+
+/* Dark combo used in comparison panel */
+.ws-dark-combo {
+    -fx-background-color: #0d1620;
+    -fx-border-color: rgba(100, 160, 240, 0.4);
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-text-fill: white;
+}
+
+.ws-dark-combo .list-cell {
+    -fx-text-fill: white;
+    -fx-background-color: #0d1620;
+}
+
+.ws-dark-combo .list-cell:hover,
+.ws-dark-combo .list-cell:selected {
+    -fx-background-color: #1e3a5f;
+    -fx-text-fill: white;
+}

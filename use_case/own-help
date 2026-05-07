@@ -1,0 +1,52 @@
+$DVCS_ROOT = "D:\dvcs-root"  
+
+
+$javafxLib = "$env:JAVAFX_HOME\lib"
+
+
+
+javac --module-path "$javafxLib" --add-modules javafx.controls,javafx.fxml,javafx.swing -cp "$DVCS_ROOT\client\lib\*" -d "$DVCS_ROOT\client\out" (Get-ChildItem "$DVCS_ROOT\client\src\main\java" -Recurse -Filter *.java).FullName 
+
+
+javac --module-path "$javafxLib" --add-modules javafx.controls,javafx.fxml,javafx.swing -cp "$DVCS_ROOT\client\lib\*" -d "$DVCS_ROOT\client\out" (Get-ChildItem "$DVCS_ROOT\client\src\main\java" -Recurse -Filter *.java).FullName
+
+
+
+java --enable-native-access=javafx.graphics --module-path "$javafxLib" --add-modules javafx.controls,javafx.fxml,javafx.swing -cp "$DVCS_ROOT\client\out;$DVCS_ROOT\client\src\main\resources;$DVCS_ROOT\client\lib\*" com.dvcs.client.MainApp
+
+
+to run database seeder file 
+
+compile 
+
+javac -cp ".;client/lib/*" DatabaseSeeder.java
+
+run
+
+java -cp ".;client/lib/*" DatabaseSeeder
+
+
+
+
+
+# Compiles your code and downloads dependencies
+mvn clean compile
+
+# Runs your JavaFX application
+mvn javafx:run
+
+
+--- 
+# HOW TO COMPILE AND RUN THE STANDALONE NETWORK TESTER
+# Ensure you are in the DVCS-ROOT directory (D:\dvcs\DVCS-ROOT)
+
+# 1. Compile and Run the Server
+javac server\Server.java
+java -cp "server" Server
+
+# 2. Compile and Run the Client
+javac client\Client.java
+java -cp "client" Client
+
+# To connect the Client to a different laptop's Server, add the IP address at the end:
+# java -cp "client" Client 192.168.1.50

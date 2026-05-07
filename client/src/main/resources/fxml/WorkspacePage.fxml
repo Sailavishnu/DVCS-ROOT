@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.MenuButton?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Priority?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane fx:id="root" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.dvcs.client.workspacepage.controller.WorkspaceController"
+            stylesheets="@../css/workspace.css" styleClass="workspace-page-root">
+
+    <top>
+        <VBox spacing="10" styleClass="workspace-header-wrap">
+            <padding>
+                <Insets top="16" right="20" bottom="10" left="20"/>
+            </padding>
+
+            <HBox alignment="CENTER_LEFT" spacing="12" styleClass="workspace-topbar">
+                <Button text="←" onAction="#onBackRequested" styleClass="app-back-button"/>
+                <Label fx:id="workspaceNameHeader" text="Workspace Name" styleClass="workspace-topbar-name"/>
+                <Region HBox.hgrow="ALWAYS" />
+                <HBox alignment="CENTER_RIGHT" spacing="10" style="-fx-background-color: rgba(0,255,136,0.08); -fx-background-radius: 8; -fx-padding: 6 12;">
+                    <Label text="⎇  Branch:" style="-fx-text-fill: #00ff88; -fx-font-size: 13px; -fx-font-weight: bold;"/>
+                    <ComboBox fx:id="branchSelector" styleClass="workspace-branch-selector" prefWidth="180"/>
+                </HBox>
+            </HBox>
+        </VBox>
+    </top>
+
+    <center>
+        <HBox fx:id="mainContainer" spacing="14" styleClass="workspace-main-container">
+            <padding>
+                <Insets top="10" right="20" bottom="18" left="20"/>
+            </padding>
+
+            <VBox fx:id="leftSection" spacing="12" HBox.hgrow="ALWAYS">
+                <VBox spacing="8" styleClass="workspace-table-card" VBox.vgrow="ALWAYS">
+                    <HBox alignment="CENTER_LEFT" spacing="6">
+                        <Label text="Files" styleClass="workspace-section-title"/>
+                        <Label text="/" styleClass="workspace-breadcrumb-separator"/>
+                        <HBox fx:id="breadcrumbBar" alignment="CENTER_LEFT" spacing="4" styleClass="workspace-breadcrumb-bar" HBox.hgrow="ALWAYS"/>
+                        <Button text="⟳" onAction="#onRefreshWorkspace" styleClass="workspace-refresh-button"/>
+                        <MenuButton text="Add File" styleClass="workspace-action-button workspace-inline-add-menu">
+                            <items>
+                                <MenuItem text="Create File" onAction="#onCreateFile"/>
+                                <MenuItem text="Import File" onAction="#onImportFile"/>
+                            </items>
+                        </MenuButton>
+                    </HBox>
+                    <TableView fx:id="fileTable" VBox.vgrow="ALWAYS">
+                        <columns>
+                            <TableColumn fx:id="nameColumn" text="Name" prefWidth="400"/>
+                            <TableColumn fx:id="lastCommitColumn" text="Last Commit Message" prefWidth="380"/>
+                            <TableColumn fx:id="lastModifiedColumn" text="Last Modified" prefWidth="200"/>
+                            <TableColumn fx:id="actionsColumn" text="" prefWidth="80"/>
+                        </columns>
+                    </TableView>
+                </VBox>
+
+                <VBox fx:id="readmeSection" spacing="10" styleClass="workspace-readme-card" managed="false" visible="false">
+                    <HBox alignment="CENTER_LEFT" spacing="8">
+                        <Label text="📄 README.md" styleClass="workspace-section-title" HBox.hgrow="ALWAYS"/>
+                        <Button fx:id="editReadmeButton" text="Edit" styleClass="workspace-readme-edit-btn" onAction="#onEditReadme"/>
+                    </HBox>
+                    <TextArea fx:id="readmeWebView" editable="false" wrapText="true" prefHeight="200" minHeight="80" styleClass="workspace-readme-textarea"/>
+                </VBox>
+            </VBox>
+
+            <VBox fx:id="rightPanel" spacing="12" styleClass="workspace-right-panel">
+                <VBox spacing="12" styleClass="workspace-right-main-card" VBox.vgrow="ALWAYS">
+                    <HBox alignment="CENTER_RIGHT" spacing="8" styleClass="workspace-right-top-actions">
+                        <Button text="⚙" onAction="#onSettingsRequested" styleClass="workspace-settings-button"/>
+                    </HBox>
+
+                    <VBox spacing="10" styleClass="workspace-contributors-section">
+                        <HBox alignment="CENTER_LEFT" spacing="8">
+                            <Label text="Contributors" styleClass="workspace-section-title"/>
+                            <Label fx:id="contributorsCountLabel" text="1" styleClass="workspace-contributors-count"/>
+                        </HBox>
+                        <VBox fx:id="contributorsListBox" spacing="8" styleClass="workspace-contributors-list"/>
+                    </VBox>
+
+                    <VBox fx:id="tagsSection" spacing="10" styleClass="workspace-tags-section">
+                        <Label text="Tags" styleClass="workspace-section-title"/>
+                        <HBox fx:id="tagsContainer" spacing="8" styleClass="workspace-tags-container"/>
+                    </VBox>
+
+                    <Region VBox.vgrow="ALWAYS"/>
+
+                    <VBox spacing="12" styleClass="workspace-languages-section">
+                        <Label text="Languages" styleClass="workspace-section-title"/>
+                        <Label fx:id="languageProjectTitleLabel" text="Project" styleClass="workspace-language-project"/>
+                        <HBox fx:id="languageBarContainer" spacing="0" styleClass="workspace-language-bar"/>
+                        <VBox fx:id="languageLegendBox" spacing="8" styleClass="workspace-language-legend"/>
+                    </VBox>
+                </VBox>
+            </VBox>
+        </HBox>
+    </center>
+</BorderPane>
