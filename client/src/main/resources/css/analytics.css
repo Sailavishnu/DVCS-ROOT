@@ -1,151 +1,235 @@
-/* ── Analytics Panel ─────────────────────────────────────────────────────── */
+.analytics-scroll .viewport {
+    -fx-background-color: linear-gradient(to bottom right, #08110f, #0d1816, #0a1417);
+}
 
-.analytics-panel {
+.analytics-dashboard {
     -fx-background-color: transparent;
 }
 
-.panel-title {
-    -fx-text-fill: #DAE3EE;
-    -fx-font-size: 20px;
-    -fx-font-weight: bold;
-    -fx-padding: 0 0 10 0;
+.analytics-header {
+    -fx-padding: 4 0 6 0;
 }
 
-.section-title {
-    -fx-text-fill: #9CA3AF;
-    -fx-font-size: 13px;
-    -fx-font-weight: bold;
-    -fx-letter-spacing: 0.05em;
+.analytics-eyebrow {
+    -fx-text-fill: #7bff78;
+    -fx-font-size: 10px;
+    -fx-font-weight: 700;
+    -fx-letter-spacing: 0.18em;
 }
 
-/* ── Glassmorphic Sections ───────────────────────────────────────────────── */
+.analytics-title {
+    -fx-text-fill: #f2ffe9;
+    -fx-font-size: 28px;
+    -fx-font-weight: 700;
+}
 
-.chart-section {
-    -fx-background-color: rgba(26, 31, 28, 0.6);
-    -fx-border-color: rgba(0, 255, 156, 0.1);
+.analytics-subtitle {
+    -fx-text-fill: #9bb6a6;
+    -fx-font-size: 12px;
+}
+
+.analytics-primary-button {
+    -fx-background-color: linear-gradient(to right, #39ff14, #79ff5b);
+    -fx-text-fill: #062100;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+    -fx-background-radius: 999;
+    -fx-padding: 10 18 10 18;
+    -fx-cursor: hand;
+}
+
+.analytics-primary-button:hover {
+    -fx-effect: dropshadow(gaussian, rgba(57,255,20,0.22), 18, 0, 0, 0);
+}
+
+.analytics-summary-grid {
+    -fx-padding: 4 0 0 0;
+}
+
+.analytics-metric-card {
+    -fx-background-color: rgba(13, 17, 23, 0.78);
+    -fx-border-color: rgba(121, 255, 91, 0.12);
     -fx-border-width: 1;
     -fx-border-radius: 16;
     -fx-background-radius: 16;
-    -fx-padding: 20;
+    -fx-padding: 18 18 18 18;
 }
 
+.analytics-metric-card:hover,
 .chart-section:hover {
-    -fx-border-color: rgba(0, 255, 156, 0.3);
-    -fx-effect: dropshadow(gaussian, rgba(0, 255, 156, 0.1), 15, 0, 0, 0);
+    -fx-border-color: rgba(121, 255, 91, 0.28);
+    -fx-effect: dropshadow(gaussian, rgba(57,255,20,0.10), 18, 0, 0, 0);
 }
 
-/* ── Storage Gauge ───────────────────────────────────────────────────────── */
-
-.storage-gauge-container {
-    -fx-padding: 10 0 0 0;
+.analytics-metric-label,
+.analytics-mini-label,
+.analytics-chip-label,
+.analytics-insight-label {
+    -fx-text-fill: #8fa48f;
+    -fx-font-size: 10px;
+    -fx-font-weight: 700;
+    -fx-letter-spacing: 0.12em;
 }
 
-.storage-label {
-    -fx-text-fill: #DAE3EE;
-    -fx-font-size: 14px;
-    -fx-font-weight: 500;
+.analytics-metric-value {
+    -fx-text-fill: #efffe3;
+    -fx-font-size: 28px;
+    -fx-font-weight: 700;
 }
 
-.storage-bar {
-    -fx-background-color: rgba(255, 255, 255, 0.05);
-    -fx-background-radius: 6;
-}
-
-/* ── Charts General Styling ──────────────────────────────────────────────── */
-
-.chart {
-    -fx-padding: 10;
-}
-
-.chart-content {
-    -fx-padding: 10;
-}
-
-.chart-plot-background {
-    -fx-background-color: transparent;
-}
-
-.chart-vertical-grid-lines {
-    -fx-stroke: rgba(0, 255, 156, 0.05);
-}
-
-.chart-horizontal-grid-lines {
-    -fx-stroke: rgba(0, 255, 156, 0.05);
-}
-
-.axis {
-    -fx-tick-label-fill: #6B7280;
-    -fx-tick-length: 5;
-    -fx-minor-tick-visible: false;
-}
-
-.axis-label {
-    -fx-text-fill: #9CA3AF;
+.analytics-metric-hint,
+.analytics-panel-subtitle,
+.analytics-panel-note,
+.analytics-file-workspace,
+.analytics-timeline-meta,
+.analytics-empty-state,
+.analytics-heatmap-day,
+.analytics-heatmap-legend .label {
+    -fx-text-fill: #9bb6a6;
     -fx-font-size: 11px;
 }
 
-/* Line Chart Neon Glow */
-.chart-series-line {
-    -fx-stroke: #00FF9C;
-    -fx-stroke-width: 3px;
-    -fx-effect: dropshadow(gaussian, rgba(0, 255, 156, 0.4), 8, 0, 0, 0);
-}
-
-/* Area Chart Gradient Effect */
-.chart-series-area-fill {
-    -fx-fill: linear-gradient(to bottom, rgba(0, 255, 156, 0.2), transparent);
-}
-
-.chart-series-area-line {
-    -fx-stroke: #00FF9C;
-    -fx-stroke-width: 2px;
-}
-
-/* Stacked Bar Chart Colors */
-.default-color0.chart-bar { -fx-bar-fill: #00FF9C; } /* Additions */
-.default-color1.chart-bar { -fx-bar-fill: #EF4444; } /* Deletions */
-.default-color2.chart-bar { -fx-bar-fill: #3B82F6; } /* Modifications */
-
-/* Heatmap Cells */
-.heatmap-cell {
-    -fx-background-radius: 2;
-}
-
-.heatmap-level-0 { -fx-background-color: #111612; }
-.heatmap-level-1 { -fx-background-color: rgba(0, 255, 156, 0.2); }
-.heatmap-level-2 { -fx-background-color: rgba(0, 255, 156, 0.4); }
-.heatmap-level-3 { -fx-background-color: rgba(0, 255, 156, 0.7); }
-.heatmap-level-4 { -fx-background-color: #00FF9C; -fx-effect: dropshadow(gaussian, rgba(0, 255, 156, 0.4), 4, 0, 0, 0); }
-
-/* Legend Styling */
-.chart-legend {
-    -fx-background-color: transparent;
-    -fx-padding: 10 0 0 0;
-}
-
-.chart-legend-item {
-    -fx-text-fill: #DAE3EE;
-}
-
-/* ── Stats Tiles ─────────────────────────────────────────────────────────── */
-
-.stat-tile {
-    -fx-background-color: rgba(255, 255, 255, 0.03);
-    -fx-border-color: rgba(0, 255, 156, 0.05);
+.chart-section {
+    -fx-background-color: rgba(13, 17, 23, 0.78);
+    -fx-border-color: rgba(121, 255, 91, 0.12);
     -fx-border-width: 1;
-    -fx-border-radius: 12;
-    -fx-background-radius: 12;
+    -fx-border-radius: 18;
+    -fx-background-radius: 18;
+    -fx-padding: 20;
+}
+
+.analytics-panel-title {
+    -fx-text-fill: #efffe3;
+    -fx-font-size: 20px;
+    -fx-font-weight: 700;
+}
+
+.analytics-storage-value {
+    -fx-text-fill: #efffe3;
+    -fx-font-size: 26px;
+    -fx-font-weight: 700;
+}
+
+.analytics-badge-ok,
+.analytics-badge-danger {
+    -fx-font-size: 10px;
+    -fx-font-weight: 700;
+    -fx-padding: 5 10 5 10;
+    -fx-background-radius: 999;
+}
+
+.analytics-badge-ok {
+    -fx-background-color: rgba(57,255,20,0.16);
+    -fx-text-fill: #7bff78;
+}
+
+.analytics-badge-danger {
+    -fx-background-color: rgba(255,180,171,0.18);
+    -fx-text-fill: #ffb4ab;
+}
+
+.analytics-mini-card,
+.analytics-chip,
+.analytics-insight-row,
+.analytics-file-row,
+.analytics-workspace-row {
+    -fx-background-color: rgba(24, 32, 40, 0.72);
+    -fx-background-radius: 14;
+    -fx-border-color: rgba(255,255,255,0.06);
+    -fx-border-width: 1;
+    -fx-border-radius: 14;
     -fx-padding: 12;
 }
 
-.stat-label {
-    -fx-text-fill: #6B7280;
-    -fx-font-size: 10px;
-    -fx-font-weight: bold;
+.analytics-mini-value,
+.analytics-chip-value,
+.analytics-insight-value,
+.analytics-file-size {
+    -fx-text-fill: #f2ffe9;
+    -fx-font-size: 16px;
+    -fx-font-weight: 700;
 }
 
-.stat-value {
-    -fx-text-fill: #00FF9C;
-    -fx-font-size: 20px;
-    -fx-font-weight: bold;
+.analytics-danger-bar,
+.analytics-ok-bar,
+.analytics-workspace-bar {
+    -fx-accent: #39ff14;
+}
+
+.analytics-danger-bar {
+    -fx-accent: #ffb4ab;
+}
+
+.analytics-danger-bar > .bar,
+.analytics-ok-bar > .bar,
+.analytics-workspace-bar > .bar {
+    -fx-background-radius: 999;
+}
+
+.analytics-danger-bar > .track,
+.analytics-ok-bar > .track,
+.analytics-workspace-bar > .track {
+    -fx-background-color: rgba(255,255,255,0.07);
+    -fx-background-radius: 999;
+}
+
+.analytics-bar-chart .chart-plot-background,
+.analytics-bar-chart .chart-content,
+.analytics-bar-chart .chart {
+    -fx-background-color: transparent;
+}
+
+.analytics-bar-chart .chart-vertical-grid-lines,
+.analytics-bar-chart .chart-horizontal-grid-lines {
+    -fx-stroke: rgba(121,255,91,0.06);
+}
+
+.analytics-bar-chart .axis {
+    -fx-tick-label-fill: #8fa48f;
+}
+
+.analytics-bar-chart .axis-label {
+    -fx-text-fill: #9bb6a6;
+}
+
+.analytics-bar-chart .default-color0.chart-bar {
+    -fx-bar-fill: linear-gradient(to top, #1f6f2f, #79ff5b);
+    -fx-background-radius: 6 6 0 0;
+}
+
+.analytics-workspace-name,
+.analytics-file-name,
+.analytics-timeline-title {
+    -fx-text-fill: #efffe3;
+    -fx-font-size: 13px;
+    -fx-font-weight: 700;
+}
+
+.analytics-workspace-count {
+    -fx-text-fill: #7bff78;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+}
+
+.analytics-timeline-dot {
+    -fx-background-color: #39ff14;
+    -fx-background-radius: 999;
+    -fx-effect: dropshadow(gaussian, rgba(57,255,20,0.35), 8, 0, 0, 0);
+}
+
+.analytics-timeline-row {
+    -fx-alignment: top-left;
+}
+
+.heatmap-cell {
+    -fx-background-radius: 3;
+}
+
+.heatmap-level-0 { -fx-background-color: #1a2327; }
+.heatmap-level-1 { -fx-background-color: rgba(57,255,20,0.20); }
+.heatmap-level-2 { -fx-background-color: rgba(57,255,20,0.38); }
+.heatmap-level-3 { -fx-background-color: rgba(57,255,20,0.62); }
+.heatmap-level-4 {
+    -fx-background-color: #79ff5b;
+    -fx-effect: dropshadow(gaussian, rgba(57,255,20,0.26), 6, 0, 0, 0);
 }

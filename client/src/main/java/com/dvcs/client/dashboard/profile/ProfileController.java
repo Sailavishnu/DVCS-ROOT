@@ -5,13 +5,18 @@ import com.dvcs.client.auth.repo.UserRepository;
 import com.dvcs.client.auth.service.UserService;
 import com.dvcs.client.controller.LoginSignupController;
 import com.dvcs.client.dashboard.MainLayoutController;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import javafx.application.Platform;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
@@ -19,6 +24,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.SnapshotParameters;
 import java.time.LocalDate;
 import java.time.DayOfWeek;
 import java.util.HashMap;
@@ -26,6 +32,7 @@ import java.util.Map;
 import javafx.scene.chart.AreaChart;
 import javafx.scene.chart.BarChart;
 import javafx.scene.chart.CategoryAxis;
+import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.Alert;
@@ -37,6 +44,7 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
+import javafx.scene.image.WritableImage;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
@@ -46,6 +54,9 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.RowConstraints;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.transform.Transform;
+import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.Window;
@@ -55,6 +66,7 @@ public final class ProfileController {
 
     private static final DateTimeFormatter TIME_FMT =
             DateTimeFormatter.ofPattern("MMM d, HH:mm").withZone(ZoneId.systemDefault());
+    private static final long DEFAULT_STORAGE_QUOTA_BYTES = 1_610_612_736L; // 1.5 GiB
 
     // Sidebar
     @FXML private VBox sidebarNav;
@@ -102,6 +114,16 @@ public final class ProfileController {
 
     private ProfileService.ProfileViewModel currentProfile;
     private ScrollPane analyticsPanel;
+    private VBox analyticsContent;
+    private VBox analyticsStorageSection;
+    private VBox analyticsUsageSection;
+    private VBox analyticsCreationSection;
+    private VBox analyticsHeatmapSection;
+    private VBox analyticsCommitsSection;
+    private VBox analyticsWorkspaceSection;
+    private VBox analyticsInsightsSection;
+    private VBox analyticsRecentActivitySection;
+    private VBox analyticsLargestFilesSection;
     private boolean analyticsShown = false;
 
     @FXML
@@ -317,26 +339,45 @@ public final class ProfileController {
 
     private ScrollPane buildAnalyticsScrollPane() {
         VBox content = new VBox(24);
+        content.getStyleClass().add("analytics-dashboard");
         content.setPadding(new Insets(28, 28, 80, 28));
         content.setMaxWidth(Double.MAX_VALUE);
-        content.setStyle("-fx-background-color: transparent;");
+        this.analyticsContent = content;
+
+        this.analyticsStorageSection = buildRedesignedStorageSection();
+        this.analyticsCommitsSection = buildRedesignedCommitsSection();
+        this.analyticsHeatmapSection = buildRedesignedHeatmapSection();
+        this.analyticsWorkspaceSection = buildRedesignedWorkspaceSection();
+        this.analyticsInsightsSection = buildRedesignedInsightsSection();
+        this.analyticsRecentActivitySection = buildRedesignedRecentActivitySection();
+        this.analyticsLargestFilesSection = buildRedesignedLargestFilesSection();
+
+        HBox chartsRow = new HBox(20, analyticsCommitsSection, analyticsHeatmapSection);
+        HBox.setHgrow(analyticsCommitsSection, Priority.ALWAYS);
+        HBox.setHgrow(analyticsHeatmapSection, Priority.ALWAYS);
+
+        HBox workspaceRow = new HBox(20, analyticsWorkspaceSection, analyticsInsightsSection);
+        HBox.setHgrow(analyticsWorkspaceSection, Priority.ALWAYS);
+        HBox.setHgrow(analyticsInsightsSection, Priority.ALWAYS);
+
+        HBox feedRow = new HBox(20, analyticsRecentActivitySection, analyticsLargestFilesSection);
+        HBox.setHgrow(analyticsRecentActivitySection, Priority.ALWAYS);
+        HBox.setHgrow(analyticsLargestFilesSection, Priority.ALWAYS);
 
         content.getChildren().addAll(
-            buildAnalyticsHeader(),
-            buildStatTiles(),
-            buildStorageSection(),
-            buildGithubHeatmap(),
-            buildCommitsAreaChart(),
-            buildBottomRow()
-        );
+                buildRedesignedAnalyticsHeader(),
+                buildRedesignedSummaryGrid(),
+                analyticsStorageSection,
+                chartsRow,
+                workspaceRow,
+                feedRow);
 
         ScrollPane sp = new ScrollPane(content);
         sp.setFitToWidth(true);
         sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        sp.getStyleClass().add("prof-scroll");
+        sp.getStyleClass().addAll("prof-scroll", "analytics-scroll");
         sp.getStylesheets().add(
-            java.util.Objects.requireNonNull(
-                getClass().getResource("/css/analytics.css")).toExternalForm());
+                Objects.requireNonNull(getClass().getResource("/css/analytics.css")).toExternalForm());
         VBox.setVgrow(sp, Priority.ALWAYS);
         return sp;
     }
@@ -352,7 +393,15 @@ public final class ProfileController {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        HBox header = new HBox(text, spacer);
+        Button downloadButton = new Button("Download PDF");
+        downloadButton.setFocusTraversable(false);
+        downloadButton.setStyle(
+            "-fx-background-color: linear-gradient(to right, #00ff88, #14b8a6);"
+            + "-fx-text-fill: #042014; -fx-font-weight: bold; -fx-padding: 10 18;"
+            + "-fx-background-radius: 999; -fx-cursor: hand;");
+        downloadButton.setOnAction(e -> onDownloadAnalyticsPdf());
+
+        HBox header = new HBox(text, spacer, downloadButton);
         header.setAlignment(Pos.CENTER_LEFT);
         return header;
     }
@@ -385,10 +434,12 @@ public final class ProfileController {
     }
 
     private VBox buildStorageSection() {
-        long quota    = currentProfile.storageQuota() != null ? currentProfile.storageQuota() : 5_368_709_120L;
+        long quota    = currentProfile.storageQuota() != null
+                ? currentProfile.storageQuota()
+                : DEFAULT_STORAGE_QUOTA_BYTES;
         long usedBytes = (long) currentProfile.totalFiles() * 1_048_576L;
         double pct    = quota > 0 ? (double) usedBytes / quota : 0;
-        boolean over  = pct > 0.8;
+        boolean over  = pct > 1.0;
 
         // Gauge bar
         ProgressBar bar = new ProgressBar(Math.min(pct, 1.0));
@@ -430,6 +481,7 @@ public final class ProfileController {
 
         HBox middle = new HBox(24, leftBox, rightBox);
         middle.setAlignment(Pos.CENTER_LEFT);
+        BarChart<String, Number> storageChart = createStorageBarChart(usedBytes, quota, over);
 
         VBox section = new VBox(14);
         section.getStyleClass().add("chart-section");
@@ -437,7 +489,7 @@ public final class ProfileController {
         sTitle.setStyle("-fx-text-fill: #e8fff2; -fx-font-size: 15px; -fx-font-weight: bold;");
         Label sSub = new Label("Estimated based on file count (1 MB avg per file)");
         sSub.setStyle("-fx-text-fill: rgba(148,163,184,0.6); -fx-font-size: 11px;");
-        section.getChildren().addAll(sTitle, sSub, middle, bar);
+        section.getChildren().addAll(sTitle, sSub, middle, storageChart, usedLbl, bar);
         return section;
     }
 
@@ -449,6 +501,131 @@ public final class ProfileController {
         HBox row = new HBox(k, v);
         row.setAlignment(Pos.CENTER_RIGHT);
         box.getChildren().add(row);
+    }
+
+    private BarChart<String, Number> createStorageBarChart(long usedBytes, long quotaBytes, boolean over) {
+        CategoryAxis xAxis = new CategoryAxis();
+        NumberAxis yAxis = new NumberAxis();
+        yAxis.setLabel("GB");
+        yAxis.setMinorTickVisible(false);
+
+        BarChart<String, Number> chart = new BarChart<>(xAxis, yAxis);
+        chart.setAnimated(false);
+        chart.setLegendVisible(false);
+        chart.setCategoryGap(36);
+        chart.setBarGap(18);
+        chart.setPrefHeight(220);
+        chart.setMaxWidth(Double.MAX_VALUE);
+
+        double usedGb = usedBytes / 1_073_741_824.0;
+        double quotaGb = quotaBytes / 1_073_741_824.0;
+
+        XYChart.Series<String, Number> series = new XYChart.Series<>();
+        XYChart.Data<String, Number> usedData = new XYChart.Data<>("Used", usedGb);
+        XYChart.Data<String, Number> quotaData = new XYChart.Data<>("Quota", quotaGb);
+        series.getData().addAll(usedData, quotaData);
+        chart.getData().add(series);
+
+        Platform.runLater(() -> {
+            if (usedData.getNode() != null) {
+                usedData.getNode().setStyle("-fx-bar-fill: " + (over ? "#ef4444" : "#00ff88") + ";");
+            }
+            if (quotaData.getNode() != null) {
+                quotaData.getNode().setStyle("-fx-bar-fill: rgba(148,163,184,0.45);");
+            }
+        });
+
+        return chart;
+    }
+
+    private VBox buildUsageSection() {
+        VBox section = new VBox(12);
+        section.getStyleClass().add("chart-section");
+
+        Label title = new Label("Daily App Usage");
+        title.setStyle("-fx-text-fill: #e8fff2; -fx-font-size: 15px; -fx-font-weight: bold;");
+        Label sub = new Label("Daily interaction volume from your recorded activity");
+        sub.setStyle("-fx-text-fill: rgba(148,163,184,0.6); -fx-font-size: 11px;");
+
+        LineChart<String, Number> chart = createUsageLineChart();
+        section.getChildren().addAll(title, sub, chart);
+        return section;
+    }
+
+    private LineChart<String, Number> createUsageLineChart() {
+        CategoryAxis xAxis = new CategoryAxis();
+        NumberAxis yAxis = new NumberAxis();
+        yAxis.setLabel("Actions");
+        yAxis.setMinorTickVisible(false);
+        yAxis.setTickUnit(1);
+
+        LineChart<String, Number> chart = new LineChart<>(xAxis, yAxis);
+        chart.setAnimated(false);
+        chart.setLegendVisible(false);
+        chart.setCreateSymbols(true);
+        chart.setPrefHeight(240);
+        chart.setMaxWidth(Double.MAX_VALUE);
+
+        XYChart.Series<String, Number> series = new XYChart.Series<>();
+        List<ProfileService.DayActivity> days = currentProfile.usageDays();
+        int start = Math.max(0, days.size() - 14);
+        for (int i = start; i < days.size(); i++) {
+            ProfileService.DayActivity day = days.get(i);
+            String label = day.date().getMonthValue() + "/" + day.date().getDayOfMonth();
+            XYChart.Data<String, Number> point = new XYChart.Data<>(label, day.activityCount());
+            series.getData().add(point);
+        }
+        chart.getData().add(series);
+        installChartTooltips(series, " actions");
+        return chart;
+    }
+
+    private VBox buildCreationSection() {
+        VBox section = new VBox(12);
+        section.getStyleClass().add("chart-section");
+
+        Label title = new Label("Daily Creation Trends");
+        title.setStyle("-fx-text-fill: #e8fff2; -fx-font-size: 15px; -fx-font-weight: bold;");
+        Label sub = new Label("Workspaces, folders and files created per day");
+        sub.setStyle("-fx-text-fill: rgba(148,163,184,0.6); -fx-font-size: 11px;");
+
+        CategoryAxis xAxis = new CategoryAxis();
+        NumberAxis yAxis = new NumberAxis();
+        yAxis.setLabel("Created");
+        yAxis.setMinorTickVisible(false);
+        yAxis.setTickUnit(1);
+
+        LineChart<String, Number> chart = new LineChart<>(xAxis, yAxis);
+        chart.setAnimated(false);
+        chart.setCreateSymbols(true);
+        chart.setLegendVisible(true);
+        chart.setPrefHeight(260);
+        chart.setMaxWidth(Double.MAX_VALUE);
+
+        XYChart.Series<String, Number> workspaceSeries = new XYChart.Series<>();
+        workspaceSeries.setName("Workspaces");
+        XYChart.Series<String, Number> folderSeries = new XYChart.Series<>();
+        folderSeries.setName("Folders");
+        XYChart.Series<String, Number> fileSeries = new XYChart.Series<>();
+        fileSeries.setName("Files");
+
+        List<ProfileService.CreationDay> days = currentProfile.creationDays();
+        int start = Math.max(0, days.size() - 14);
+        for (int i = start; i < days.size(); i++) {
+            ProfileService.CreationDay day = days.get(i);
+            String label = day.date().getMonthValue() + "/" + day.date().getDayOfMonth();
+            workspaceSeries.getData().add(new XYChart.Data<>(label, day.workspaceCount()));
+            folderSeries.getData().add(new XYChart.Data<>(label, day.folderCount()));
+            fileSeries.getData().add(new XYChart.Data<>(label, day.fileCount()));
+        }
+
+        chart.getData().addAll(workspaceSeries, folderSeries, fileSeries);
+        installChartTooltips(workspaceSeries, " workspaces");
+        installChartTooltips(folderSeries, " folders");
+        installChartTooltips(fileSeries, " files");
+
+        section.getChildren().addAll(title, sub, chart);
+        return section;
     }
 
     private VBox buildCommitsAreaChart() {
@@ -472,7 +649,7 @@ public final class ProfileController {
             ".chart-symbol { -fx-background-color: #00ff88, #0a1a10; -fx-background-radius: 4px; }");
 
         XYChart.Series<String, Number> series = new XYChart.Series<>();
-        List<ProfileService.DayCommit> days = currentProfile.activityDays();
+        List<ProfileService.DayCommit> days = currentProfile.commitActivityDays();
         if (days != null) {
             // Show every 3rd label to avoid clutter
             int i = 0;
@@ -486,11 +663,7 @@ public final class ProfileController {
         }
         chart.getData().add(series);
 
-        for (XYChart.Data<String, Number> item : series.getData()) {
-            if (item.getNode() != null)
-                Tooltip.install(item.getNode(),
-                    new Tooltip(item.getXValue() + ": " + item.getYValue() + " commits"));
-        }
+        installChartTooltips(series, " commits");
 
         // Insights row
         long total = days == null ? 0 : days.stream().mapToLong(ProfileService.DayCommit::commitCount).sum();
@@ -527,9 +700,9 @@ public final class ProfileController {
     }
 
     private HBox buildBottomRow() {
-        VBox workspaceChart = buildWorkspaceBarChart();
-        HBox.setHgrow(workspaceChart, Priority.ALWAYS);
-        HBox row = new HBox(20, workspaceChart);
+        this.analyticsWorkspaceSection = buildWorkspaceBarChart();
+        HBox.setHgrow(analyticsWorkspaceSection, Priority.ALWAYS);
+        HBox row = new HBox(20, analyticsWorkspaceSection);
         row.setMaxWidth(Double.MAX_VALUE);
         return row;
     }
@@ -571,8 +744,82 @@ public final class ProfileController {
         return section;
     }
 
+    private void onDownloadAnalyticsPdf() {
+        if (currentProfile == null || analyticsContent == null) {
+            showError("Analytics view is not ready yet.");
+            return;
+        }
+
+        FileChooser chooser = new FileChooser();
+        chooser.setTitle("Export Analytics Report");
+        chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("PDF files", "*.pdf"));
+        chooser.setInitialFileName(safeFileName(currentProfile.username()) + "-analytics-report.pdf");
+        java.io.File selected = chooser.showSaveDialog(resolveStage());
+        if (selected == null) {
+            return;
+        }
+
+        List<ProfileAnalyticsPdfExporter.SectionImage> sections = new ArrayList<>();
+        addSectionSnapshot(sections, "Storage Usage", analyticsStorageSection);
+        addSectionSnapshot(sections, "Commits Over 30 Days", analyticsCommitsSection);
+        addSectionSnapshot(sections, "Productivity Heatmap", analyticsHeatmapSection);
+        addSectionSnapshot(sections, "Workspace Activity", analyticsWorkspaceSection);
+        addSectionSnapshot(sections, "System Insights", analyticsInsightsSection);
+        addSectionSnapshot(sections, "Recent Activity", analyticsRecentActivitySection);
+        addSectionSnapshot(sections, "Largest Files", analyticsLargestFilesSection);
+
+        Path outputPath = selected.toPath();
+        Thread exportThread = new Thread(() -> {
+            try {
+                ProfileAnalyticsPdfExporter.export(outputPath, currentProfile, sections);
+                Platform.runLater(() -> showInfo("Analytics PDF exported successfully."));
+            } catch (IOException ex) {
+                Platform.runLater(() -> showError("Failed to export PDF: " + ex.getMessage()));
+            }
+        }, "profile-analytics-pdf-export");
+        exportThread.setDaemon(true);
+        exportThread.start();
+    }
+
+    private void addSectionSnapshot(
+            List<ProfileAnalyticsPdfExporter.SectionImage> sections,
+            String title,
+            Node node) {
+        BufferedImage image = snapshotNode(node);
+        if (image != null) {
+            sections.add(new ProfileAnalyticsPdfExporter.SectionImage(title, image));
+        }
+    }
+
+    private BufferedImage snapshotNode(Node node) {
+        if (node == null) {
+            return null;
+        }
+        SnapshotParameters params = new SnapshotParameters();
+        params.setFill(Color.TRANSPARENT);
+        params.setTransform(Transform.scale(2.0, 2.0));
+        WritableImage image = node.snapshot(params, null);
+        return SwingFXUtils.fromFXImage(image, null);
+    }
+
+    private void installChartTooltips(XYChart.Series<String, Number> series, String suffix) {
+        Platform.runLater(() -> {
+            for (XYChart.Data<String, Number> item : series.getData()) {
+                if (item.getNode() != null) {
+                    Tooltip.install(item.getNode(),
+                        new Tooltip(item.getXValue() + ": " + item.getYValue() + suffix));
+                }
+            }
+        });
+    }
+
+    private static String safeFileName(String value) {
+        String sanitized = value == null ? "user" : value.trim().replaceAll("[^a-zA-Z0-9._-]+", "-");
+        return sanitized.isBlank() ? "user" : sanitized;
+    }
+
     private VBox buildGithubHeatmap() {
-        List<ProfileService.DayCommit> days = currentProfile.activityDays();
+        List<ProfileService.DayCommit> days = currentProfile.commitActivityDays();
 
         // Build lookup: date → commit count
         Map<LocalDate, Integer> countMap = new HashMap<>();
@@ -663,6 +910,443 @@ public final class ProfileController {
         return section;
     }
 
+    private HBox buildRedesignedAnalyticsHeader() {
+        VBox text = new VBox(6);
+        Label eyebrow = new Label("PROFILE ANALYTICS");
+        eyebrow.getStyleClass().add("analytics-eyebrow");
+        Label title = new Label("Analytics Dashboard");
+        title.getStyleClass().add("analytics-title");
+        Label subtitle = new Label(
+                "A DB-backed command center for commits, storage, activity, and workspace momentum.");
+        subtitle.getStyleClass().add("analytics-subtitle");
+        subtitle.setWrapText(true);
+        text.getChildren().addAll(eyebrow, title, subtitle);
+
+        Button downloadButton = new Button("Export PDF");
+        downloadButton.getStyleClass().add("analytics-primary-button");
+        downloadButton.setOnAction(e -> onDownloadAnalyticsPdf());
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        HBox header = new HBox(16, text, spacer, downloadButton);
+        header.getStyleClass().add("analytics-header");
+        header.setAlignment(Pos.CENTER_LEFT);
+        return header;
+    }
+
+    private GridPane buildRedesignedSummaryGrid() {
+        GridPane grid = new GridPane();
+        grid.getStyleClass().add("analytics-summary-grid");
+        grid.setHgap(16);
+        grid.setVgap(16);
+
+        for (int i = 0; i < 3; i++) {
+            ColumnConstraints col = new ColumnConstraints();
+            col.setPercentWidth(33.333);
+            grid.getColumnConstraints().add(col);
+        }
+
+        long activeDays = currentProfile.commitActivityDays().stream()
+                .filter(day -> day.commitCount() > 0)
+                .count();
+        double avgCommits = currentProfile.commitActivityDays().isEmpty()
+                ? 0.0
+                : currentProfile.commitActivityDays().stream()
+                        .mapToInt(ProfileService.DayCommit::commitCount)
+                        .average()
+                        .orElse(0.0);
+
+        List<VBox> cards = List.of(
+                buildRedesignedMetricCard("Total Commits", String.valueOf(currentProfile.totalCommits()),
+                        "Last 30 days included"),
+                buildRedesignedMetricCard("Files", String.valueOf(currentProfile.totalFiles()), "Live file inventory"),
+                buildRedesignedMetricCard("Folders", String.valueOf(currentProfile.totalFolders()),
+                        "Workspace structure"),
+                buildRedesignedMetricCard("Workspaces", String.valueOf(currentProfile.totalWorkspaces()),
+                        "Owned by this profile"),
+                buildRedesignedMetricCard("Active Days", String.valueOf(activeDays),
+                        "Days with at least one commit"),
+                buildRedesignedMetricCard("Avg / Day", String.format("%.1f", avgCommits),
+                        "Mean daily commit output"));
+
+        for (int index = 0; index < cards.size(); index++) {
+            VBox card = cards.get(index);
+            GridPane.setHgrow(card, Priority.ALWAYS);
+            grid.add(card, index % 3, index / 3);
+        }
+        return grid;
+    }
+
+    private VBox buildRedesignedMetricCard(String label, String value, String hint) {
+        Label labelNode = new Label(label.toUpperCase());
+        labelNode.getStyleClass().add("analytics-metric-label");
+        Label valueNode = new Label(value);
+        valueNode.getStyleClass().add("analytics-metric-value");
+        Label hintNode = new Label(hint);
+        hintNode.getStyleClass().add("analytics-metric-hint");
+
+        VBox card = new VBox(8, labelNode, valueNode, hintNode);
+        card.getStyleClass().add("analytics-metric-card");
+        return card;
+    }
+
+    private VBox buildRedesignedStorageSection() {
+        long quotaBytes = currentProfile.storageQuota() != null
+                ? currentProfile.storageQuota()
+                : DEFAULT_STORAGE_QUOTA_BYTES;
+        long usedBytes = currentProfile.storageUsedBytes();
+        long freeBytes = Math.max(0L, quotaBytes - usedBytes);
+        double usagePercent = quotaBytes <= 0 ? 0.0 : (double) usedBytes / quotaBytes;
+        boolean overLimit = usagePercent > 1.0;
+
+        VBox section = createRedesignedAnalyticsPanel(
+                "Storage Usage",
+                "Calculated from current file snapshots stored in MongoDB.");
+        section.getStyleClass().add("analytics-storage-panel");
+
+        Label usageValue = new Label(formatBytes(usedBytes) + " / " + formatBytes(quotaBytes));
+        usageValue.getStyleClass().add("analytics-storage-value");
+
+        Label statusBadge = new Label(overLimit ? "LIMIT EXCEEDED" : "WITHIN QUOTA");
+        statusBadge.getStyleClass().add(overLimit ? "analytics-badge-danger" : "analytics-badge-ok");
+
+        HBox headline = new HBox(14, usageValue, statusBadge);
+        headline.setAlignment(Pos.CENTER_LEFT);
+
+        ProgressBar usageBar = new ProgressBar(Math.min(usagePercent, 1.0));
+        usageBar.getStyleClass().add(overLimit ? "analytics-danger-bar" : "analytics-ok-bar");
+        usageBar.setPrefHeight(14);
+        usageBar.setMaxWidth(Double.MAX_VALUE);
+
+        HBox detailRow = new HBox(14,
+                buildRedesignedStorageStat("Used", formatBytes(usedBytes)),
+                buildRedesignedStorageStat("Remaining", formatBytes(freeBytes)),
+                buildRedesignedStorageStat("Usage", String.format("%.1f%%", usagePercent * 100)));
+        detailRow.setAlignment(Pos.CENTER_LEFT);
+
+        Label note = new Label(overLimit
+                ? "Storage has crossed the configured quota. The largest files list below can help you reclaim space."
+                : "Storage is healthy. Quota and file size totals are read directly from the database.");
+        note.getStyleClass().add("analytics-panel-note");
+        note.setWrapText(true);
+
+        section.getChildren().addAll(headline, usageBar, detailRow, note);
+        return section;
+    }
+
+    private VBox buildRedesignedStorageStat(String label, String value) {
+        Label key = new Label(label.toUpperCase());
+        key.getStyleClass().add("analytics-mini-label");
+        Label val = new Label(value);
+        val.getStyleClass().add("analytics-mini-value");
+        VBox box = new VBox(4, key, val);
+        box.getStyleClass().add("analytics-mini-card");
+        return box;
+    }
+
+    private VBox buildRedesignedCommitsSection() {
+        VBox section = createRedesignedAnalyticsPanel(
+                "Commits Over 30 Days",
+                "Daily commit volume across every workspace connected to this profile.");
+        BarChart<String, Number> chart = createRedesignedCommitChart();
+
+        long total = currentProfile.commitActivityDays().stream()
+                .mapToLong(ProfileService.DayCommit::commitCount)
+                .sum();
+        int peak = currentProfile.commitActivityDays().stream()
+                .mapToInt(ProfileService.DayCommit::commitCount)
+                .max()
+                .orElse(0);
+        double average = currentProfile.commitActivityDays().isEmpty()
+                ? 0.0
+                : total / (double) currentProfile.commitActivityDays().size();
+
+        HBox chips = new HBox(12,
+                buildRedesignedInsightChip("Total", String.valueOf(total)),
+                buildRedesignedInsightChip("Peak Day", String.valueOf(peak)),
+                buildRedesignedInsightChip("Avg / Day", String.format("%.1f", average)));
+
+        section.getChildren().addAll(chart, chips);
+        return section;
+    }
+
+    private BarChart<String, Number> createRedesignedCommitChart() {
+        CategoryAxis xAxis = new CategoryAxis();
+        NumberAxis yAxis = new NumberAxis();
+        yAxis.setMinorTickVisible(false);
+        yAxis.setTickUnit(1);
+
+        BarChart<String, Number> chart = new BarChart<>(xAxis, yAxis);
+        chart.setAnimated(false);
+        chart.setLegendVisible(false);
+        chart.setCategoryGap(4);
+        chart.setBarGap(2);
+        chart.setPrefHeight(280);
+        chart.getStyleClass().add("analytics-bar-chart");
+
+        XYChart.Series<String, Number> series = new XYChart.Series<>();
+        int index = 0;
+        for (ProfileService.DayCommit day : currentProfile.commitActivityDays()) {
+            String label = index % 5 == 0
+                    ? day.date().getMonthValue() + "/" + day.date().getDayOfMonth()
+                    : "";
+            series.getData().add(new XYChart.Data<>(label, day.commitCount()));
+            index++;
+        }
+        chart.getData().add(series);
+        installChartTooltips(series, " commits");
+        return chart;
+    }
+
+    private VBox buildRedesignedInsightChip(String label, String value) {
+        Label labelNode = new Label(label.toUpperCase());
+        labelNode.getStyleClass().add("analytics-chip-label");
+        Label valueNode = new Label(value);
+        valueNode.getStyleClass().add("analytics-chip-value");
+        VBox chip = new VBox(3, labelNode, valueNode);
+        chip.getStyleClass().add("analytics-chip");
+        return chip;
+    }
+
+    private VBox buildRedesignedHeatmapSection() {
+        List<ProfileService.DayCommit> days = currentProfile.commitActivityDays();
+        Map<LocalDate, Integer> countMap = new HashMap<>();
+        for (ProfileService.DayCommit day : days) {
+            countMap.put(day.date(), day.commitCount());
+        }
+
+        LocalDate today = LocalDate.now();
+        LocalDate start = today.minusDays(29);
+        while (start.getDayOfWeek() != DayOfWeek.MONDAY) {
+            start = start.minusDays(1);
+        }
+
+        long totalDays = start.until(today, java.time.temporal.ChronoUnit.DAYS) + 1;
+        int weekColumns = (int) Math.ceil(totalDays / 7.0);
+        String[] labels = {"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"};
+
+        VBox section = createRedesignedAnalyticsPanel(
+                "Productivity Heatmap",
+                "Commit intensity by day, styled after your reference dashboards.");
+
+        HBox grid = new HBox(4);
+        VBox dayLabels = new VBox(4);
+        for (String label : labels) {
+            Label dayLabel = new Label(label);
+            dayLabel.getStyleClass().add("analytics-heatmap-day");
+            dayLabel.setPrefHeight(16);
+            dayLabels.getChildren().add(dayLabel);
+        }
+        grid.getChildren().add(dayLabels);
+
+        for (int week = 0; week < weekColumns; week++) {
+            VBox column = new VBox(4);
+            for (int dayIndex = 0; dayIndex < 7; dayIndex++) {
+                LocalDate date = start.plusDays((long) week * 7 + dayIndex);
+                Region cell = new Region();
+                cell.setPrefSize(16, 16);
+                cell.getStyleClass().addAll("heatmap-cell", date.isAfter(today)
+                        ? "heatmap-level-0"
+                        : heatLevel(countMap.getOrDefault(date, 0)));
+                if (!date.isAfter(today)) {
+                    int count = countMap.getOrDefault(date, 0);
+                    Tooltip.install(cell, new Tooltip(date + ": " + count + (count == 1 ? " commit" : " commits")));
+                } else {
+                    cell.setOpacity(0.2);
+                }
+                column.getChildren().add(cell);
+            }
+            grid.getChildren().add(column);
+        }
+
+        HBox legend = new HBox(6);
+        legend.getStyleClass().add("analytics-heatmap-legend");
+        legend.getChildren().add(new Label("Less"));
+        for (String style : List.of("heatmap-level-0", "heatmap-level-1", "heatmap-level-2", "heatmap-level-3", "heatmap-level-4")) {
+            Region swatch = new Region();
+            swatch.setPrefSize(12, 12);
+            swatch.getStyleClass().addAll("heatmap-cell", style);
+            legend.getChildren().add(swatch);
+        }
+        legend.getChildren().add(new Label("More"));
+
+        section.getChildren().addAll(grid, legend);
+        return section;
+    }
+
+    private VBox buildRedesignedWorkspaceSection() {
+        VBox section = createRedesignedAnalyticsPanel(
+                "Workspace Activity",
+                "Top repositories ranked by commit volume.");
+
+        List<ProfileService.PopularWorkspace> workspaces = currentProfile.popularWorkspaces();
+        int maxCommits = workspaces.stream()
+                .mapToInt(ProfileService.PopularWorkspace::commitCount)
+                .max()
+                .orElse(1);
+
+        if (workspaces.isEmpty()) {
+            Label empty = new Label("No workspace activity yet.");
+            empty.getStyleClass().add("analytics-empty-state");
+            section.getChildren().add(empty);
+            return section;
+        }
+
+        VBox list = new VBox(14);
+        for (ProfileService.PopularWorkspace workspace : workspaces) {
+            String displayName = workspace.workspaceName().length() > 24
+                    ? workspace.workspaceName().substring(0, 24) + "..."
+                    : workspace.workspaceName();
+            Label name = new Label(displayName);
+            name.getStyleClass().add("analytics-workspace-name");
+            Label count = new Label(workspace.commitCount() + " commits");
+            count.getStyleClass().add("analytics-workspace-count");
+            Region spacer = new Region();
+            HBox.setHgrow(spacer, Priority.ALWAYS);
+            HBox labels = new HBox(name, spacer, count);
+
+            ProgressBar bar = new ProgressBar(maxCommits == 0 ? 0 : workspace.commitCount() / (double) maxCommits);
+            bar.getStyleClass().add("analytics-workspace-bar");
+            bar.setPrefHeight(8);
+            bar.setMaxWidth(Double.MAX_VALUE);
+
+            VBox row = new VBox(6, labels, bar);
+            row.getStyleClass().add("analytics-workspace-row");
+            list.getChildren().add(row);
+        }
+
+        section.getChildren().add(list);
+        return section;
+    }
+
+    private VBox buildRedesignedInsightsSection() {
+        VBox section = createRedesignedAnalyticsPanel(
+                "System Insights",
+                "Concise takeaways computed from the same analytics data feeding the charts.");
+
+        ProfileService.DayCommit mostActiveDay = null;
+        for (ProfileService.DayCommit day : currentProfile.commitActivityDays()) {
+            if (mostActiveDay == null || day.commitCount() > mostActiveDay.commitCount()) {
+                mostActiveDay = day;
+            }
+        }
+
+        long totalActions = currentProfile.usageDays().stream()
+                .mapToLong(ProfileService.DayActivity::activityCount)
+                .sum();
+        int totalCreations = currentProfile.creationDays().stream()
+                .mapToInt(day -> day.workspaceCount() + day.folderCount() + day.fileCount())
+                .sum();
+        String topWorkspace = currentProfile.popularWorkspaces().isEmpty()
+                ? "No workspace yet"
+                : currentProfile.popularWorkspaces().get(0).workspaceName();
+
+        VBox list = new VBox(12,
+                buildRedesignedInsightRow("Most active day", mostActiveDay == null
+                        ? "No commit data"
+                        : mostActiveDay.date() + " (" + mostActiveDay.commitCount() + " commits)"),
+                buildRedesignedInsightRow("Top workspace", topWorkspace),
+                buildRedesignedInsightRow("Tracked actions", String.valueOf(totalActions)),
+                buildRedesignedInsightRow("Creations in 30 days", String.valueOf(totalCreations)));
+        section.getChildren().add(list);
+        return section;
+    }
+
+    private HBox buildRedesignedInsightRow(String label, String value) {
+        Label labelNode = new Label(label.toUpperCase());
+        labelNode.getStyleClass().add("analytics-insight-label");
+        Label valueNode = new Label(value);
+        valueNode.getStyleClass().add("analytics-insight-value");
+        valueNode.setWrapText(true);
+        VBox text = new VBox(3, labelNode, valueNode);
+        HBox row = new HBox(text);
+        row.getStyleClass().add("analytics-insight-row");
+        return row;
+    }
+
+    private VBox buildRedesignedRecentActivitySection() {
+        VBox section = createRedesignedAnalyticsPanel(
+                "Recent Activity",
+                "Latest commits pulled from the commits collection.");
+
+        List<ProfileService.RecentCommit> commits = currentProfile.recentCommits();
+        if (commits == null || commits.isEmpty()) {
+            Label empty = new Label("No recent commit activity found.");
+            empty.getStyleClass().add("analytics-empty-state");
+            section.getChildren().add(empty);
+            return section;
+        }
+
+        VBox list = new VBox(12);
+        for (ProfileService.RecentCommit commit : commits) {
+            Label title = new Label(commit.message().isBlank() ? "(no message)" : commit.message());
+            title.getStyleClass().add("analytics-timeline-title");
+            Label meta = new Label(commit.workspaceName()
+                    + (commit.time() != null ? " | " + formatRelative(commit.time()) : ""));
+            meta.getStyleClass().add("analytics-timeline-meta");
+            VBox text = new VBox(3, title, meta);
+
+            Region dot = new Region();
+            dot.getStyleClass().add("analytics-timeline-dot");
+            dot.setMinSize(10, 10);
+            dot.setPrefSize(10, 10);
+
+            HBox row = new HBox(12, dot, text);
+            row.getStyleClass().add("analytics-timeline-row");
+            list.getChildren().add(row);
+        }
+
+        section.getChildren().add(list);
+        return section;
+    }
+
+    private VBox buildRedesignedLargestFilesSection() {
+        VBox section = createRedesignedAnalyticsPanel(
+                "Largest Files",
+                "Sorted by current snapshot size so storage hotspots are easy to spot.");
+
+        List<ProfileService.FileSizeEntry> files = currentProfile.largestFiles();
+        if (files == null || files.isEmpty()) {
+            Label empty = new Label("No file snapshots available to measure yet.");
+            empty.getStyleClass().add("analytics-empty-state");
+            section.getChildren().add(empty);
+            return section;
+        }
+
+        VBox list = new VBox(10);
+        for (ProfileService.FileSizeEntry file : files) {
+            Label filename = new Label(file.filename());
+            filename.getStyleClass().add("analytics-file-name");
+            Label workspace = new Label(file.workspaceName());
+            workspace.getStyleClass().add("analytics-file-workspace");
+            VBox names = new VBox(3, filename, workspace);
+            HBox.setHgrow(names, Priority.ALWAYS);
+
+            Label size = new Label(formatBytes(file.sizeBytes()));
+            size.getStyleClass().add("analytics-file-size");
+
+            HBox row = new HBox(12, names, size);
+            row.getStyleClass().add("analytics-file-row");
+            row.setAlignment(Pos.CENTER_LEFT);
+            list.getChildren().add(row);
+        }
+
+        section.getChildren().add(list);
+        return section;
+    }
+
+    private VBox createRedesignedAnalyticsPanel(String title, String subtitle) {
+        Label titleNode = new Label(title);
+        titleNode.getStyleClass().add("analytics-panel-title");
+        Label subtitleNode = new Label(subtitle);
+        subtitleNode.getStyleClass().add("analytics-panel-subtitle");
+        subtitleNode.setWrapText(true);
+        VBox panel = new VBox(16, titleNode, subtitleNode);
+        panel.getStyleClass().add("chart-section");
+        return panel;
+    }
+
     private static String heatLevel(int count) {
         if (count <= 0)  return "heatmap-level-0";
         if (count <= 2)  return "heatmap-level-1";
@@ -684,6 +1368,9 @@ public final class ProfileController {
         if (profileService == null || currentUserId == null) return;
         currentProfile = profileService.loadProfile(currentUserId);
         renderProfile(currentProfile);
+        if (analyticsShown) {
+            showAnalyticsView();
+        }
         setEditMode(false);
     }
 

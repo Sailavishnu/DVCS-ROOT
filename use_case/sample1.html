@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>DevMetric | Analytics Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Space+Grotesk:wght@500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-primary-container": "#107100",
+                      "on-secondary-fixed": "#00210c",
+                      "secondary": "#66dd8b",
+                      "surface-container": "#182028",
+                      "inverse-primary": "#106e00",
+                      "tertiary-fixed": "#dfe2eb",
+                      "secondary-container": "#25a55a",
+                      "outline": "#85967c",
+                      "primary-fixed": "#79ff5b",
+                      "secondary-fixed": "#83fba5",
+                      "primary-fixed-dim": "#2ae500",
+                      "secondary-fixed-dim": "#66dd8b",
+                      "surface": "#0b141c",
+                      "tertiary": "#f9f9ff",
+                      "tertiary-container": "#dadde6",
+                      "on-error": "#690005",
+                      "surface-tint": "#2ae500",
+                      "on-surface": "#dae3ee",
+                      "on-secondary-fixed-variant": "#005227",
+                      "surface-container-low": "#141c24",
+                      "surface-container-high": "#222b33",
+                      "background": "#0b141c",
+                      "surface-dim": "#0b141c",
+                      "error": "#ffb4ab",
+                      "surface-bright": "#313a43",
+                      "surface-container-lowest": "#060f16",
+                      "on-primary-fixed": "#022100",
+                      "on-tertiary-fixed": "#181c22",
+                      "on-tertiary-fixed-variant": "#43474e",
+                      "inverse-on-surface": "#29313a",
+                      "on-secondary-container": "#003115",
+                      "on-background": "#dae3ee",
+                      "surface-container-highest": "#2d363e",
+                      "primary": "#efffe3",
+                      "outline-variant": "#3c4b35",
+                      "tertiary-fixed-dim": "#c3c6cf",
+                      "on-tertiary-container": "#5d6169",
+                      "on-tertiary": "#2d3137",
+                      "primary-container": "#39ff14",
+                      "on-surface-variant": "#baccb0",
+                      "on-primary-fixed-variant": "#095300",
+                      "inverse-surface": "#dae3ee",
+                      "on-error-container": "#ffdad6",
+                      "on-primary": "#053900",
+                      "on-secondary": "#003919",
+                      "error-container": "#93000a",
+                      "surface-variant": "#2d363e"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "xs": "0.5rem",
+                      "margin": "32px",
+                      "gutter": "24px",
+                      "sm": "1rem",
+                      "lg": "2.5rem",
+                      "md": "1.5rem",
+                      "xl": "4rem",
+                      "unit": "4px"
+              },
+              "fontFamily": {
+                      "display": ["Inter"],
+                      "code": ["Space Grotesk"],
+                      "h1": ["Inter"],
+                      "h2": ["Inter"],
+                      "body-lg": ["Inter"],
+                      "body-md": ["Inter"],
+                      "label-caps": ["Space Grotesk"]
+              },
+              "fontSize": {
+                      "display": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.04em", "fontWeight": "700"}],
+                      "code": ["13px", {"lineHeight": "1.4", "fontWeight": "500"}],
+                      "h1": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                      "h2": ["24px", {"lineHeight": "1.3", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                      "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                      "body-md": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                      "label-caps": ["12px", {"lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "600"}]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+        .glass-card {
+            background: rgba(13, 17, 23, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .neon-glow {
+            box-shadow: 0 0 15px rgba(57, 255, 20, 0.15);
+        }
+        .critical-glow {
+            box-shadow: 0 0 15px rgba(255, 180, 171, 0.2);
+        }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #3c4b35; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md selection:bg-primary-container selection:text-on-primary">
+<!-- Fixed SideNavBar -->
+<aside class="docked fixed h-screen w-60 left-0 top-0 bg-surface-dim border-r border-outline-variant z-50 flex flex-col py-lg">
+<div class="px-md mb-xl">
+<span class="font-display text-h2 font-bold text-primary-container block tracking-tighter">DevMetric</span>
+<span class="font-label-caps text-on-surface-variant text-[10px] uppercase">Premium Analytics</span>
+</div>
+<nav class="flex-1 space-y-xs px-xs">
+<a class="flex items-center gap-xs px-md py-sm bg-surface-container-high text-primary-container rounded-lg shadow-[0_0_15px_rgba(57,255,20,0.2)] border border-primary-container/30" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-body-md">Home</span>
+</a>
+<a class="flex items-center gap-xs px-md py-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="grid_view">grid_view</span>
+<span class="font-body-md">Workspaces</span>
+</a>
+<a class="flex items-center gap-xs px-md py-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<span class="font-body-md">Notifications</span>
+</a>
+<a class="flex items-center gap-xs px-md py-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="font-body-md">Collaborators</span>
+</a>
+<a class="flex items-center gap-xs px-md py-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+<span class="font-body-md">Analytics</span>
+</a>
+<a class="flex items-center gap-xs px-md py-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="payments">payments</span>
+<span class="font-body-md">Billing</span>
+</a>
+<a class="flex items-center gap-xs px-md py-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-body-md">Settings</span>
+</a>
+</nav>
+<div class="px-md mt-auto">
+<button class="w-full bg-primary-container text-on-primary py-sm rounded-lg font-bold flex items-center justify-center gap-xs active:scale-95 transition-transform">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+                New Project
+            </button>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="ml-60 min-h-screen flex flex-col">
+<!-- TopAppBar -->
+<header class="docked sticky top-0 z-40 w-full bg-surface/80 backdrop-blur-md border-b border-outline-variant flex justify-between items-center h-16 px-margin">
+<div class="flex items-center gap-lg">
+<h1 class="font-display text-h2 font-bold text-primary-container">Analytics Dashboard</h1>
+<nav class="hidden md:flex gap-md">
+<a class="text-primary-container font-bold border-b-2 border-primary-container pb-1" href="#">Overview</a>
+<a class="text-on-surface-variant hover:text-on-surface transition-colors" href="#">Logs</a>
+<a class="text-on-surface-variant hover:text-on-surface transition-colors" href="#">Reports</a>
+</nav>
+</div>
+<div class="flex items-center gap-sm">
+<div class="flex gap-xs mr-md">
+<button class="px-md py-xs bg-surface-container-high text-on-surface text-body-md rounded-lg flex items-center gap-xs hover:bg-surface-bright transition-colors">
+<span class="material-symbols-outlined text-[18px]" data-icon="refresh">refresh</span>
+                        Refresh
+                    </button>
+<button class="px-md py-xs bg-surface-container-high text-on-surface text-body-md rounded-lg flex items-center gap-xs hover:bg-surface-bright transition-colors">
+<span class="material-symbols-outlined text-[18px]" data-icon="description">description</span>
+                        CSV
+                    </button>
+<button class="px-md py-xs bg-primary-container text-on-primary text-body-md rounded-lg flex items-center gap-xs hover:opacity-90 active:opacity-80 transition-opacity">
+<span class="material-symbols-outlined text-[18px]" data-icon="picture_as_pdf">picture_as_pdf</span>
+                        Export PDF
+                    </button>
+</div>
+<div class="flex items-center gap-xs border-l border-outline-variant pl-md">
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-on-surface" data-icon="calendar_today">calendar_today</span>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-on-surface" data-icon="filter_list">filter_list</span>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-primary-container/30">
+<img alt="User Avatar" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCsDJCT7xQsXhMhc6jiOsZJCd4Z65WFnhVr1uYAE0g5EEIQ94Li_2js6828IrhOz3WzqalPU4Ex6em7RSOfD-NNVOHtjsm3o4a7iEgLhREyWGLzxrfwAUzrMzN0kjK3L-Ysfe64Eyy7jfgHtlSbW7C9EXoD4kQUfD0lpQh2MkmBeXE9KwdsoDCZlYBlyPA1g7E5HWg342yrNDCrn0hULXn4zlbDVn_hR-4WsgccZCPChwHixFYCvLqwqONRwWNOlGjIKsRNB9A0P6M"/>
+</div>
+</div>
+</div>
+</header>
+<!-- Dashboard Canvas -->
+<div class="p-margin space-y-lg">
+<!-- 1. Top Summary Cards (8 Grid) -->
+<section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-gutter">
+<!-- Card 1 -->
+<div class="glass-card p-md rounded-xl space-y-sm neon-glow">
+<div class="flex justify-between items-start">
+<span class="font-label-caps text-on-surface-variant uppercase">Total Commits</span>
+<span class="text-secondary text-xs flex items-center">+12% <span class="material-symbols-outlined text-[14px]" data-icon="trending_up">trending_up</span></span>
+</div>
+<div class="text-h1 font-display">12,842</div>
+<div class="h-8 w-full bg-primary-container/10 rounded overflow-hidden">
+<div class="h-full bg-primary-container w-[70%] opacity-50"></div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="glass-card p-md rounded-xl space-y-sm">
+<div class="flex justify-between items-start">
+<span class="font-label-caps text-on-surface-variant uppercase">Total Files</span>
+<span class="text-secondary text-xs flex items-center">+342 <span class="material-symbols-outlined text-[14px]" data-icon="add">add</span></span>
+</div>
+<div class="text-h1 font-display">48,201</div>
+<div class="h-8 w-full bg-secondary/10 rounded overflow-hidden">
+<div class="h-full bg-secondary w-[45%] opacity-50"></div>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="glass-card p-md rounded-xl space-y-sm">
+<div class="flex justify-between items-start">
+<span class="font-label-caps text-on-surface-variant uppercase">Folders</span>
+<span class="text-on-surface-variant text-xs flex items-center">Stable <span class="material-symbols-outlined text-[14px]" data-icon="horizontal_rule">horizontal_rule</span></span>
+</div>
+<div class="text-h1 font-display">1,104</div>
+<div class="h-8 w-full bg-on-surface-variant/10 rounded overflow-hidden">
+<div class="h-full bg-on-surface-variant w-[60%] opacity-30"></div>
+</div>
+</div>
+<!-- Card 4 -->
+<div class="glass-card p-md rounded-xl space-y-sm">
+<div class="flex justify-between items-start">
+<span class="font-label-caps text-on-surface-variant uppercase">Workspaces</span>
+<span class="text-secondary text-xs flex items-center">+2 <span class="material-symbols-outlined text-[14px]" data-icon="add_circle">add_circle</span></span>
+</div>
+<div class="text-h1 font-display">24</div>
+<div class="h-8 w-full bg-primary-container/10 rounded overflow-hidden">
+<div class="h-full bg-primary-container w-[85%] opacity-50"></div>
+</div>
+</div>
+<!-- Card 5 -->
+<div class="glass-card p-md rounded-xl space-y-sm">
+<div class="flex justify-between items-start">
+<span class="font-label-caps text-on-surface-variant uppercase">Time Spent</span>
+<span class="text-secondary text-xs flex items-center">High <span class="material-symbols-outlined text-[14px]" data-icon="bolt">bolt</span></span>
+</div>
+<div class="text-h1 font-display">164h</div>
+<div class="h-8 w-full bg-primary/10 rounded overflow-hidden">
+<div class="h-full bg-primary w-[90%] opacity-50"></div>
+</div>
+</div>
+<!-- Card 6: Storage Used (Warning State) -->
+<div class="glass-card p-md rounded-xl space-y-sm border-error/30 critical-glow">
+<div class="flex justify-between items-start">
+<span class="font-label-caps text-error uppercase">Storage Used</span>
+<span class="text-error text-xs font-bold">EXCEEDED</span>
+</div>
+<div class="text-h1 font-display">1.82GB</div>
+<div class="text-xs text-on-surface-variant italic">Quota: 1.5GB | <span class="text-error">+320MB over</span></div>
+</div>
+<!-- Card 7 -->
+<div class="glass-card p-md rounded-xl space-y-sm">
+<div class="flex justify-between items-start">
+<span class="font-label-caps text-on-surface-variant uppercase">Remaining</span>
+<span class="text-on-surface-variant text-xs">Critical</span>
+</div>
+<div class="text-h1 font-display">0MB</div>
+<div class="h-8 w-full bg-error-container/20 rounded overflow-hidden">
+<div class="h-full bg-error-container w-full"></div>
+</div>
+</div>
+<!-- Card 8 -->
+<div class="glass-card p-md rounded-xl space-y-sm border-primary-container/20">
+<div class="flex justify-between items-start">
+<span class="font-label-caps text-on-surface-variant uppercase">Monthly Bill</span>
+<span class="text-on-surface-variant text-xs flex items-center">Estimated</span>
+</div>
+<div class="text-h1 font-display">₹1,430</div>
+<div class="text-xs text-secondary font-code">+₹30 overage applied</div>
+</div>
+</section>
+<!-- 2. Usage & Billing Bento -->
+<section class="grid grid-cols-1 lg:grid-cols-3 gap-gutter">
+<div class="glass-card p-lg rounded-xl flex items-center gap-lg col-span-2">
+<div class="relative w-48 h-48 flex-shrink-0">
+<svg class="w-full h-full transform -rotate-90" viewbox="0 0 100 100">
+<circle class="text-surface-container-highest" cx="50" cy="50" fill="transparent" r="45" stroke="currentColor" stroke-width="8"></circle>
+<circle class="text-error" cx="50" cy="50" fill="transparent" r="45" stroke="currentColor" stroke-dasharray="282.7" stroke-dashoffset="0" stroke-width="8"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<span class="text-h1 font-display text-error">121%</span>
+<span class="text-label-caps text-on-surface-variant">QUOTA</span>
+</div>
+</div>
+<div class="space-y-md flex-1">
+<h3 class="text-h2 font-display text-primary-container">Critical Storage Limit</h3>
+<p class="text-body-md text-on-surface-variant">You've exceeded your 1.5GB storage quota by <span class="text-error font-bold">320MB</span>. Additional charges of <span class="font-code text-primary">₹30.00</span> have been applied to your current billing cycle.</p>
+<div class="flex gap-sm pt-xs">
+<button class="bg-primary-container text-on-primary px-lg py-sm rounded-lg font-bold hover:neon-glow transition-all">Upgrade Plan</button>
+<button class="border border-outline-variant text-on-surface px-lg py-sm rounded-lg hover:bg-surface-container-high transition-all">Optimize Storage</button>
+</div>
+</div>
+</div>
+<!-- 5. Smart Insights (Integrated here) -->
+<div class="glass-card p-md rounded-xl space-y-md">
+<div class="flex items-center gap-xs text-primary-container">
+<span class="material-symbols-outlined" data-icon="auto_awesome" data-weight="fill">auto_awesome</span>
+<span class="font-label-caps uppercase">AI Smart Insights</span>
+</div>
+<div class="space-y-xs">
+<div class="bg-surface-container-low p-sm rounded border-l-2 border-primary-container flex items-start gap-xs">
+<span class="material-symbols-outlined text-primary-container text-[20px]" data-icon="trending_up">trending_up</span>
+<span class="text-body-md">Storage increased 24% this week.</span>
+</div>
+<div class="bg-surface-container-low p-sm rounded border-l-2 border-secondary flex items-start gap-xs">
+<span class="material-symbols-outlined text-secondary text-[20px]" data-icon="event_available">event_available</span>
+<span class="text-body-md">Most productive on Fridays between 8-11 PM.</span>
+</div>
+<div class="bg-surface-container-low p-sm rounded border-l-2 border-error flex items-start gap-xs">
+<span class="material-symbols-outlined text-error text-[20px]" data-icon="movie">movie</span>
+<span class="text-body-md">Large video files consuming 48% of quota.</span>
+</div>
+</div>
+</div>
+</section>
+<!-- 3 & 4. Charts & Productivity -->
+<section class="grid grid-cols-1 lg:grid-cols-4 gap-gutter">
+<!-- Large Growth Area Chart -->
+<div class="glass-card p-lg rounded-xl lg:col-span-3 space-y-md">
+<div class="flex justify-between items-center">
+<h3 class="text-h2 font-display">Storage Growth &amp; Commit Velocity</h3>
+<div class="flex gap-sm">
+<div class="flex items-center gap-xs text-xs"><span class="w-2 h-2 rounded-full bg-primary-container"></span> Storage</div>
+<div class="flex items-center gap-xs text-xs"><span class="w-2 h-2 rounded-full bg-secondary"></span> Commits</div>
+</div>
+</div>
+<div class="h-64 w-full relative">
+<div class="absolute inset-0 flex items-end gap-1 px-sm">
+<!-- Area Chart Fake Representation -->
+<div class="flex-1 bg-primary-container/20 border-t border-primary-container" style="height: 40%"></div>
+<div class="flex-1 bg-primary-container/20 border-t border-primary-container" style="height: 45%"></div>
+<div class="flex-1 bg-primary-container/20 border-t border-primary-container" style="height: 42%"></div>
+<div class="flex-1 bg-primary-container/20 border-t border-primary-container" style="height: 55%"></div>
+<div class="flex-1 bg-primary-container/20 border-t border-primary-container" style="height: 60%"></div>
+<div class="flex-1 bg-primary-container/20 border-t border-primary-container" style="height: 85%"></div>
+<div class="flex-1 bg-primary-container/20 border-t border-primary-container" style="height: 95%"></div>
+<div class="flex-1 bg-primary-container/20 border-t border-primary-container" style="height: 100%"></div>
+</div>
+<!-- Line Chart Overlay -->
+<div class="absolute inset-0 flex items-center justify-center opacity-40">
+<img alt="Storage Growth Chart" class="w-full h-full object-cover" data-alt="A sophisticated digital area chart showing storage growth metrics over a thirty-day period. The primary data series is represented by a translucent neon green area fill with a crisp glowing top border. A secondary data series for commits is shown as a sharp, thin white line oscillating with high frequency. The background is a deep obsidian grid with subtle gray axis labels, creating a technical and high-end command center aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC-Yp8Tct6Sd2yijjmJaNKQGg1ygt2UN0a56VzkNyGAs_bQtb5rTH3RU-IQDC7xCXoNilKMJYIvqJtx530zE61iimHmpV28tn0qWyjqOBOaf8DZldJUlg23P8Qvb-HVw2VXNf4t1wRhXMzQkcbaOVCMgCs5j-a_oxQKs7DC5V6FL7FFZAeTVgsV7PAHVpKZ500Y3_vWTJe5jQVOjBtefTjxr6eIe32WqX9Zx74Ok0pU93b29e7eMjagMmBSbeFKMHGlye0HTSC3OrM"/>
+</div>
+</div>
+<div class="flex justify-between text-on-surface-variant font-code text-xs pt-xs">
+<span>OCT 01</span><span>OCT 08</span><span>OCT 15</span><span>OCT 22</span><span>OCT 31</span>
+</div>
+</div>
+<!-- Productivity Heatmap -->
+<div class="glass-card p-lg rounded-xl lg:col-span-1 flex flex-col">
+<h3 class="text-h2 font-display mb-md">Peak Productivity</h3>
+<div class="flex-1 grid grid-cols-7 grid-rows-6 gap-xs">
+<!-- Heatmap cells -->
+<script>
+                            for(let i=0; i<42; i++) {
+                                let opacity = Math.random();
+                                document.write(`<div class="rounded-sm bg-primary-container" style="opacity: ${opacity}"></div>`);
+                            }
+                        </script>
+</div>
+<div class="mt-md space-y-xs">
+<div class="flex justify-between text-body-md">
+<span class="text-on-surface-variant">Peak Hours:</span>
+<span class="text-primary font-bold">8PM - 11PM</span>
+</div>
+<div class="flex justify-between text-body-md">
+<span class="text-on-surface-variant">Daily Avg:</span>
+<span class="text-secondary font-bold">6.2h</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Contributions Grid & Workspace Activity -->
+<section class="grid grid-cols-1 lg:grid-cols-2 gap-gutter">
+<div class="glass-card p-lg rounded-xl space-y-md">
+<h3 class="text-h2 font-display">Contribution History</h3>
+<div class="flex flex-wrap gap-1">
+<!-- GitHub style grid -->
+<script>
+                            for(let i=0; i<180; i++) {
+                                let colors = ['bg-surface-container-highest', 'bg-primary-container/20', 'bg-primary-container/40', 'bg-primary-container/60', 'bg-primary-container'];
+                                let color = colors[Math.floor(Math.random() * colors.length)];
+                                document.write(`<div class="w-3 h-3 rounded-sm ${color}"></div>`);
+                            }
+                        </script>
+</div>
+<div class="flex items-center justify-between text-[10px] text-on-surface-variant uppercase">
+<span>Less</span>
+<div class="flex gap-xs items-center">
+<div class="w-2 h-2 bg-surface-container-highest"></div>
+<div class="w-2 h-2 bg-primary-container/20"></div>
+<div class="w-2 h-2 bg-primary-container/40"></div>
+<div class="w-2 h-2 bg-primary-container/60"></div>
+<div class="w-2 h-2 bg-primary-container"></div>
+</div>
+<span>More</span>
+</div>
+</div>
+<div class="glass-card p-lg rounded-xl space-y-md">
+<h3 class="text-h2 font-display">Workspace Activity</h3>
+<div class="space-y-md">
+<div class="space-y-xs">
+<div class="flex justify-between text-xs font-code uppercase">
+<span>Main Repository</span>
+<span>82%</span>
+</div>
+<div class="h-1.5 w-full bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-primary-container neon-glow" style="width: 82%"></div>
+</div>
+</div>
+<div class="space-y-xs">
+<div class="flex justify-between text-xs font-code uppercase">
+<span>Backend-API</span>
+<span>64%</span>
+</div>
+<div class="h-1.5 w-full bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-secondary" style="width: 64%"></div>
+</div>
+</div>
+<div class="space-y-xs">
+<div class="flex justify-between text-xs font-code uppercase">
+<span>Client-Web-V3</span>
+<span>45%</span>
+</div>
+<div class="h-1.5 w-full bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-on-surface-variant" style="width: 45%"></div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- 6. Bottom Feed -->
+<section class="grid grid-cols-1 lg:grid-cols-3 gap-gutter pb-xl">
+<!-- Timeline -->
+<div class="glass-card p-lg rounded-xl space-y-md lg:col-span-1">
+<h3 class="text-h2 font-display">Recent Activity</h3>
+<div class="space-y-md relative before:absolute before:left-3 before:top-2 before:bottom-2 before:w-px before:bg-outline-variant">
+<div class="relative pl-8">
+<div class="absolute left-0 top-1 w-6 h-6 rounded-full bg-primary-container flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined text-[14px]" data-icon="commit">commit</span>
+</div>
+<div class="text-body-md font-bold">Pushed to main</div>
+<div class="text-xs text-on-surface-variant">2 mins ago • Updated auth logic</div>
+</div>
+<div class="relative pl-8">
+<div class="absolute left-0 top-1 w-6 h-6 rounded-full bg-secondary flex items-center justify-center text-on-secondary">
+<span class="material-symbols-outlined text-[14px]" data-icon="cloud_upload">cloud_upload</span>
+</div>
+<div class="text-body-md font-bold">New Assets Uploaded</div>
+<div class="text-xs text-on-surface-variant">45 mins ago • 14 video_backgrounds.mp4</div>
+</div>
+<div class="relative pl-8">
+<div class="absolute left-0 top-1 w-6 h-6 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined text-[14px]" data-icon="person_add">person_add</span>
+</div>
+<div class="text-body-md font-bold">Collaborator Invited</div>
+<div class="text-xs text-on-surface-variant">3 hours ago • Invited sarah.dev@company.com</div>
+</div>
+</div>
+</div>
+<!-- Largest Files & Achievements -->
+<div class="glass-card p-lg rounded-xl space-y-md lg:col-span-2 flex flex-col md:flex-row gap-lg">
+<div class="flex-1 space-y-md">
+<h3 class="text-h2 font-display">Largest Files</h3>
+<div class="space-y-sm">
+<div class="flex justify-between items-center p-xs hover:bg-surface-container-high rounded transition-colors group">
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-error" data-icon="movie">movie</span>
+<span class="font-code text-sm">landing_hero_4k.mp4</span>
+</div>
+<span class="text-xs font-bold text-on-surface-variant">412 MB</span>
+</div>
+<div class="flex justify-between items-center p-xs hover:bg-surface-container-high rounded transition-colors">
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-secondary" data-icon="folder_zip">folder_zip</span>
+<span class="font-code text-sm">node_modules_backup.zip</span>
+</div>
+<span class="text-xs font-bold text-on-surface-variant">185 MB</span>
+</div>
+<div class="flex justify-between items-center p-xs hover:bg-surface-container-high rounded transition-colors">
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-primary-container" data-icon="image">image</span>
+<span class="font-code text-sm">raw_dataset_01.tiff</span>
+</div>
+<span class="text-xs font-bold text-on-surface-variant">94 MB</span>
+</div>
+</div>
+</div>
+<div class="flex-1 space-y-md border-t md:border-t-0 md:border-l border-outline-variant pt-md md:pt-0 md:pl-lg">
+<h3 class="text-h2 font-display">Achievements</h3>
+<div class="grid grid-cols-2 gap-sm">
+<div class="bg-surface-container p-sm rounded-lg flex flex-col items-center text-center gap-xs border border-primary-container/20 neon-glow">
+<div class="w-10 h-10 rounded-full bg-primary-container/10 flex items-center justify-center text-primary-container">
+<span class="material-symbols-outlined" data-icon="local_fire_department" data-weight="fill">local_fire_department</span>
+</div>
+<span class="text-xs font-bold">7 Day Streak</span>
+</div>
+<div class="bg-surface-container p-sm rounded-lg flex flex-col items-center text-center gap-xs border border-secondary/20">
+<div class="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined" data-icon="military_tech" data-weight="fill">military_tech</span>
+</div>
+<span class="text-xs font-bold">100 Commits</span>
+</div>
+<div class="bg-surface-container p-sm rounded-lg flex flex-col items-center text-center gap-xs border border-outline-variant opacity-50 grayscale">
+<div class="w-10 h-10 rounded-full bg-on-surface-variant/10 flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined" data-icon="trophy" data-weight="fill">trophy</span>
+</div>
+<span class="text-xs font-bold">Cloud King</span>
+</div>
+<div class="bg-surface-container p-sm rounded-lg flex flex-col items-center text-center gap-xs border border-outline-variant opacity-50 grayscale">
+<div class="w-10 h-10 rounded-full bg-on-surface-variant/10 flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined" data-icon="star" data-weight="fill">star</span>
+</div>
+<span class="text-xs font-bold">Early Bird</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+</body></html>

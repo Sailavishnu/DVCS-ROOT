@@ -109,6 +109,7 @@ public final class CommitDAO {
         Document fullMatch = new Document("workspaceId", new Document("$in", workspaceIds))
                 .append("$and", List.of(
                         new Document("$or", List.of(
+                                new Document("committedBy", userId),
                                 new Document("authorId", userId),
                                 new Document("userId", userId),
                                 new Document("createdBy", userId))),

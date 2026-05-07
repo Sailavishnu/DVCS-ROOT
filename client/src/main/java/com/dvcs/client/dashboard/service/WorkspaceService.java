@@ -36,6 +36,7 @@ import com.dvcs.client.dashboard.data.dao.WorkspaceDao;
 public final class WorkspaceService {
 
     private static final String DEFAULT_FOLDER_NAME = "root";
+    private static final long DEFAULT_STORAGE_QUOTA_BYTES = 1_610_612_736L; // 1.5 GiB
 
     private final WorkspaceDao workspaceDao;
     private final FolderDao folderDao;
@@ -107,6 +108,15 @@ public final class WorkspaceService {
                 .append("createdBy", currentUserId)
                 .append("createdAt", new Date());
         folderDao.insert(rootFolder);
+
+        auditLogDao.insert(new AuditLog(
+                new ObjectId(),
+                currentUserId,
+                "CREATE_WORKSPACE",
+                "Workspace",
+                normalizedName,
+                null,
+                Instant.now()));
 
         return toWorkspaceSummary(workspace);
     }
@@ -461,7 +471,9 @@ public final class WorkspaceService {
         long usedStorageBytes = totalFiles * 1024 * 1024L; // 1MB per file avg
         
         User user = userRepository.findById(userId).orElse(null);
-        long quota = (user != null && user.getStorageQuota() != null) ? user.getStorageQuota() : 5368709120L; // 5GB default
+        long quota = (user != null && user.getStorageQuota() != null)
+                ? user.getStorageQuota()
+                : DEFAULT_STORAGE_QUOTA_BYTES;
         int fileLimit = (user != null && user.getFilesLimit() != null) ? user.getFilesLimit() : 100;
         int usedFiles = (int) totalFiles;
 

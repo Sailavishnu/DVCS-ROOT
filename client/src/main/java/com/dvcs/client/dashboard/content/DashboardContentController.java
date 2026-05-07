@@ -47,6 +47,7 @@ public class DashboardContentController {
     private static final double MY_WORKSPACE_CARD_HEIGHT = 160;
     private static final double COLLAB_CARD_HEIGHT = 160;
     private static final double RIGHT_PANEL_MIN_WIDTH = 420;
+    private static final double DEFAULT_STORAGE_QUOTA_GB = 1.5;
     private static final String ICON_FOLDER_URL = "https://img.icons8.com/fluency-systems-filled/96/00ff88/folder-invoices.png";
 
     @FXML
@@ -123,7 +124,7 @@ public class DashboardContentController {
         storageProgressBar.setMaxWidth(Double.MAX_VALUE);
         storageProgressBar.getStyleClass().add("storage-progress");
         
-        this.storageLabel = new Label("0 / 5 GB used");
+        this.storageLabel = new Label("0 / " + DEFAULT_STORAGE_QUOTA_GB + " GB used");
         storageLabel.getStyleClass().add("stats-sublabel");
         
         storageBox.getChildren().addAll(sLabel, storageProgressBar, storageLabel);

@@ -1,5 +1,6 @@
 package com.dvcs.client.dashboard.profile;
 
+import com.dvcs.client.core.dao.AuditLogDao;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,11 +21,13 @@ public final class ProfileService {
     private final UserDAO userDAO;
     private final WorkspaceDAO workspaceDAO;
     private final CommitDAO commitDAO;
+    private final AuditLogDao auditLogDao;
 
-    public ProfileService(UserDAO userDAO, WorkspaceDAO workspaceDAO, CommitDAO commitDAO) {
+    public ProfileService(UserDAO userDAO, WorkspaceDAO workspaceDAO, CommitDAO commitDAO, AuditLogDao auditLogDao) {
         this.userDAO = Objects.requireNonNull(userDAO, "userDAO");
         this.workspaceDAO = Objects.requireNonNull(workspaceDAO, "workspaceDAO");
         this.commitDAO = Objects.requireNonNull(commitDAO, "commitDAO");
+        this.auditLogDao = Objects.requireNonNull(auditLogDao, "auditLogDao");
     }
 
     public ProfileViewModel loadProfile(ObjectId userId) {
@@ -48,9 +51,16 @@ public final class ProfileService {
 
         Map<ObjectId, String> workspaceNames = workspaceDAO.findWorkspaceNamesByIds(workspaceIds);
         List<PopularWorkspace> popularWorkspaces = commitDAO.findTopPopularWorkspaces(workspaceIds, workspaceNames, 6);
+        long storageUsedBytes = workspaceDAO.loadEstimatedStorageBytes(workspaceIds);
+        List<FileSizeEntry> largestFiles = workspaceDAO.loadLargestFiles(workspaceIds, 6);
 
         Map<LocalDate, Integer> dailyCommitCounts = commitDAO.loadLast30DayCommitCounts(userId, workspaceIds);
-        List<DayCommit> days = buildLast30Days(dailyCommitCounts);
+        List<DayCommit> commitDays = buildLast30DayCommits(dailyCommitCounts);
+        List<DayActivity> usageDays = buildLast30DayActivities(auditLogDao.loadDailyActionCounts(userId, 30));
+        List<CreationDay> creationDays = buildLast30DayCreationSeries(
+                workspaceDAO.loadLast30DayWorkspaceCreationCounts(userId),
+                workspaceDAO.loadLast30DayFolderCreationCounts(userId),
+                workspaceDAO.loadLast30DayFileCreationCounts(userId));
 
         List<Document> recentDocs = commitDAO.findRecent(workspaceIds, 10);
         List<RecentCommit> recentCommits = new ArrayList<>();
@@ -73,12 +83,16 @@ public final class ProfileService {
                 initials(name, username),
                 bio,
                 storageQuota,
+                storageUsedBytes,
                 popularWorkspaces,
+                largestFiles,
                 totalWorkspaces,
                 totalFolders,
                 totalFiles,
                 totalCommits,
-                days,
+                commitDays,
+                usageDays,
+                creationDays,
                 recentCommits);
     }
 
@@ -172,7 +186,7 @@ public final class ProfileService {
         return initials.toString();
     }
 
-    private static List<DayCommit> buildLast30Days(Map<LocalDate, Integer> dailyCommitCounts) {
+    private static List<DayCommit> buildLast30DayCommits(Map<LocalDate, Integer> dailyCommitCounts) {
         List<DayCommit> days = new ArrayList<>(30);
         LocalDate today = LocalDate.now();
         for (int i = 29; i >= 0; i--) {
@@ -183,13 +197,47 @@ public final class ProfileService {
         return days;
     }
 
+    private static List<DayActivity> buildLast30DayActivities(Map<LocalDate, Integer> dailyActivityCounts) {
+        List<DayActivity> days = new ArrayList<>(30);
+        LocalDate today = LocalDate.now();
+        for (int i = 29; i >= 0; i--) {
+            LocalDate date = today.minusDays(i);
+            int activities = dailyActivityCounts.getOrDefault(date, 0);
+            days.add(new DayActivity(date, activities));
+        }
+        return days;
+    }
+
+    private static List<CreationDay> buildLast30DayCreationSeries(
+            Map<LocalDate, Integer> workspaceCounts,
+            Map<LocalDate, Integer> folderCounts,
+            Map<LocalDate, Integer> fileCounts) {
+        List<CreationDay> days = new ArrayList<>(30);
+        LocalDate today = LocalDate.now();
+        for (int i = 29; i >= 0; i--) {
+            LocalDate date = today.minusDays(i);
+            days.add(new CreationDay(
+                    date,
+                    workspaceCounts.getOrDefault(date, 0),
+                    folderCounts.getOrDefault(date, 0),
+                    fileCounts.getOrDefault(date, 0)));
+        }
+        return days;
+    }
+
     private static String safe(String value) {
         return value == null ? "" : value;
     }
 
     public record DayCommit(LocalDate date, int commitCount) {}
 
+    public record DayActivity(LocalDate date, int activityCount) {}
+
+    public record CreationDay(LocalDate date, int workspaceCount, int folderCount, int fileCount) {}
+
     public record PopularWorkspace(String workspaceName, int commitCount) {}
+
+    public record FileSizeEntry(String filename, String workspaceName, long sizeBytes) {}
 
     public record RecentCommit(String message, String workspaceName, java.time.Instant time) {}
 
@@ -200,12 +248,16 @@ public final class ProfileService {
             String initials,
             String bio,
             Long storageQuota,
+            long storageUsedBytes,
             List<PopularWorkspace> popularWorkspaces,
+            List<FileSizeEntry> largestFiles,
             int totalWorkspaces,
             int totalFolders,
             int totalFiles,
             int totalCommits,
-            List<DayCommit> activityDays,
+            List<DayCommit> commitActivityDays,
+            List<DayActivity> usageDays,
+            List<CreationDay> creationDays,
             List<RecentCommit> recentCommits) {}
 
 

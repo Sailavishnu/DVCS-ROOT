@@ -123,7 +123,8 @@ public class MainLayoutController {
         this.profileService = new ProfileService(
                 new UserDAO(database),
                 new WorkspaceDAO(database),
-                new CommitDAO(database));
+                new CommitDAO(database),
+                new AuditLogDao(database));
         this.collaboratorsService = new CollaboratorsService(
                 collaborationRequestDao, userRepository, workspaceDao, commitDao);
     }
