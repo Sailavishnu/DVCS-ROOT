@@ -96,6 +96,24 @@ public final class ProfileService {
                 recentCommits);
     }
 
+    public record PublicWorkspaceEntry(String workspaceName, String description) {}
+
+    public List<PublicWorkspaceEntry> searchUserPublicWorkspaces(String targetUsername) {
+        if (targetUsername == null || targetUsername.isBlank()) return List.of();
+        Document userDoc = userDAO.findByUsername(targetUsername.trim()).orElse(null);
+        if (userDoc == null) return List.of();
+        ObjectId targetUserId = userDoc.getObjectId("_id");
+        if (targetUserId == null) return List.of();
+        List<Document> docs = workspaceDAO.findPublicWorkspacesByCreator(targetUserId);
+        List<PublicWorkspaceEntry> result = new ArrayList<>();
+        for (Document doc : docs) {
+            String name = safe(doc.getString("workspaceName"));
+            String desc = safe(doc.getString("description"));
+            result.add(new PublicWorkspaceEntry(name.isBlank() ? "Untitled" : name, desc));
+        }
+        return result;
+    }
+
     public UpdateResult updateProfile(ObjectId userId, String name, String username, String bio) {
         Objects.requireNonNull(userId, "userId");
 

@@ -234,10 +234,25 @@ public final class SearchService {
                 .map(d -> d.getObjectId("_id")).filter(Objects::nonNull)
                 .collect(Collectors.toSet());
 
-        List<SearchResultItem> results = new ArrayList<>();
+        // Collect all matching workspaces: owned + public from others
+        Map<ObjectId, Document> seen = new LinkedHashMap<>();
         for (Document ws : workspaceDao.searchByWorkspaceName(normalized)) {
             ObjectId wsId = ws.getObjectId("_id");
-            if (!ownedIds.contains(wsId)) continue;
+            if (wsId != null) seen.put(wsId, ws);
+        }
+        for (Document ws : workspaceDao.findPublicByName(normalized)) {
+            ObjectId wsId = ws.getObjectId("_id");
+            if (wsId != null) seen.put(wsId, ws);
+        }
+
+        List<SearchResultItem> results = new ArrayList<>();
+        for (Document ws : seen.values()) {
+            ObjectId wsId = ws.getObjectId("_id");
+            // only include if owned by user OR marked public
+            boolean isOwned = ownedIds.contains(wsId);
+            boolean isPublic = "public".equals(ws.getString("visibility"));
+            if (!isOwned && !isPublic) continue;
+
             String wsName = sanitize(ws.getString("workspaceName"));
             Date createdAt = ws.getDate("createdAt");
             Instant time = createdAt != null ? createdAt.toInstant() : null;
@@ -245,7 +260,8 @@ public final class SearchService {
                     folderDao.findByWorkspaceId(wsId).stream()
                             .map(f -> f.getObjectId("_id")).filter(Objects::nonNull)
                             .collect(Collectors.toList())).size();
-            results.add(SearchResultItem.workspace(wsId, wsName,
+            ObjectId wsOwner = ws.getObjectId("createdBy");
+            results.add(SearchResultItem.workspace(wsId, wsOwner, wsName,
                     fileCount + " file" + (fileCount == 1 ? "" : "s"), time));
         }
         return results;

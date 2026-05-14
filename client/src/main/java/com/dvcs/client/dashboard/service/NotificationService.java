@@ -15,7 +15,9 @@ import org.bson.Document;
 import org.bson.types.ObjectId;
 
 import com.dvcs.client.auth.repo.UserRepository;
+import com.dvcs.client.core.dao.NotificationDao;
 import com.dvcs.client.core.model.ColabRequest;
+import com.dvcs.client.core.model.Notification;
 import com.dvcs.client.dashboard.data.dao.CollaborationRequestDao;
 import com.dvcs.client.dashboard.data.dao.CommitDao;
 import com.dvcs.client.dashboard.data.dao.FileDao;
@@ -32,6 +34,7 @@ public final class NotificationService {
     private final WorkspaceDao workspaceDao;
     private final UserRepository userRepository;
     private final CommitDao commitDao;
+    private final NotificationDao notificationDao;
 
     public NotificationService(
             CollaborationRequestDao collaborationRequestDao,
@@ -39,13 +42,15 @@ public final class NotificationService {
             FolderDao folderDao,
             WorkspaceDao workspaceDao,
             UserRepository userRepository,
-            CommitDao commitDao) {
+            CommitDao commitDao,
+            NotificationDao notificationDao) {
         this.collaborationRequestDao = Objects.requireNonNull(collaborationRequestDao);
         this.fileDao = Objects.requireNonNull(fileDao);
         this.folderDao = Objects.requireNonNull(folderDao);
         this.workspaceDao = Objects.requireNonNull(workspaceDao);
         this.userRepository = Objects.requireNonNull(userRepository);
         this.commitDao = Objects.requireNonNull(commitDao);
+        this.notificationDao = Objects.requireNonNull(notificationDao);
     }
 
     // ── Unified feed ──────────────────────────────────────────────────────────
@@ -192,12 +197,31 @@ public final class NotificationService {
             if (request.workspaceId() != null) {
                 workspaceDao.addCollaborator(request.workspaceId(), request.requestedTo());
             }
+            if (request.requestedBy() != null) {
+                notificationDao.insert(new Notification(
+                        new org.bson.types.ObjectId(), request.requestedBy(),
+                        "COLLAB_ACCEPTED", "Collaboration request accepted",
+                        "Your collaboration request was accepted.", false,
+                        request.workspaceId(), Instant.now()));
+            }
             return true;
         }
         return false;
     }
 
     public boolean rejectRequest(ObjectId requestId) {
-        return collaborationRequestDao.updateStatus(requestId, "rejected");
+        Optional<ColabRequest> requestOpt = collaborationRequestDao.findById(requestId);
+        boolean updated = collaborationRequestDao.updateStatus(requestId, "rejected");
+        if (updated && requestOpt.isPresent()) {
+            ColabRequest request = requestOpt.get();
+            if (request.requestedBy() != null) {
+                notificationDao.insert(new Notification(
+                        new org.bson.types.ObjectId(), request.requestedBy(),
+                        "COLLAB_REJECTED", "Collaboration request rejected",
+                        "Your collaboration request was rejected.", false,
+                        request.workspaceId(), Instant.now()));
+            }
+        }
+        return updated;
     }
 }

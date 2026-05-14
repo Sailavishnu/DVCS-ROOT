@@ -119,6 +119,14 @@ public final class WorkspaceDAO {
         return workspaces.updateOne(eq("_id", workspaceId), set("workspaceName", newName)).getModifiedCount() > 0;
     }
 
+    public void updateWorkspaceConfig(ObjectId workspaceId, String visibility, int maxCollaborators) {
+        workspaces.updateOne(
+                eq("_id", workspaceId),
+                new Document("$set", new Document("visibility", visibility)
+                        .append("maxCollaborators", maxCollaborators)),
+                new UpdateOptions().upsert(false));
+    }
+
     public void addCollaborator(ObjectId workspaceId, ObjectId collaboratorId) {
         workspaces.updateOne(eq("_id", workspaceId), addToSet("collaborators", collaboratorId),
                 new UpdateOptions().upsert(false));

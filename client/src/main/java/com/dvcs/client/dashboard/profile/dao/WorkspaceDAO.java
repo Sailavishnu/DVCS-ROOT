@@ -46,6 +46,12 @@ public final class WorkspaceDAO {
         return ids;
     }
 
+    public List<Document> findPublicWorkspacesByCreator(ObjectId userId) {
+        Objects.requireNonNull(userId, "userId");
+        return workspaces.find(new Document("createdBy", userId)
+                .append("visibility", "public")).into(new ArrayList<>());
+    }
+
     public int countFoldersByWorkspaceIds(List<ObjectId> workspaceIds) {
         if (workspaceIds == null || workspaceIds.isEmpty()) {
             return 0;

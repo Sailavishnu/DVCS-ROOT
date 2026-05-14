@@ -641,10 +641,11 @@ public class DashboardContentController {
                 database);
         com.dvcs.client.workspacepage.dao.FileDAO fileDAO = new com.dvcs.client.workspacepage.dao.FileDAO(database);
         com.dvcs.client.workspacepage.dao.CommentDAO commentDAO = new com.dvcs.client.workspacepage.dao.CommentDAO(database);
+        com.dvcs.client.workspacepage.dao.WorkspaceSettingsDAO workspaceSettingsDAO = new com.dvcs.client.workspacepage.dao.WorkspaceSettingsDAO(database);
 
         com.dvcs.client.workspacepage.service.CommitService commitService = new com.dvcs.client.workspacepage.service.CommitService(
                 fileDAO);
-        
+
         com.dvcs.client.core.dao.AuditLogDao auditLogDao = new com.dvcs.client.core.dao.AuditLogDao(database);
 
         this.workspaceFileService = new com.dvcs.client.workspacepage.service.FileService(fileDAO, commitService, auditLogDao);
@@ -653,7 +654,8 @@ public class DashboardContentController {
                 fileDAO,
                 commentDAO,
                 commitService,
-                auditLogDao);
+                auditLogDao,
+                workspaceSettingsDAO);
     }
 
     private Node createCollaborativeRow(String title) {

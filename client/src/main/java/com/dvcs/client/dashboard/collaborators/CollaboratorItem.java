@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.util.List;
 
 public record CollaboratorItem(
+        org.bson.types.ObjectId userId,
         String username,
         String initials,
         String workspaceName,

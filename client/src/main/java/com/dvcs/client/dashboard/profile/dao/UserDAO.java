@@ -11,6 +11,7 @@ import com.mongodb.client.MongoDatabase;
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.ne;
+import static com.mongodb.client.model.Filters.regex;
 
 public final class UserDAO {
 
@@ -45,6 +46,15 @@ public final class UserDAO {
         }
 
         return users.updateOne(eq("_id", userId), new Document("$set", updateFields)).getModifiedCount() > 0;
+    }
+
+    public Optional<Document> findByUsername(String username) {
+        Objects.requireNonNull(username, "username");
+        String trimmed = username.trim();
+        // Try exact match first, then case-insensitive
+        Document exact = users.find(eq("username", trimmed)).first();
+        if (exact != null) return Optional.of(exact);
+        return Optional.ofNullable(users.find(regex("username", "^" + java.util.regex.Pattern.quote(trimmed) + "$", "i")).first());
     }
 
     public boolean isUsernameUsedByAnother(ObjectId userId, String username) {

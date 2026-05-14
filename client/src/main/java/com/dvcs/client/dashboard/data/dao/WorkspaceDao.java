@@ -60,6 +60,13 @@ public final class WorkspaceDao {
         return workspaces.find(new Document("_id", new Document("$in", ids))).into(new ArrayList<>());
     }
 
+    public List<Document> findPublicByName(String query) {
+        Objects.requireNonNull(query, "query");
+        Pattern pattern = Pattern.compile(Pattern.quote(query), Pattern.CASE_INSENSITIVE);
+        return workspaces.find(new Document("workspaceName", pattern)
+                .append("visibility", "public")).into(new ArrayList<>());
+    }
+
     public void addCollaborator(ObjectId workspaceId, ObjectId collaboratorId) {
         workspaces.updateOne(eq("_id", workspaceId), addToSet("collaborators", collaboratorId),
                 new UpdateOptions().upsert(false));

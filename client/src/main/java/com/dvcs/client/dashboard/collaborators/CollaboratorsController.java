@@ -45,6 +45,7 @@ public final class CollaboratorsController {
     private Runnable onSearchRequested;
     private Runnable onNotificationRequested;
     private Runnable onProfileRequested;
+    private java.util.function.Consumer<ObjectId> onViewOtherProfile;
 
     @FXML
     private void initialize() {
@@ -60,13 +61,15 @@ public final class CollaboratorsController {
             Runnable onHomeRequested,
             Runnable onSearchRequested,
             Runnable onNotificationRequested,
-            Runnable onProfileRequested) {
+            Runnable onProfileRequested,
+            java.util.function.Consumer<ObjectId> onViewOtherProfile) {
         this.collaboratorsService = Objects.requireNonNull(collaboratorsService);
         this.currentUserId = Objects.requireNonNull(currentUserId);
         this.onHomeRequested = onHomeRequested;
         this.onSearchRequested = onSearchRequested;
         this.onNotificationRequested = onNotificationRequested;
         this.onProfileRequested = onProfileRequested;
+        this.onViewOtherProfile = onViewOtherProfile;
 
         if (userNameLabel != null) userNameLabel.setText(currentUsername == null ? "" : currentUsername);
         if (userInitialsLabel != null) userInitialsLabel.setText(initials(currentUsername));
@@ -279,7 +282,18 @@ public final class CollaboratorsController {
             commitsBox.getChildren().add(none);
         }
 
-        VBox card = new VBox(16, topRow, infoRow, commitsBox);
+        Button viewProfileBtn = new Button("View Profile");
+        viewProfileBtn.setStyle("-fx-padding: 5 12; -fx-font-size: 11; -fx-text-fill: #032312; "
+                + "-fx-background-color: #00df7a; -fx-background-radius: 4; -fx-cursor: hand;");
+        viewProfileBtn.setOnAction(e -> {
+            if (onViewOtherProfile != null && item.userId() != null) {
+                onViewOtherProfile.accept(item.userId());
+            }
+        });
+        HBox actionsRow = new HBox(viewProfileBtn);
+        actionsRow.setAlignment(Pos.CENTER_RIGHT);
+
+        VBox card = new VBox(16, topRow, infoRow, commitsBox, actionsRow);
         card.getStyleClass().add("collab-card");
         card.setPrefWidth(300);
         return card;

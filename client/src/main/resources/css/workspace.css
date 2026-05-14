@@ -398,6 +398,8 @@
 
 .workspace-editor-commit-button:hover {
     -fx-background-color: #00ff88;
+    -fx-effect: dropshadow(gaussian, rgba(0, 255, 136, 0.70), 22, 0.45, 0, 0);
+    -fx-border-color: rgba(200, 255, 230, 0.85);
 }
 
 .workspace-editor-commit-button:disabled {

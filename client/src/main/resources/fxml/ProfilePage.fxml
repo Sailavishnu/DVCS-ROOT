@@ -45,7 +45,8 @@
             <!-- Topbar -->
             <HBox styleClass="prof-topbar" alignment="CENTER_LEFT" spacing="12">
                 <padding><Insets left="20" right="20"/></padding>
-                <TextField fx:id="topSearchField" promptText="Search objects, commits..." styleClass="prof-search-field"/>
+                <TextField fx:id="topSearchField" promptText="Search user by username..." styleClass="prof-search-field" onAction="#onTopSearchAction"/>
+                <Button fx:id="topSearchButton" text="Search" styleClass="prof-search-btn" onAction="#onTopSearchAction"/>
                 <Region HBox.hgrow="ALWAYS"/>
                 <Label text="🔄" styleClass="prof-topbar-icon" onMouseClicked="#onRefreshClick"/>
                 <Label text="🔔" styleClass="prof-topbar-icon" onMouseClicked="#onTopNotifClick"/>

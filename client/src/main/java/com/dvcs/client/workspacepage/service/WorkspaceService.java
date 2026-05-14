@@ -23,6 +23,7 @@ import org.bson.types.ObjectId;
 import com.dvcs.client.workspacepage.dao.CommentDAO;
 import com.dvcs.client.workspacepage.dao.FileDAO;
 import com.dvcs.client.workspacepage.dao.WorkspaceDAO;
+import com.dvcs.client.workspacepage.dao.WorkspaceSettingsDAO;
 import com.dvcs.client.workspacepage.model.FileCommentModel;
 import com.dvcs.client.workspacepage.model.FileItemModel;
 import com.dvcs.client.workspacepage.model.FolderModel;
@@ -37,13 +38,30 @@ public final class WorkspaceService {
     private final CommentDAO commentDAO;
     private final AuditLogDao auditLogDao;
     private final CommitService commitService;
+    private final WorkspaceSettingsDAO workspaceSettingsDAO;
 
-    public WorkspaceService(WorkspaceDAO workspaceDAO, FileDAO fileDAO, CommentDAO commentDAO, CommitService commitService, AuditLogDao auditLogDao) {
+    public WorkspaceService(WorkspaceDAO workspaceDAO, FileDAO fileDAO, CommentDAO commentDAO, CommitService commitService, AuditLogDao auditLogDao, WorkspaceSettingsDAO workspaceSettingsDAO) {
         this.workspaceDAO = Objects.requireNonNull(workspaceDAO, "workspaceDAO");
         this.fileDAO = Objects.requireNonNull(fileDAO, "fileDAO");
         this.commentDAO = Objects.requireNonNull(commentDAO, "commentDAO");
         this.commitService = Objects.requireNonNull(commitService, "commitService");
         this.auditLogDao = Objects.requireNonNull(auditLogDao, "auditLogDao");
+        this.workspaceSettingsDAO = Objects.requireNonNull(workspaceSettingsDAO, "workspaceSettingsDAO");
+    }
+
+    public java.util.Optional<org.bson.Document> getWorkspaceSettings(org.bson.types.ObjectId workspaceId) {
+        return workspaceSettingsDAO.findByWorkspaceId(workspaceId);
+    }
+
+    public void saveWorkspaceSettings(org.bson.types.ObjectId workspaceId, String defaultBranch,
+            String visibility, String mergeStrategy, boolean requireCodeReview,
+            int maxCollaborators, String theme) {
+        workspaceSettingsDAO.upsert(workspaceId, defaultBranch, visibility, mergeStrategy,
+                requireCodeReview, maxCollaborators, theme);
+        // Keep the workspace doc's own visibility + maxCollaborators in sync
+        workspaceDAO.updateWorkspaceConfig(workspaceId,
+                visibility != null ? visibility : "private",
+                maxCollaborators > 0 ? maxCollaborators : 10);
     }
 
     public WorkspacePageModel loadWorkspace(ObjectId workspaceId) {

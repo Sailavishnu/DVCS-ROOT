@@ -66,6 +66,7 @@ public final class CollaboratorsService {
             Instant since = req.respondedAt() != null ? req.respondedAt() : req.requestedAt();
 
             result.add(new CollaboratorItem(
+                    otherUserId,
                     other.getUsername(),
                     ProfileService.initials(null, other.getUsername()),
                     workspaceName,

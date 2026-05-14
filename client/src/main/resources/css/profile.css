@@ -106,6 +106,21 @@
     -fx-padding: 6 12 6 12;
     -fx-pref-width: 300; -fx-max-width: 380;
 }
+.prof-search-btn {
+    -fx-background-color: #00df7a;
+    -fx-text-fill: #032312;
+    -fx-font-weight: bold;
+    -fx-font-size: 12px;
+    -fx-padding: 6 14;
+    -fx-background-radius: 6;
+    -fx-cursor: hand;
+    -fx-border-width: 0;
+}
+.prof-search-btn:hover {
+    -fx-background-color: #00ff88;
+    -fx-effect: dropshadow(gaussian, rgba(0,255,136,0.45), 10, 0.3, 0, 0);
+}
+
 .prof-topbar-icon {
     -fx-text-fill: #4B5563;
     -fx-font-size: 18px;

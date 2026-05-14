@@ -1792,8 +1792,23 @@ public final class WorkspaceController {
     }
 
     private VBox createWorkspaceSettingsPanel() {
-        VBox content = new VBox(16);
-        content.setStyle("-fx-padding: 16;");
+        // Inner VBox holds all cards; outer VBox holds the ScrollPane so the tab scrolls
+        VBox inner = new VBox(16);
+        inner.setStyle("-fx-padding: 20;");
+
+        ScrollPane scroll = new ScrollPane(inner);
+        scroll.setFitToWidth(true);
+        scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        scroll.setStyle("-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;");
+
+        VBox content = new VBox();
+        VBox.setVgrow(scroll, Priority.ALWAYS);
+        content.getChildren().add(scroll);
+
+        // Everything below populates `inner` instead of `content`
+        @SuppressWarnings("unused")
+        VBox target = inner; // alias so the rest of the method adds to inner
 
         // Rename workspace
         VBox renameCard = createGlassMorphicCard(
@@ -1934,7 +1949,94 @@ public final class WorkspaceController {
             permList.getChildren().add(none);
         }
 
-        content.getChildren().addAll(renameCard, renameForm, permCard, permList, deleteCard, deleteBtn);
+        // Workspace configuration settings
+        VBox configCard = createGlassMorphicCard(
+                new Label("Workspace Configuration"),
+                new Label("Default branch, visibility, merge strategy and more"));
+
+        String settingStyle = "-fx-font-size: 12; -fx-background-color: #000000; -fx-text-fill: #ffffff; "
+                + "-fx-border-color: rgba(100,240,160,0.4); -fx-border-radius: 4; -fx-background-radius: 4;";
+
+        javafx.scene.control.ComboBox<String> defaultBranchCombo = new javafx.scene.control.ComboBox<>(
+                javafx.collections.FXCollections.observableArrayList("main", "master", "develop", "staging"));
+        defaultBranchCombo.setValue("main");
+        defaultBranchCombo.setStyle(settingStyle);
+
+        javafx.scene.control.ComboBox<String> visibilityCombo = new javafx.scene.control.ComboBox<>(
+                javafx.collections.FXCollections.observableArrayList("private", "public", "team"));
+        visibilityCombo.setValue("private");
+        visibilityCombo.setStyle(settingStyle);
+
+        javafx.scene.control.ComboBox<String> mergeStrategyCombo = new javafx.scene.control.ComboBox<>(
+                javafx.collections.FXCollections.observableArrayList("merge", "squash", "rebase"));
+        mergeStrategyCombo.setValue("merge");
+        mergeStrategyCombo.setStyle(settingStyle);
+
+        javafx.scene.control.CheckBox requireReviewCheck = new javafx.scene.control.CheckBox("Require code review");
+        requireReviewCheck.setStyle("-fx-text-fill: #e8fff2; -fx-font-size: 12;");
+
+        TextField maxCollabField = new TextField("10");
+        maxCollabField.setPromptText("Max collaborators");
+        maxCollabField.setStyle("-fx-padding: 6; " + settingStyle);
+        maxCollabField.setPrefWidth(80);
+
+        javafx.scene.control.ComboBox<String> themeCombo = new javafx.scene.control.ComboBox<>(
+                javafx.collections.FXCollections.observableArrayList("dark", "light", "system"));
+        themeCombo.setValue("dark");
+        themeCombo.setStyle(settingStyle);
+
+        // Load existing settings from DB
+        try {
+            workspaceService.getWorkspaceSettings(workspaceId).ifPresent(doc -> {
+                if (doc.getString("defaultBranch") != null) defaultBranchCombo.setValue(doc.getString("defaultBranch"));
+                if (doc.getString("visibility") != null) visibilityCombo.setValue(doc.getString("visibility"));
+                if (doc.getString("mergeStrategy") != null) mergeStrategyCombo.setValue(doc.getString("mergeStrategy"));
+                requireReviewCheck.setSelected(Boolean.TRUE.equals(doc.getBoolean("requireCodeReview")));
+                if (doc.getInteger("maxCollaborators") != null) maxCollabField.setText(String.valueOf(doc.getInteger("maxCollaborators")));
+                if (doc.getString("theme") != null) themeCombo.setValue(doc.getString("theme"));
+            });
+        } catch (Exception ignored) {}
+
+        Button saveSettingsBtn = new Button("Save Settings");
+        saveSettingsBtn.setStyle("-fx-padding: 8 16; -fx-font-size: 12; -fx-text-fill: #032312; "
+                + "-fx-background-color: #00df7a; -fx-background-radius: 6;");
+        saveSettingsBtn.setOnAction(e -> {
+            int maxC = 10;
+            try { maxC = Integer.parseInt(maxCollabField.getText().trim()); } catch (NumberFormatException ignored) {}
+            try {
+                workspaceService.saveWorkspaceSettings(workspaceId,
+                        defaultBranchCombo.getValue(),
+                        visibilityCombo.getValue(),
+                        mergeStrategyCombo.getValue(),
+                        requireReviewCheck.isSelected(),
+                        maxC,
+                        themeCombo.getValue());
+                showGlassMorphicSuccess("Settings Saved", "Workspace settings saved successfully");
+            } catch (Exception ex) {
+                showGlassMorphicError("Save Failed", "Failed to save settings: " + ex.getMessage());
+            }
+        });
+
+        VBox configForm = new VBox(10);
+        configForm.setStyle("-fx-padding: 12; -fx-background-color: rgba(15,60,30,0.6); "
+                + "-fx-border-color: rgba(100,240,160,0.3); -fx-border-radius: 12; -fx-background-radius: 12;");
+
+        Label lbBranch = new Label("Default Branch:"); lbBranch.setStyle("-fx-text-fill: #9ab7a8; -fx-font-size: 12;");
+        Label lbVis = new Label("Visibility:"); lbVis.setStyle("-fx-text-fill: #9ab7a8; -fx-font-size: 12;");
+        Label lbMerge = new Label("Merge Strategy:"); lbMerge.setStyle("-fx-text-fill: #9ab7a8; -fx-font-size: 12;");
+        Label lbMax = new Label("Max Collaborators:"); lbMax.setStyle("-fx-text-fill: #9ab7a8; -fx-font-size: 12;");
+        Label lbTheme = new Label("Theme:"); lbTheme.setStyle("-fx-text-fill: #9ab7a8; -fx-font-size: 12;");
+
+        configForm.getChildren().addAll(
+                new HBox(10, lbBranch, defaultBranchCombo),
+                new HBox(10, lbVis, visibilityCombo),
+                new HBox(10, lbMerge, mergeStrategyCombo),
+                requireReviewCheck,
+                new HBox(10, lbMax, maxCollabField),
+                new HBox(10, lbTheme, themeCombo),
+                saveSettingsBtn);
+
+        inner.getChildren().addAll(renameCard, renameForm, configCard, configForm, permCard, permList, deleteCard, deleteBtn);
         return content;
     }
 
@@ -2062,6 +2164,8 @@ public final class WorkspaceController {
                             rows.add(new WorkspaceFileRow(file.filename(), msg, modifiedLabel, file, filePath, false));
                         }
                     } else {
+                        // Skip folders that have no files on this branch
+                        if (folder.files().isEmpty()) continue;
                         String modifiedLabel = "-";
                         try { Instant m = fileSystemService.getLastModified(folderPath); if (m != null) modifiedLabel = formatRelative(m); } catch (Exception ignored) {}
                         rows.add(new WorkspaceFileRow(folder.folderName(), "-", modifiedLabel, null, folderPath, true));

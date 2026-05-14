@@ -76,6 +76,7 @@ public final class ProfileController {
 
     // Topbar
     @FXML private TextField topSearchField;
+    @FXML private Button topSearchButton;
 
     // Header card
     @FXML private Label avatarInitialsLabel;
@@ -152,13 +153,94 @@ public final class ProfileController {
         this.onCollaboratorsRequested = onCollaboratorsRequested;
 
         if (topSearchField != null) {
-            topSearchField.setOnAction(e -> { if (onSearchRequested != null) onSearchRequested.run(); });
+            topSearchField.setPromptText("Search user by username...");
+            topSearchField.setOnAction(e -> onUserSearch());
+        }
+        if (topSearchButton != null) {
+            topSearchButton.setOnAction(e -> onUserSearch());
         }
 
         reloadProfile();
     }
 
+    // ── User search ───────────────────────────────────────────────────────
+
+    private void onUserSearch() {
+        if (topSearchField == null || profileService == null) return;
+        String query = topSearchField.getText() == null ? "" : topSearchField.getText().trim();
+        if (query.isEmpty()) return;
+
+        List<ProfileService.PublicWorkspaceEntry> results = profileService.searchUserPublicWorkspaces(query);
+
+        Stage dialog = new Stage();
+        dialog.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+        dialog.initStyle(javafx.stage.StageStyle.UNDECORATED);
+        Stage owner = resolveOwnerStageForDialog();
+        if (owner != null) dialog.initOwner(owner);
+        dialog.setTitle("Search Results");
+
+        Label title = new Label("Public workspaces of @" + query);
+        title.setStyle("-fx-text-fill:#00ff88;-fx-font-size:15px;-fx-font-weight:800;");
+
+        VBox list = new VBox(8);
+        if (results.isEmpty()) {
+            Label none = new Label("No public workspaces found for \"" + query + "\".");
+            none.setStyle("-fx-text-fill:#9ab7a8;-fx-font-size:13px;");
+            list.getChildren().add(none);
+        } else {
+            for (ProfileService.PublicWorkspaceEntry ws : results) {
+                HBox row = new HBox(10);
+                row.setStyle("-fx-background-color:#0f1f18;-fx-background-radius:8;"
+                        + "-fx-border-color:rgba(0,255,136,0.22);-fx-border-radius:8;-fx-padding:10 14;");
+                Label name = new Label(ws.workspaceName());
+                name.setStyle("-fx-text-fill:#e8fff2;-fx-font-size:13px;-fx-font-weight:700;");
+                Label badge = new Label("READ ONLY");
+                badge.setStyle("-fx-text-fill:#032312;-fx-background-color:#00df7a;"
+                        + "-fx-background-radius:4;-fx-padding:2 8;-fx-font-size:10px;-fx-font-weight:800;");
+                javafx.scene.layout.Region sp = new javafx.scene.layout.Region();
+                HBox.setHgrow(sp, Priority.ALWAYS);
+                row.getChildren().addAll(name, sp, badge);
+                row.setAlignment(Pos.CENTER_LEFT);
+                list.getChildren().add(row);
+            }
+        }
+
+        Button close = new Button("Close");
+        close.setStyle("-fx-background-color:#152821;-fx-text-fill:#8dffca;-fx-border-color:rgba(0,255,136,0.3);"
+                + "-fx-border-radius:8;-fx-background-radius:8;-fx-padding:6 18;-fx-font-weight:700;-fx-cursor:hand;");
+        close.setOnAction(e -> dialog.close());
+
+        VBox card = new VBox(14, title, list, close);
+        card.setStyle("-fx-background-color:#0a150f;-fx-border-color:rgba(0,255,136,0.30);"
+                + "-fx-border-radius:16;-fx-background-radius:16;-fx-padding:28;"
+                + "-fx-effect:dropshadow(gaussian,rgba(0,255,136,0.18),28,0.18,0,8);");
+        card.setMinWidth(420);
+        card.setMaxWidth(520);
+
+        javafx.scene.Scene scene = new javafx.scene.Scene(card);
+        scene.setFill(javafx.scene.paint.Color.web("#0a150f"));
+        dialog.setScene(scene);
+        dialog.showAndWait();
+    }
+
+    private Stage resolveOwnerStageForDialog() {
+        // Try focused window first
+        for (Window w : Window.getWindows()) {
+            if (w.isFocused() && w instanceof Stage s) return s;
+        }
+        // Fall back to any showing stage
+        for (Window w : Window.getWindows()) {
+            if (w.isShowing() && w instanceof Stage s) return s;
+        }
+        return null;
+    }
+
     // ── FXML handlers ─────────────────────────────────────────────────────
+
+    @FXML
+    private void onTopSearchAction() {
+        onUserSearch();
+    }
 
     @FXML
     private void onRefreshClick(MouseEvent event) {

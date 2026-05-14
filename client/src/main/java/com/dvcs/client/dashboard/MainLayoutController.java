@@ -21,7 +21,9 @@ import com.dvcs.client.dashboard.search.SearchResultItem;
 import com.dvcs.client.dashboard.search.SearchService;
 import com.dvcs.client.dashboard.service.NotificationService;
 import com.dvcs.client.core.dao.AuditLogDao;
+import com.dvcs.client.core.dao.NotificationDao;
 import com.dvcs.client.dashboard.service.WorkspaceService;
+import com.dvcs.client.workspacepage.dao.UserSessionDAO;
 import com.mongodb.client.MongoDatabase;
 import javafx.animation.FadeTransition;
 import javafx.animation.TranslateTransition;
@@ -70,6 +72,8 @@ public class MainLayoutController {
 
     private String currentUsername;
     private ObjectId currentUserId;
+    private UserSessionDAO userSessionDAO;
+    private ObjectId currentSessionId;
 
     private boolean drawerOpen = false;
     private static final double DRAWER_WIDTH = 260;
@@ -113,13 +117,15 @@ public class MainLayoutController {
         CollaborationRequestDao collaborationRequestDao = new CollaborationRequestDao(database);
         CommitDao commitDao = new CommitDao(database);
         AuditLogDao auditLogDao = new AuditLogDao(database);
+        NotificationDao notificationDao = new NotificationDao(database);
+        this.userSessionDAO = new UserSessionDAO(database);
 
         this.workspaceService = new WorkspaceService(workspaceDao, folderDao, fileDao,
                 collaborationRequestDao, userRepository, auditLogDao);
         this.searchService = new SearchService(workspaceDao, folderDao, fileDao,
                 commitDao, userRepository);
         this.notificationService = new NotificationService(collaborationRequestDao, fileDao,
-                folderDao, workspaceDao, userRepository, commitDao);
+                folderDao, workspaceDao, userRepository, commitDao, notificationDao);
         this.profileService = new ProfileService(
                 new UserDAO(database),
                 new WorkspaceDAO(database),
@@ -143,6 +149,24 @@ public class MainLayoutController {
         if (avatarInitialsLabel != null) avatarInitialsLabel.setText(initials(currentUsername));
         if (drawerUserName != null) drawerUserName.setText(currentUsername);
         if (drawerUserInitials != null) drawerUserInitials.setText(initials(currentUsername));
+
+        if (userSessionDAO != null && currentSessionId == null) {
+            currentSessionId = userSessionDAO.createSession(currentUserId, null, "DVCS Desktop Client");
+            javafx.application.Platform.runLater(() -> {
+                Stage stage = null;
+                for (javafx.stage.Window w : javafx.stage.Window.getWindows()) {
+                    if (w instanceof Stage s) { stage = s; break; }
+                }
+                if (stage != null) {
+                    final ObjectId sid = currentSessionId;
+                    stage.setOnCloseRequest(e -> {
+                        if (userSessionDAO != null && sid != null) {
+                            userSessionDAO.deactivateSession(sid);
+                        }
+                    });
+                }
+            });
+        }
 
         dashboardContentController.configure(workspaceService, currentUserId, currentUsername);
     }
@@ -277,10 +301,10 @@ public class MainLayoutController {
     private void onDrawerNavClicked(int index) {
         closeDrawer();
         switch (index) {
-            case 0, 1 -> { }
+            case 0, 1 -> goHome();
             case 2 -> openNotificationPage();
             case 3 -> openCollaboratorsPage();
-            case 4 -> { }
+            case 4 -> openSettingsPage();
             default -> { }
         }
     }
@@ -405,11 +429,44 @@ public class MainLayoutController {
             Parent rootNode = loader.load();
             CollaboratorsController controller = loader.getController();
             controller.configure(collaboratorsService, currentUserId, currentUsername,
-                    this::goHome, () -> openSearchResults(""), this::openNotificationPage, this::openProfilePage);
+                    this::goHome, () -> openSearchResults(""), this::openNotificationPage,
+                    this::openProfilePage, this::openOtherProfile);
 
             navigateToRoot(rootNode, "Collaborators");
         } catch (IOException e) {
             throw new RuntimeException("Failed to open collaborators", e);
+        }
+    }
+
+    private void openSettingsPage() {
+        URL url = MainLayoutController.class.getResource("/fxml/SettingsPage.fxml");
+        if (url == null) throw new IllegalStateException("SettingsPage.fxml not found");
+        Parent rootNode;
+        try {
+            rootNode = FXMLLoader.load(url);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to open settings", e);
+        }
+        navigateToRoot(rootNode, "Settings");
+    }
+
+    private void openOtherProfile(ObjectId targetUserId) {
+        if (targetUserId == null || profileService == null) return;
+
+        URL url = MainLayoutController.class.getResource("/fxml/ProfilePage.fxml");
+        if (url == null) throw new IllegalStateException("ProfilePage.fxml not found");
+
+        try {
+            FXMLLoader loader = new FXMLLoader(url);
+            Parent rootNode = loader.load();
+            ProfileController controller = loader.getController();
+            controller.configure(profileService, targetUserId,
+                    this::goHome, () -> openSearchResults(""), this::openNotificationPage,
+                    this::openProfilePage, this::openCollaboratorsPage);
+
+            navigateToRoot(rootNode, "Profile");
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to open profile", e);
         }
     }
 

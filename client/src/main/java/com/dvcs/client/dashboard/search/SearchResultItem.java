@@ -5,6 +5,7 @@ import org.bson.types.ObjectId;
 
 public record SearchResultItem(
         ObjectId workspaceId,
+        ObjectId workspaceOwnerId,
         ObjectId folderId,
         ObjectId fileId,
         String workspaceName,
@@ -20,20 +21,20 @@ public record SearchResultItem(
     public static SearchResultItem file(ObjectId workspaceId, ObjectId folderId, ObjectId fileId,
             String workspaceName, String folderName, String fileName, String relativePath,
             String contentPreview, String committedBy, Instant lastModifiedAt) {
-        return new SearchResultItem(workspaceId, folderId, fileId, workspaceName, folderName,
+        return new SearchResultItem(workspaceId, null, folderId, fileId, workspaceName, folderName,
                 fileName, relativePath, "FILE", contentPreview, null, committedBy, lastModifiedAt);
     }
 
     public static SearchResultItem commit(ObjectId workspaceId, ObjectId folderId, ObjectId fileId,
             String workspaceName, String folderName, String fileName, String relativePath,
             String commitMessage, String commitHash, String committedBy, Instant committedAt) {
-        return new SearchResultItem(workspaceId, folderId, fileId, workspaceName, folderName,
+        return new SearchResultItem(workspaceId, null, folderId, fileId, workspaceName, folderName,
                 fileName, relativePath, "COMMIT", commitMessage, commitHash, committedBy, committedAt);
     }
 
-    public static SearchResultItem workspace(ObjectId workspaceId, String workspaceName,
-            String contentPreview, Instant createdAt) {
-        return new SearchResultItem(workspaceId, null, null, workspaceName, null,
+    public static SearchResultItem workspace(ObjectId workspaceId, ObjectId ownerId,
+            String workspaceName, String contentPreview, Instant createdAt) {
+        return new SearchResultItem(workspaceId, ownerId, null, null, workspaceName, null,
                 workspaceName, workspaceName, "WORKSPACE", contentPreview, null, null, createdAt);
     }
 }

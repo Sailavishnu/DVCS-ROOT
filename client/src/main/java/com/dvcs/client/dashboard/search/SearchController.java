@@ -50,6 +50,7 @@ public final class SearchController {
     @FXML private VBox resultsList;
 
     private SearchService searchService;
+    private com.dvcs.client.dashboard.data.dao.StarredWorkspacesDao starredWorkspacesDao;
     private ObjectId currentUserId;
     private Runnable onNotificationRequested;
     private Runnable onProfileRequested;
@@ -76,6 +77,13 @@ public final class SearchController {
             Consumer<SearchResultItem> onResultSelected) {
         this.searchService = Objects.requireNonNull(searchService);
         this.currentUserId = Objects.requireNonNull(currentUserId);
+        // Lazy-init the starred DAO using the same DB the search service uses
+        try {
+            String dbName = System.getenv("MONGODB_DB");
+            if (dbName == null || dbName.isBlank()) dbName = "DVCS";
+            com.mongodb.client.MongoDatabase db = com.dvcs.client.auth.db.MongoConnection.getDatabase(dbName);
+            this.starredWorkspacesDao = new com.dvcs.client.dashboard.data.dao.StarredWorkspacesDao(db);
+        } catch (Exception ignored) {}
         this.onHomeRequested = onHomeRequested;
         this.onNotificationRequested = onNotificationRequested;
         this.onProfileRequested = onProfileRequested;
@@ -352,7 +360,39 @@ public final class SearchController {
         VBox meta = new VBox(6, nameLabel, tags);
         HBox.setHgrow(meta, Priority.ALWAYS);
 
+        // Star button — only show for workspaces owned by others
+        boolean isOwnedByMe = r.workspaceOwnerId() != null && currentUserId != null
+                && currentUserId.equals(r.workspaceOwnerId());
+        Button starBtn = new Button();
+        if (!isOwnedByMe && starredWorkspacesDao != null && r.workspaceId() != null) {
+            boolean starred = starredWorkspacesDao.isStarred(currentUserId, r.workspaceId());
+            starBtn.setText(starred ? "★ Starred" : "☆ Star");
+            starBtn.setStyle("-fx-padding: 4 10; -fx-font-size: 11; -fx-cursor: hand; "
+                    + "-fx-background-color: " + (starred ? "#00df7a" : "transparent") + "; "
+                    + "-fx-text-fill: " + (starred ? "#032312" : "#00df7a") + "; "
+                    + "-fx-border-color: #00df7a; -fx-border-radius: 4; -fx-background-radius: 4;");
+            starBtn.setOnAction(e -> {
+                if (starredWorkspacesDao == null || r.workspaceId() == null) return;
+                boolean isNowStarred = starredWorkspacesDao.isStarred(currentUserId, r.workspaceId());
+                if (isNowStarred) {
+                    starredWorkspacesDao.unstar(currentUserId, r.workspaceId());
+                    starBtn.setText("☆ Star");
+                    starBtn.setStyle("-fx-padding: 4 10; -fx-font-size: 11; -fx-cursor: hand; "
+                            + "-fx-background-color: transparent; -fx-text-fill: #00df7a; "
+                            + "-fx-border-color: #00df7a; -fx-border-radius: 4; -fx-background-radius: 4;");
+                } else {
+                    starredWorkspacesDao.star(currentUserId, r.workspaceId());
+                    starBtn.setText("★ Starred");
+                    starBtn.setStyle("-fx-padding: 4 10; -fx-font-size: 11; -fx-cursor: hand; "
+                            + "-fx-background-color: #00df7a; -fx-text-fill: #032312; "
+                            + "-fx-border-color: #00df7a; -fx-border-radius: 4; -fx-background-radius: 4;");
+                }
+                e.consume();
+            });
+        }
+
         HBox top = new HBox(14, iconBox, meta);
+        if (!isOwnedByMe) top.getChildren().add(starBtn);
         top.setAlignment(Pos.CENTER_LEFT);
 
         VBox card = new VBox(0, top);
